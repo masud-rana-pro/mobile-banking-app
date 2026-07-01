@@ -11,11 +11,12 @@
 - Step 00 planning foundation: planning files, architecture rules, Bengali learning workflow, Git/GitHub workflow rules, and progress tracking file prepared.
 - Step 00b learning documentation rules: strengthened the Bengali learning file requirements before Step 01.
 - Step 01 project structure: created focused root folders for the future Flutter app, Spring Boot backend, helper scripts, and added a project `.gitignore`.
+- Step 02 Flutter app skeleton: created the Android-first Flutter shell under `apps/mobile/` with Riverpod, go_router, base theme/config, feature-first folders, and a placeholder home screen.
 
 ## Last Commit
 
-- Last commit message: `step-00b: strengthen learning documentation rules`
-- Last commit hash: `ed23113`
+- Last commit message: `step-01: add project structure`
+- Last commit hash: `d259883`
 
 ## Important Architecture Decisions
 
@@ -46,12 +47,13 @@
 ## Known Issues
 
 - No implementation code exists yet.
-- Step 01 creates structure only; Flutter and Spring Boot app generators have not been run yet.
-- The Step 01 commit hash will be reported after commit.
+- Step 02 creates a Flutter skeleton only; no business features, Firebase packages, API calls, QR scan, wallet, or transaction logic exist yet.
+- `flutter create` timed out in the sandbox, so the minimal Flutter skeleton was created manually and verified with Flutter tooling.
+- The Step 02 commit hash will be reported after commit.
 
 ## Next Recommended Step
 
-- Step 02: add Flutter app skeleton under `apps/mobile/` after reviewing the planning docs.
+- Step 03: add Spring Boot backend skeleton under `services/backend/` after reviewing the planning docs.
 
 ## Standard Step Completion Format
 
