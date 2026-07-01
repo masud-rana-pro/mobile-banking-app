@@ -1,0 +1,23 @@
+smartkash:
+  security:
+    jwt:
+      secret: ${JWT_SECRET:change-me-in-local-env}
+  firebase:
+    project-id: ${FIREBASE_PROJECT_ID:}
+    client-email: ${FIREBASE_CLIENT_EMAIL:}
+    private-key: ${FIREBASE_PRIVATE_KEY:}
+  fcm:
+    enabled: ${FCM_ENABLED:false}
+
+spring:
+  datasource:
+    url: ${DATABASE_URL:jdbc:postgresql://localhost:5432/smartkash}
+    username: ${DATABASE_USERNAME:smartkash}
+    password: ${DATABASE_PASSWORD:smartkash}
+  jpa:
+    hibernate:
+      ddl-auto: none
+    open-in-view: false
+  flyway:
+    enabled: false
+

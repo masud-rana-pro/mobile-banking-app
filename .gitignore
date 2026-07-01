@@ -55,6 +55,7 @@ target/
 *.ear
 services/backend/target/
 services/backend/.mvn/wrapper/maven-wrapper.jar
+!services/backend/.mvn/wrapper/maven-wrapper.jar
 
 # Gradle outputs, if used later
 .gradle/
