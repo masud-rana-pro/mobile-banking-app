@@ -41,6 +41,7 @@ apps/mobile/.dart_tool/
 apps/mobile/build/
 apps/mobile/android/.gradle/
 apps/mobile/android/local.properties
+apps/mobile/android/app/src/main/java/io/flutter/plugins/GeneratedPluginRegistrant.java
 apps/mobile/ios/Pods/
 apps/mobile/ios/.symlinks/
 apps/mobile/ios/Flutter/Flutter.framework
@@ -66,4 +67,3 @@ services/backend/build/
 *.sqlite3
 generated/
 out/
-
