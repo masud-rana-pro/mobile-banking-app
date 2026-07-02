@@ -46,6 +46,22 @@ apps/mobile/ios/Pods/
 apps/mobile/ios/.symlinks/
 apps/mobile/ios/Flutter/Flutter.framework
 apps/mobile/ios/Flutter/Flutter.podspec
+apps/mobile/ios/Flutter/Generated.xcconfig
+apps/mobile/ios/Flutter/flutter_export_environment.sh
+apps/mobile/ios/Flutter/ephemeral/
+apps/mobile/ios/Runner/GeneratedPluginRegistrant.*
+apps/mobile/ios/build/
+apps/mobile/macos/Flutter/ephemeral/
+apps/mobile/macos/Flutter/GeneratedPluginRegistrant.*
+apps/mobile/macos/Flutter/Flutter-Generated.xcconfig
+apps/mobile/macos/Pods/
+apps/mobile/macos/build/
+apps/mobile/windows/flutter/ephemeral/
+apps/mobile/windows/runner/GeneratedPluginRegistrant.*
+apps/mobile/windows/build/
+apps/mobile/linux/flutter/ephemeral/
+apps/mobile/linux/flutter/generated_plugin_registrant.*
+apps/mobile/linux/build/
 
 # Java, Maven, and Spring Boot
 target/

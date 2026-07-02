@@ -1,5 +1,5 @@
 name: smartkash
-description: SmartKash Flutter Android-first learning MVP shell.
+description: SmartKash Flutter cross-platform learning MVP shell.
 publish_to: "none"
 version: 0.1.0+1
 
@@ -21,4 +21,3 @@ dev_dependencies:
 
 flutter:
   uses-material-design: true
-
