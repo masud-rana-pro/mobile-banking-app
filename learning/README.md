@@ -48,8 +48,26 @@ learning/step-XX-topic-name.md
 - Class তৈরি করলে class-এর responsibility explain করতে হবে।
 - Config change করলে key/value বা important config block explain করতে হবে।
 - Verification command চালালে command এবং output-এর অর্থ explain করতে হবে।
+- Heavy verification command Codex না চালালে manual verification commands দিতে হবে, যাতে user local IDE/CMD থেকে run করতে পারে।
 - Git command ব্যবহার করলে learning file-এ command list দিতে হবে।
 - Planning-only step হলেও দরকার হলে learning note তৈরি বা update করা যাবে।
+
+## Manual Verification Workflow
+
+Token এবং execution limit বাঁচানোর জন্য Codex future step-এ automatic heavy build/test command চালাবে না, যদি user explicitly না বলে।
+
+Codex সাধারণত এই heavy commands নিজে চালাবে না:
+
+- `flutter analyze`
+- `flutter test`
+- `flutter build apk`
+- `flutter build web`
+- `mvn test`
+- `mvn package`
+- `.\mvnw.cmd test`
+- `.\mvnw.cmd -q -DskipTests package`
+
+Codex code/config/docs change করবে, Bangla learning file update করবে, lightweight check চালাবে, commit/push করবে, তারপর user-এর জন্য exact manual verification commands দেবে।
 
 এই folder project শেখার personal guide হিসেবে কাজ করবে। লক্ষ্য হলো SmartKash project-এর actual code/config/structure ধাপে ধাপে বাংলায় শেখা।
 

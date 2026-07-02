@@ -20,7 +20,7 @@
 - Do not create Flutter, Spring Boot, database migration, or feature code until the matching plan is clear.
 - Implement the project step by step.
 - Keep each implementation step focused.
-- After each implementation step, summarize files changed and tests run.
+- After each implementation step, summarize files changed, lightweight checks run, and manual verification commands for the user.
 
 ## Git And GitHub Workflow
 
@@ -33,11 +33,11 @@ For every step:
 3. Make only focused changes for the current step.
 4. Do not mix unrelated features in the same step.
 5. Update or create the required Bangla learning file under `learning/`.
-6. Run relevant verification commands/tests when possible.
+6. Run only lightweight checks when needed, such as file existence checks, `rg` checks, safe formatting, or dependency/config review.
 7. Show `git status` after changes.
 8. Create a meaningful commit.
 9. Push the commit to GitHub.
-10. Stop and provide a short summary.
+10. Stop and provide a short summary with manual verification commands for the user to run locally.
 
 Commit message format:
 
@@ -62,10 +62,57 @@ After each successful step, push to GitHub with `git push`. If upstream is not s
 - Do not rewrite unrelated planning files unnecessarily.
 - Do not generate huge summaries unless needed.
 - Do not paste full unchanged files in the final response.
-- Only summarize changed files, verification commands, commit message, push status, learning file, and next step.
+- Only summarize changed files, lightweight checks, manual verification commands, commit message, push status, learning file, and next step.
 - Always follow the existing planning docs.
 - Always follow the Bengali learning documentation rule.
 - Update `docs/codex-progress.md` after every implementation step.
+
+## Manual Verification Workflow
+
+To reduce unnecessary token and execution limit usage, Codex must not automatically run heavy build or test commands in every step unless the user explicitly asks.
+
+Do not automatically run these commands:
+
+- `flutter analyze`
+- `flutter test`
+- `flutter build apk`
+- `flutter build web`
+- `mvn test`
+- `mvn package`
+- `.\mvnw.cmd test`
+- `.\mvnw.cmd -q -DskipTests package`
+
+Instead, for normal implementation steps, Codex should:
+
+1. Make focused code, dependency, config, or documentation changes for the requested step.
+2. Update the required Bangla learning file.
+3. Update `docs/codex-progress.md`.
+4. Run only lightweight checks when necessary, such as file existence checks, `rg` checks, safe formatting, or dependency file review.
+5. Provide the exact manual verification commands for the user to run locally in IDE/CMD.
+6. Commit and push the changes to GitHub.
+7. Stop and wait for the user's manual verification result.
+
+If the user reports that manual verification passed, continue to the next requested step. If the user reports errors, fix only those errors in a focused fix step.
+
+Flutter manual verification commands should usually include:
+
+```powershell
+cd apps/mobile
+flutter pub get
+flutter analyze
+flutter test
+flutter run
+flutter build apk --debug
+flutter build web
+```
+
+Backend manual verification commands should usually include:
+
+```powershell
+cd services/backend
+.\mvnw.cmd test
+.\mvnw.cmd -q -DskipTests package
+```
 
 ## Step Completion Response Format
 
@@ -73,12 +120,14 @@ At the end of every step, Codex must respond with:
 
 1. Step completed
 2. Changed files
-3. Verification commands run
-4. Git status summary
-5. Commit message
-6. Push status
-7. Learning file created/updated
-8. Next recommended step
+3. Lightweight checks run
+4. Manual verification commands
+5. Git status summary
+6. Commit message
+7. Commit hash
+8. Push status
+9. Learning file created/updated
+10. Next recommended step
 
 ## Backend Architecture Rules
 
@@ -164,7 +213,7 @@ Each learning file must be written in Bangla and include:
 
 Do not skip the learning file for any implementation step. Do not write only a short summary. Include important snippets and explain them clearly enough that a beginner can follow the actual implementation step by step. Keep the explanation beginner-friendly but technically correct. Update the learning file in the same step where the code/config/structure is implemented. Planning-only steps can also create or update learning notes when useful.
 
-When a step creates folders, the learning file must explain why each important folder exists. When a step creates classes, the learning file must explain each important class responsibility. When a step changes config, the learning file must explain the relevant config keys and why they are needed. When verification commands are run, include the commands and what their output means.
+When a step creates folders, the learning file must explain why each important folder exists. When a step creates classes, the learning file must explain each important class responsibility. When a step changes config, the learning file must explain the relevant config keys and why they are needed. When lightweight checks are run, include the commands and what their output means. When heavy verification is deferred to the user, include the manual verification commands.
 
 ## Feature Rules
 

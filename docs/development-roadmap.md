@@ -16,12 +16,31 @@
 2. Review relevant planning docs.
 3. Make focused changes only.
 4. Update the matching Bangla learning file under `learning/`.
-5. Run relevant verification commands/tests.
+5. Run only lightweight checks when needed, unless the user explicitly asks for heavy verification.
 6. Run `git status` again.
 7. Commit using `step-XX: short action summary`.
 8. Push to GitHub.
 9. Update `docs/codex-progress.md`.
-10. Stop with the standard step completion summary.
+10. Stop with the standard step completion summary and manual verification commands.
+
+## Manual Verification Workflow
+
+To reduce unnecessary token and execution limit usage, Codex should not automatically run heavy build/test commands in every step unless the user explicitly asks.
+
+Do not automatically run:
+
+- `flutter analyze`
+- `flutter test`
+- `flutter build apk`
+- `flutter build web`
+- `mvn test`
+- `mvn package`
+- `.\mvnw.cmd test`
+- `.\mvnw.cmd -q -DskipTests package`
+
+Codex should still commit and push after each focused coding/config/doc step. Then the user runs the manual verification commands locally and reports the result.
+
+If manual verification passes, continue to the next step. If manual verification fails, fix only the reported errors in a focused fix step.
 
 ## Commit Message Examples
 

@@ -17,11 +17,12 @@
 - Step 05 Firebase Auth foundation: added Flutter Firebase Core/Auth dependencies, opt-in Firebase initialization, auth service/provider structure, Android client config instructions, backend Firebase Admin environment-property foundation, and Firebase ID token verifier skeleton without login API/JWT/user creation.
 - Step 06 backend auth JWT foundation: added `POST /api/auth/firebase-login`, Firebase token verification service flow, backend JWT generation/parsing, stateless Spring Security foundation, DTO validation, global API error responses, and JWT unit coverage without user/wallet/PIN/business persistence.
 - Step 06b cross-platform planning and structure update: changed project direction from Flutter Android-first to Flutter full cross-platform, added/verified Android, iOS, Web, Windows, Linux, and macOS platform folders, preserved existing Flutter app structure and backend foundations, and documented platform limitations.
+- Step 06c manual verification workflow: updated Codex workflow rules so heavy Flutter/backend build and test commands are not run automatically unless explicitly requested; Codex now commits/pushes focused changes and provides manual verification commands for the user.
 
 ## Last Commit
 
-- Last commit message: `step-06b: update plan for Flutter cross-platform`
-- Last commit hash: reported in the Step 06b completion summary after commit finalization.
+- Last commit message: `step-06c: switch to manual verification workflow`
+- Last commit hash: reported in the Step 06c completion summary after commit finalization.
 
 ## Important Architecture Decisions
 
@@ -47,6 +48,7 @@
 - Send Money must support both registered mobile number and QR receiver selection.
 - Wallet balance is stored for fast reads, backed by immutable ledger entries.
 - Money-changing operations require transactions, safe wallet locking, idempotency keys, and audit logs.
+- Codex uses a manual verification workflow by default: do focused changes, update learning/progress docs, run lightweight checks only, commit/push, and provide manual verification commands.
 
 ## Manual Setup Completed By User
 
@@ -81,10 +83,11 @@
 - Global `mvn` is not available in the Codex session, so backend verification should use Maven Wrapper `.\mvnw.cmd`.
 - Flyway works against local PostgreSQL 17.10 after adding `flyway-database-postgresql`, but logs a warning that this Flyway version officially tested support up to PostgreSQL 16.
 - Android debug APK builds successfully after using Flutter v2 embedding metadata, AGP `8.6.0`, and installed NDK `28.2.13676358`; Flutter warns these AGP/Kotlin versions should be upgraded in a future maintenance step.
+- Heavy verification commands are now user-run by default unless explicitly requested, to reduce token and execution limit usage.
 
 ## Next Recommended Step
 
-- Step 07: add minimal user/profile database foundation with Flyway migration and persisted role/status planning, without wallet or money-changing business features.
+- Wait for the user's manual verification result for Step 06c workflow docs. After that, Step 07 can add minimal user/profile database foundation with Flyway migration and persisted role/status planning, without wallet or money-changing business features.
 
 ## Standard Step Completion Format
 
@@ -92,9 +95,11 @@ Every future step must end with:
 
 1. Step completed
 2. Changed files
-3. Verification commands run
-4. Git status summary
-5. Commit message
-6. Push status
-7. Learning file created/updated
-8. Next recommended step
+3. Lightweight checks run
+4. Manual verification commands
+5. Git status summary
+6. Commit message
+7. Commit hash
+8. Push status
+9. Learning file created/updated
+10. Next recommended step
