@@ -44,6 +44,15 @@ public class User {
     @Column(name = "updated_at", nullable = false)
     private Instant updatedAt;
 
+    @Column(name = "pin_hash", length = 255)
+    private String pinHash;
+
+    @Column(name = "pin_set", nullable = false)
+    private boolean pinSet;
+
+    @Column(name = "pin_updated_at")
+    private Instant pinUpdatedAt;
+
     @OneToOne(mappedBy = "user")
     private UserProfile profile;
 
@@ -99,5 +108,19 @@ public class User {
 
     public UserProfile getProfile() {
         return profile;
+    }
+
+    public boolean isPinSet() {
+        return pinSet;
+    }
+
+    public Instant getPinUpdatedAt() {
+        return pinUpdatedAt;
+    }
+
+    public void setPinHash(String pinHash) {
+        this.pinHash = pinHash;
+        this.pinSet = true;
+        this.pinUpdatedAt = Instant.now();
     }
 }

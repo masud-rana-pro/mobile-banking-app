@@ -3,16 +3,21 @@ package com.smartkash.auth.service.impl;
 import com.google.firebase.auth.FirebaseAuthException;
 import com.google.firebase.auth.FirebaseToken;
 import com.smartkash.auth.dto.request.FirebaseLoginRequest;
+import com.smartkash.auth.dto.request.SetPinRequest;
 import com.smartkash.auth.dto.response.AuthTokenResponse;
+import com.smartkash.auth.dto.response.PinSetupResponse;
 import com.smartkash.auth.service.AuthService;
 import com.smartkash.common.exception.AuthException;
+import com.smartkash.common.exception.ResourceNotFoundException;
 import com.smartkash.firebase.FirebaseTokenVerifier;
+import com.smartkash.security.JwtPrincipal;
 import com.smartkash.security.JwtService;
 import com.smartkash.security.JwtToken;
 import com.smartkash.user.entity.User;
 import com.smartkash.user.enums.UserRole;
 import com.smartkash.user.enums.UserStatus;
 import com.smartkash.user.repository.UserRepository;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -24,15 +29,18 @@ public class AuthServiceImpl implements AuthService {
     private final FirebaseTokenVerifier firebaseTokenVerifier;
     private final JwtService jwtService;
     private final UserRepository userRepository;
+    private final PasswordEncoder passwordEncoder;
 
     public AuthServiceImpl(
             FirebaseTokenVerifier firebaseTokenVerifier,
             JwtService jwtService,
-            UserRepository userRepository
+            UserRepository userRepository,
+            PasswordEncoder passwordEncoder
     ) {
         this.firebaseTokenVerifier = firebaseTokenVerifier;
         this.jwtService = jwtService;
         this.userRepository = userRepository;
+        this.passwordEncoder = passwordEncoder;
     }
 
     @Override
@@ -52,6 +60,22 @@ public class AuthServiceImpl implements AuthService {
                 user.getMobileNumber(),
                 role
         );
+    }
+
+    @Override
+    @Transactional
+    public PinSetupResponse setPin(JwtPrincipal principal, SetPinRequest request) {
+        if (!request.pin().equals(request.confirmPin())) {
+            throw new IllegalArgumentException("PIN and confirm PIN must match.");
+        }
+
+        User user = userRepository.findByFirebaseUid(principal.firebaseUid())
+                .orElseThrow(() -> new ResourceNotFoundException("User account is not created yet."));
+
+        user.setPinHash(passwordEncoder.encode(request.pin()));
+        User savedUser = userRepository.save(user);
+
+        return new PinSetupResponse(savedUser.isPinSet(), savedUser.getPinUpdatedAt());
     }
 
     private FirebaseToken verifyFirebaseToken(String firebaseIdToken) {
