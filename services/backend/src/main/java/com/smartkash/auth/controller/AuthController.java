@@ -2,8 +2,10 @@ package com.smartkash.auth.controller;
 
 import com.smartkash.auth.dto.request.FirebaseLoginRequest;
 import com.smartkash.auth.dto.request.SetPinRequest;
+import com.smartkash.auth.dto.request.VerifyPinRequest;
 import com.smartkash.auth.dto.response.AuthTokenResponse;
 import com.smartkash.auth.dto.response.PinSetupResponse;
+import com.smartkash.auth.dto.response.PinVerificationResponse;
 import com.smartkash.auth.service.AuthService;
 import com.smartkash.security.JwtPrincipal;
 import jakarta.validation.Valid;
@@ -35,5 +37,13 @@ public class AuthController {
             @Valid @RequestBody SetPinRequest request
     ) {
         return ResponseEntity.ok(authService.setPin(principal, request));
+    }
+
+    @PostMapping("/verify-pin")
+    public ResponseEntity<PinVerificationResponse> verifyPin(
+            @AuthenticationPrincipal JwtPrincipal principal,
+            @Valid @RequestBody VerifyPinRequest request
+    ) {
+        return ResponseEntity.ok(authService.verifyPin(principal, request));
     }
 }

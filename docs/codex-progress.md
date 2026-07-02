@@ -22,11 +22,12 @@
 - Step 08 Firebase login user persistence: linked `POST /api/auth/firebase-login` to the persisted `users` table so valid Firebase tokens create or find a minimal user record and issue backend JWTs with the persisted role, without wallet, PIN, profile editing, or money-changing features.
 - Step 09 user profile completion foundation: added authenticated `PUT /api/users/me/profile` to create or update minimal profile fields using the JWT/Firebase UID, without accepting user IDs or adding wallet, PIN, or money-changing features.
 - Step 10 PIN setup foundation: added user PIN fields, BCrypt password encoder, authenticated `POST /api/auth/set-pin`, 5-digit PIN validation, backend-only hashing, and PIN setup response metadata without PIN verification, rate limiting, wallet, or money-changing features.
+- Step 11 PIN verification foundation: added authenticated `POST /api/auth/verify-pin`, BCrypt PIN matching, failed attempt tracking, 15-minute temporary block after 5 wrong attempts, and UI sample-image workflow reminder without wallet or money-changing APIs.
 
 ## Last Commit
 
-- Last commit message: `step-10: add PIN setup foundation`
-- Last commit hash: reported in the Step 10 completion summary after commit finalization.
+- Last commit message: `step-11: add PIN verification foundation`
+- Last commit hash: reported in the Step 11 completion summary after commit finalization.
 
 ## Important Architecture Decisions
 
@@ -54,6 +55,8 @@
 - Firebase login creates or finds the minimal persisted user record, but does not create wallet, PIN, ledger, transaction, or money-changing records.
 - `PUT /api/users/me/profile` creates or updates only the authenticated user's minimal profile fields and resolves ownership from JWT/Firebase UID.
 - `POST /api/auth/set-pin` requires backend JWT, resolves the user from Firebase UID, validates a 5-digit numeric PIN, stores only a BCrypt hash, and returns only PIN setup metadata.
+- `POST /api/auth/verify-pin` requires backend JWT, checks the raw request PIN against the stored BCrypt hash, tracks failed attempts, and blocks PIN verification for 15 minutes after 5 wrong attempts.
+- Before Flutter UI design work starts, Codex must ask the user for sample/reference images and use them as the visual direction.
 - Send Money must support both registered mobile number and QR receiver selection.
 - Wallet balance is stored for fast reads, backed by immutable ledger entries.
 - Money-changing operations require transactions, safe wallet locking, idempotency keys, and audit logs.
@@ -92,6 +95,7 @@
 - Step 08 links Firebase login to persisted users only; no wallet creation, PIN setup, profile editing, admin management, or money-changing API exists yet.
 - Step 09 adds minimal profile completion only; no wallet creation, PIN setup, admin profile management, KYC/NID fields, or money-changing API exists yet.
 - Step 10 adds PIN setup only; no PIN verification, PIN rate limiting, temporary blocking, wallet creation, admin management, or money-changing API exists yet.
+- Step 11 adds PIN verification only; no wallet creation, money-changing API, admin management, or Flutter UI design exists yet.
 - `flutter create` timed out in the sandbox, so the minimal Flutter skeleton was created manually and verified with Flutter tooling.
 - Global `mvn` is not available in the Codex session, so backend verification should use Maven Wrapper `.\mvnw.cmd`.
 - Flyway works against local PostgreSQL 17.10 after adding `flyway-database-postgresql`, but logs a warning that this Flyway version officially tested support up to PostgreSQL 16.
@@ -100,7 +104,7 @@
 
 ## Next Recommended Step
 
-- Ask the user to run Step 10 manual verification commands. After verification passes, the next recommended step is PIN verification foundation with rate-limit planning, still without wallet or money-changing APIs.
+- Ask the user to run Step 11 manual verification commands. After verification passes, the next recommended step is wallet database foundation planning/implementation, still without money-changing APIs.
 
 ## Standard Step Completion Format
 

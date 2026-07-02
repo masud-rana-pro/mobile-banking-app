@@ -172,6 +172,7 @@ At the end of every step, Codex must respond with:
 - Use reusable shared widgets for buttons, input fields, loading states, error states, and transaction cards.
 - Keep Firebase Auth logic separated from UI screens.
 - Keep QR scan logic inside a dedicated QR feature/module.
+- Before starting Flutter UI design work, ask the user for sample/reference images and use those images as the visual direction.
 
 ## Learning Documentation Rule
 

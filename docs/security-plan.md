@@ -28,9 +28,14 @@
 - PIN setup stores only a BCrypt hash plus PIN setup metadata.
 - Raw PIN must never be logged or returned in an API response.
 - PIN verification must happen only in the backend.
+- PIN verification compares raw request PIN with the stored BCrypt hash using `PasswordEncoder.matches`.
+- PIN verification tracks failed attempts and blocks verification temporarily after 5 wrong attempts for 15 minutes.
 - Money-changing APIs require authenticated user plus PIN confirmation.
 - PIN verification attempts must be rate-limited.
 - After multiple wrong PIN attempts, money-changing actions must be temporarily blocked.
+## UI Design Rule
+
+- Before starting Flutter UI design work, ask the user for sample/reference images and use them as visual direction.
 
 ## Money-Changing API Security
 

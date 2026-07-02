@@ -47,12 +47,14 @@ Use Flyway for versioned database migrations when implementation starts. Do not 
 - `pin_hash`
 - `pin_set`
 - `pin_updated_at`
+- `pin_failed_attempts`
+- `pin_blocked_until`
 - `created_at`
 - `updated_at`
 
 Use a simple role field for MVP Phase 1. Do not create a complex role/permission system unless absolutely needed later.
 
-Step 07 creates only the minimal identity foundation: Firebase UID, mobile number, role, status, and timestamps. Step 10 adds PIN setup fields. `pin_hash` stores only a BCrypt hash; raw PIN must never be stored.
+Step 07 creates only the minimal identity foundation: Firebase UID, mobile number, role, status, and timestamps. Step 10 adds PIN setup fields. Step 11 adds PIN verification attempt tracking fields. `pin_hash` stores only a BCrypt hash; raw PIN must never be stored.
 
 ### user_profiles
 
