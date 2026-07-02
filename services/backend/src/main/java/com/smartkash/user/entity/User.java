@@ -53,6 +53,12 @@ public class User {
     @Column(name = "pin_updated_at")
     private Instant pinUpdatedAt;
 
+    @Column(name = "pin_failed_attempts", nullable = false)
+    private int pinFailedAttempts;
+
+    @Column(name = "pin_blocked_until")
+    private Instant pinBlockedUntil;
+
     @OneToOne(mappedBy = "user")
     private UserProfile profile;
 
@@ -118,9 +124,34 @@ public class User {
         return pinUpdatedAt;
     }
 
+    public String getPinHash() {
+        return pinHash;
+    }
+
+    public int getPinFailedAttempts() {
+        return pinFailedAttempts;
+    }
+
+    public Instant getPinBlockedUntil() {
+        return pinBlockedUntil;
+    }
+
     public void setPinHash(String pinHash) {
         this.pinHash = pinHash;
         this.pinSet = true;
         this.pinUpdatedAt = Instant.now();
+        resetPinFailures();
+    }
+
+    public void recordWrongPinAttempt(int maxAttempts, Instant blockedUntil) {
+        this.pinFailedAttempts += 1;
+        if (this.pinFailedAttempts >= maxAttempts) {
+            this.pinBlockedUntil = blockedUntil;
+        }
+    }
+
+    public void resetPinFailures() {
+        this.pinFailedAttempts = 0;
+        this.pinBlockedUntil = null;
     }
 }
