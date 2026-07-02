@@ -10,13 +10,17 @@ import org.springframework.stereotype.Component;
 public class UserMapper {
 
     public UserResponse toResponse(User user) {
+        return toResponse(user, user.getProfile());
+    }
+
+    public UserResponse toResponse(User user, UserProfile profile) {
         return new UserResponse(
                 user.getId(),
                 user.getFirebaseUid(),
                 user.getMobileNumber(),
                 user.getRole(),
                 user.getStatus(),
-                toProfileResponse(user.getProfile()),
+                toProfileResponse(profile),
                 user.getCreatedAt(),
                 user.getUpdatedAt()
         );

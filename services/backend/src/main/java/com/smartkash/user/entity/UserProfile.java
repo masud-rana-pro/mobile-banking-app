@@ -51,6 +51,12 @@ public class UserProfile {
         this.avatarUrl = avatarUrl;
     }
 
+    public void update(String fullName, String email, String avatarUrl) {
+        this.fullName = fullName;
+        this.email = email;
+        this.avatarUrl = avatarUrl;
+    }
+
     @PrePersist
     void prePersist() {
         Instant now = Instant.now();

@@ -1,11 +1,15 @@
 package com.smartkash.user.controller;
 
 import com.smartkash.security.JwtPrincipal;
+import com.smartkash.user.dto.request.UpdateUserProfileRequest;
 import com.smartkash.user.dto.response.UserResponse;
 import com.smartkash.user.service.UserService;
+import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -22,5 +26,13 @@ public class UserController {
     @GetMapping("/me")
     public ResponseEntity<UserResponse> currentUser(@AuthenticationPrincipal JwtPrincipal principal) {
         return ResponseEntity.ok(userService.getCurrentUser(principal));
+    }
+
+    @PutMapping("/me/profile")
+    public ResponseEntity<UserResponse> updateCurrentUserProfile(
+            @AuthenticationPrincipal JwtPrincipal principal,
+            @Valid @RequestBody UpdateUserProfileRequest request
+    ) {
+        return ResponseEntity.ok(userService.updateCurrentUserProfile(principal, request));
     }
 }
