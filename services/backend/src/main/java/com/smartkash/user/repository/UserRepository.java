@@ -9,6 +9,8 @@ public interface UserRepository extends JpaRepository<User, Long> {
 
     Optional<User> findByFirebaseUid(String firebaseUid);
 
+    Optional<User> findByMobileNumber(String mobileNumber);
+
     boolean existsByFirebaseUid(String firebaseUid);
 
     boolean existsByMobileNumber(String mobileNumber);
