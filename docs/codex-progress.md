@@ -15,11 +15,12 @@
 - Step 03 Spring Boot backend skeleton: created the Maven/Java 21 Spring Boot backend shell under `services/backend/` with base dependencies, environment-based config placeholders, package markers, Maven Wrapper, and context-load test.
 - Step 04 PostgreSQL and Flyway foundation: enabled local datasource/JPA/Flyway configuration through environment variables, added the empty Flyway migration folder, and documented Maven Wrapper verification against the local PostgreSQL database.
 - Step 05 Firebase Auth foundation: added Flutter Firebase Core/Auth dependencies, opt-in Firebase initialization, auth service/provider structure, Android client config instructions, backend Firebase Admin environment-property foundation, and Firebase ID token verifier skeleton without login API/JWT/user creation.
+- Step 06 backend auth JWT foundation: added `POST /api/auth/firebase-login`, Firebase token verification service flow, backend JWT generation/parsing, stateless Spring Security foundation, DTO validation, global API error responses, and JWT unit coverage without user/wallet/PIN/business persistence.
 
 ## Last Commit
 
-- Last commit message: `step-04: configure PostgreSQL and Flyway foundation`
-- Last commit hash: `96f0875`
+- Last commit message: `step-06: add backend auth jwt foundation`
+- Last commit hash: reported in the Step 06 completion summary after commit finalization.
 
 ## Important Architecture Decisions
 
@@ -33,6 +34,9 @@
 - Firebase Phone Auth uses test phone numbers and fixed OTP only in MVP; real SMS OTP is not used.
 - Flutter Firebase initialization is opt-in until local Firebase Android client config is provided.
 - Spring Boot Firebase Admin config uses environment variables only; service account JSON must not be committed.
+- Spring Boot verifies Firebase ID tokens before issuing a backend JWT.
+- Backend JWT is stateless and contains only minimal temporary claims: Firebase UID, phone number when available, and a temporary role.
+- Current role claim is a temporary `CUSTOMER` placeholder until persisted user roles are added in a later database/user step.
 - Send Money must support both registered mobile number and QR receiver selection.
 - Wallet balance is stored for fast reads, backed by immutable ledger entries.
 - Money-changing operations require transactions, safe wallet locking, idempotency keys, and audit logs.
@@ -58,16 +62,16 @@
 
 ## Known Issues
 
-- No implementation code exists yet.
 - Step 04 configures PostgreSQL/Flyway foundation only; no business APIs, Firebase Auth logic, JWT issuing, wallet, transaction, ledger, business schema, Flyway migration scripts, admin pages, or feature logic exist yet.
 - Step 05 configures Firebase foundation only; no full login/register UI, backend login API, JWT issuing, PIN setup, PostgreSQL user records, wallet records, or business feature logic exists yet.
+- Step 06 configures backend auth/JWT foundation only; it does not create PostgreSQL user records, wallet records, PIN setup, admin authorization persistence, or business feature logic.
 - `flutter create` timed out in the sandbox, so the minimal Flutter skeleton was created manually and verified with Flutter tooling.
 - Global `mvn` is not available in the Codex session, so backend verification should use Maven Wrapper `.\mvnw.cmd`.
 - Flyway works against local PostgreSQL 17.10 after adding `flyway-database-postgresql`, but logs a warning that this Flyway version officially tested support up to PostgreSQL 16.
 
 ## Next Recommended Step
 
-- Step 06: implement the dedicated auth/security foundation for backend Firebase token login, backend JWT issuing, user profile bootstrap planning, and PIN setup planning in a focused step.
+- Step 07: add minimal user/profile database foundation with Flyway migration and persisted role/status planning, without wallet or money-changing business features.
 
 ## Standard Step Completion Format
 
