@@ -18,11 +18,12 @@
 - Step 06 backend auth JWT foundation: added `POST /api/auth/firebase-login`, Firebase token verification service flow, backend JWT generation/parsing, stateless Spring Security foundation, DTO validation, global API error responses, and JWT unit coverage without user/wallet/PIN/business persistence.
 - Step 06b cross-platform planning and structure update: changed project direction from Flutter Android-first to Flutter full cross-platform, added/verified Android, iOS, Web, Windows, Linux, and macOS platform folders, preserved existing Flutter app structure and backend foundations, and documented platform limitations.
 - Step 06c manual verification workflow: updated Codex workflow rules so heavy Flutter/backend build and test commands are not run automatically unless explicitly requested; Codex now commits/pushes focused changes and provides manual verification commands for the user.
+- Step 07 user/profile database foundation: added Flyway migration for minimal `users` and `user_profiles` tables, JPA entities, repositories, role/status enums, response DTOs, mapper/service/controller foundation, and read-only `GET /api/users/me` without wallet, PIN, ledger, transaction, or money-changing features.
 
 ## Last Commit
 
-- Last commit message: `step-06c: switch to manual verification workflow`
-- Last commit hash: reported in the Step 06c completion summary after commit finalization.
+- Last commit message: `step-07: add user profile database foundation`
+- Last commit hash: reported in the Step 07 completion summary after commit finalization.
 
 ## Important Architecture Decisions
 
@@ -45,6 +46,10 @@
 - Spring Boot verifies Firebase ID tokens before issuing a backend JWT.
 - Backend JWT is stateless and contains only minimal temporary claims: Firebase UID, phone number when available, and a temporary role.
 - Current role claim is a temporary `CUSTOMER` placeholder until persisted user roles are added in a later database/user step.
+- Minimal persisted user foundation uses `users.firebase_uid` and `users.mobile_number` as unique identifiers.
+- Minimal persisted role/status values use `UserRole` and `UserStatus` enums.
+- `GET /api/users/me` is read-only and returns the current persisted user/profile record when it exists.
+- Firebase login does not auto-create database users yet; that linking belongs in a later focused auth/user step.
 - Send Money must support both registered mobile number and QR receiver selection.
 - Wallet balance is stored for fast reads, backed by immutable ledger entries.
 - Money-changing operations require transactions, safe wallet locking, idempotency keys, and audit logs.
@@ -79,6 +84,7 @@
 - Step 05 configures Firebase foundation only; no full login/register UI, backend login API, JWT issuing, PIN setup, PostgreSQL user records, wallet records, or business feature logic exists yet.
 - Step 06 configures backend auth/JWT foundation only; it does not create PostgreSQL user records, wallet records, PIN setup, admin authorization persistence, or business feature logic.
 - Step 06b changes direction and platform structure only; it does not add login/register UI, wallet, ledger, transaction, payment, QR, recharge, savings, loan, admin business features, or database schema.
+- Step 07 creates only user/profile identity schema and read-only user foundation; no wallet, ledger, PIN, automatic user creation during login, admin user management, or money-changing API exists yet.
 - `flutter create` timed out in the sandbox, so the minimal Flutter skeleton was created manually and verified with Flutter tooling.
 - Global `mvn` is not available in the Codex session, so backend verification should use Maven Wrapper `.\mvnw.cmd`.
 - Flyway works against local PostgreSQL 17.10 after adding `flyway-database-postgresql`, but logs a warning that this Flyway version officially tested support up to PostgreSQL 16.
@@ -87,7 +93,7 @@
 
 ## Next Recommended Step
 
-- Wait for the user's manual verification result for Step 06c workflow docs. After that, Step 07 can add minimal user/profile database foundation with Flyway migration and persisted role/status planning, without wallet or money-changing business features.
+- Ask the user to run Step 07 manual verification commands. After verification passes, the next recommended step is linking Firebase login to persisted user records in a focused auth/user step, still without wallet or money-changing features.
 
 ## Standard Step Completion Format
 

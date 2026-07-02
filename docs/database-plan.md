@@ -42,7 +42,6 @@ Use Flyway for versioned database migrations when implementation starts. Do not 
 - `id`
 - `mobile_number`
 - `firebase_uid`
-- `pin_hash`
 - `role`: `CUSTOMER`, `MERCHANT`, `ADMIN`
 - `status`
 - `created_at`
@@ -50,15 +49,19 @@ Use Flyway for versioned database migrations when implementation starts. Do not 
 
 Use a simple role field for MVP Phase 1. Do not create a complex role/permission system unless absolutely needed later.
 
+Step 07 creates only the minimal identity foundation: Firebase UID, mobile number, role, status, and timestamps. PIN storage is intentionally left for a later dedicated PIN security step.
+
 ### user_profiles
 
 - `id`
 - `user_id`
 - `full_name`
 - `email`
-- `address`
+- `avatar_url`
 - `created_at`
 - `updated_at`
+
+Profile fields stay minimal in the first foundation step. KYC/NID/provider-backed identity fields are not part of the zero-budget MVP foundation.
 
 ### wallets
 

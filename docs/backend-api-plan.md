@@ -112,6 +112,11 @@ com.smartkash.wallet.enums
 - `POST /api/auth/verify-pin`: verify PIN in backend only.
 - `POST /api/devices/fcm-token`: save/update FCM device token.
 
+## User APIs
+
+- `GET /api/users/me`: read the authenticated user's persisted user/profile foundation record.
+- The first user/profile foundation step does not auto-create users during Firebase login. Linking Firebase login to persisted users is handled in a later auth/user step.
+
 ## Wallet APIs
 
 - `GET /api/wallet/me`: get current user's wallet balance.
