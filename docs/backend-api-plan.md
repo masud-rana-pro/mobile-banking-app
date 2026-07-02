@@ -109,6 +109,7 @@ com.smartkash.wallet.enums
 
 - `POST /api/auth/firebase-login`: verify Firebase token and issue backend JWT.
 - `POST /api/auth/set-pin`: set hashed PIN for authenticated user.
+- PIN setup requires authenticated backend JWT, accepts `pin` and `confirmPin`, validates exactly 5 numeric digits, hashes the PIN with BCrypt, and never returns the raw PIN.
 - `POST /api/auth/verify-pin`: verify PIN in backend only.
 - `POST /api/devices/fcm-token`: save/update FCM device token.
 

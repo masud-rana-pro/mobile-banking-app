@@ -23,6 +23,10 @@
 
 - PIN must be hashed in the backend.
 - Raw PIN must never be stored.
+- MVP PIN setup uses exactly 5 numeric digits.
+- `POST /api/auth/set-pin` requires authenticated backend JWT and resolves the user from Firebase UID; it must not accept a user ID in the request body.
+- PIN setup stores only a BCrypt hash plus PIN setup metadata.
+- Raw PIN must never be logged or returned in an API response.
 - PIN verification must happen only in the backend.
 - Money-changing APIs require authenticated user plus PIN confirmation.
 - PIN verification attempts must be rate-limited.
