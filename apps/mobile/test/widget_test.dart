@@ -9,4 +9,3 @@ void main() {
     expect(find.textContaining('Flutter skeleton ready'), findsOneWidget);
   });
 }
-
