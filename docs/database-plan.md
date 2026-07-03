@@ -202,6 +202,8 @@ MVP Phase 1 loan approval/rejection only updates request status. Step 19 creates
 
 Use `mobile_recharges`, not `recharge_requests`, because MVP recharge is demo success, not admin approval.
 
+Step 20 creates the mobile recharge demo record foundation only. It stores an authenticated user's requested operator, mobile number, amount, and `SUCCESS`/`FAILED` status. It does not debit the wallet, call a real recharge provider, create ledger entries, create transaction records, use idempotency keys, or send FCM alerts yet. `transaction_reference` is nullable until a later money-changing recharge step connects recharge records to transaction and ledger records.
+
 ### firebase_devices
 
 - `id`

@@ -31,11 +31,12 @@
 - Step 17 Add Money request foundation: added `add_money_requests` table, status/source enums, entity, repository, DTOs, mapper, service, and authenticated customer create/list APIs that save `PENDING` requests only without wallet credit, ledger entries, transaction records, idempotency records, FCM alerts, or admin approval flows.
 - Step 18 merchant profile foundation: added `merchants` table, merchant status enum, entity, repository, DTOs, mapper, service, and authenticated current-user create/read APIs that promote the user role to `MERCHANT` without payment, wallet debit/credit, ledger entries, or transaction records.
 - Step 19 Loan request foundation: added `loan_requests` table, loan status enum, entity, repository, DTOs, mapper, service, and authenticated customer create/list APIs that save `PENDING` requests only without approval/rejection, disbursement, wallet credit, repayment, installments, ledger entries, or transaction records.
+- Step 20 Mobile recharge foundation: added `mobile_recharges` table, operator/status enums, entity, repository, DTOs, mapper, service, and authenticated customer demo create/list APIs that save recharge records only without wallet debit, provider integration, ledger entries, transaction records, idempotency records, PIN confirmation, or FCM alerts.
 
 ## Last Commit
 
-- Last commit message: `step-19: add loan request foundation`
-- Last commit hash: reported in the Step 19 completion summary after commit finalization.
+- Last commit message: `step-20: add mobile recharge foundation`
+- Last commit hash: pending until Step 20 commit finalization.
 
 ## Important Architecture Decisions
 
@@ -76,6 +77,7 @@
 - Step 17 Add Money request foundation allows authenticated customers to create/list pending funding requests, but the request itself is not a wallet balance change.
 - Step 18 merchant profile foundation keeps merchant business data in `merchants` and role in `users.role = MERCHANT`, matching the planned merchant model.
 - Step 19 Loan request foundation follows MVP Phase 1 scope: approval/rejection will only update status later; disbursement and repayment remain future scope.
+- Step 20 Mobile recharge foundation follows the zero-budget MVP rule: recharge creates a demo record only and does not call a real recharge provider or change wallet balance.
 - Money-changing operations require transactions, safe wallet locking, idempotency keys, and audit logs.
 - Codex uses a manual verification workflow by default: do focused changes, update learning/progress docs, run lightweight checks only, commit/push, and provide manual verification commands.
 
@@ -121,6 +123,7 @@
 - Step 17 creates pending Add Money requests only; it does not implement admin approval/rejection, wallet credit, ledger entries, transaction records, idempotency usage, audit logging, or FCM alerts yet.
 - Step 18 creates merchant profiles only; it does not implement merchant payment, QR payment, wallet debit/credit, admin merchant management, or merchant settlement.
 - Step 19 creates pending Loan requests only; it does not implement admin approval/rejection, wallet disbursement, repayment, installments, ledger entries, transaction records, idempotency usage, audit logging, or FCM alerts yet.
+- Step 20 creates demo Mobile Recharge records only; it does not implement wallet debit, PIN confirmation, idempotency usage, provider integration, ledger entries, transaction records, audit logging, or FCM alerts yet.
 - `flutter create` timed out in the sandbox, so the minimal Flutter skeleton was created manually and verified with Flutter tooling.
 - Global `mvn` is not available in the Codex session, so backend verification should use Maven Wrapper `.\mvnw.cmd`.
 - Flyway works against local PostgreSQL 17.10 after adding `flyway-database-postgresql`, but logs a warning that this Flyway version officially tested support up to PostgreSQL 16.
@@ -129,7 +132,7 @@
 
 ## Next Recommended Step
 
-- Ask the user to run Step 19 manual verification commands. After verification passes, the next recommended step is mobile recharge foundation, still avoiding wallet debit/credit until a dedicated money movement step.
+- Ask the user to run Step 20 manual verification commands. After verification passes, the next recommended step is savings goal foundation, still avoiding wallet debit/deposit money movement until a dedicated savings deposit step.
 
 ## Standard Step Completion Format
 
