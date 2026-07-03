@@ -197,6 +197,8 @@ Step 16 adds admin audit log persistence foundation only. It does not implement 
 
 Step 23 implements the minimal read-only admin API foundation for `GET /admin/users`, `GET /admin/transactions`, `GET /admin/add-money/requests`, `GET /admin/loans/requests`, `GET /admin/recharges`, `GET /admin/payments`, and `GET /admin/audit-logs`. All `/admin/**` routes require authenticated `ADMIN` role. Step 23 does not implement approval, rejection, analytics, settings, dashboards, complex role management, wallet mutation, or money-changing admin actions. `GET /admin/payments` returns an empty list until merchant payment persistence exists.
 
+Step 24 implements Add Money admin approval/rejection. Approval requires `ADMIN` role and an idempotency key, locks the Add Money request and customer wallet, changes the request to `APPROVED`, credits the customer wallet, creates a user-facing `ADD_MONEY` transaction record, creates an immutable `CREDIT` ledger entry, stores idempotency completion, and records an admin audit log in one database transaction. Rejection changes only the request status to `REJECTED`, stores idempotency completion, and records an audit log; it does not change wallet balance or create ledger/transaction records.
+
 ## Idempotency Rule
 
 All money-changing APIs must accept a unique `clientRequestId` or `idempotencyKey`. If the same key is submitted again for the same request type and user, the backend must not create duplicate ledger entries, transaction records, or wallet changes.

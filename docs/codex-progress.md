@@ -35,11 +35,12 @@
 - Step 21 Savings goal foundation: added `savings_goals` table, goal status enum, entity, repository, DTOs, mapper, service, and authenticated customer create/list APIs that save goal records only without savings deposits, wallet debit, ledger entries, transaction records, idempotency records, PIN confirmation, or FCM alerts.
 - Step 22 Transaction history read API foundation: added authenticated read-only transaction list/detail APIs, response DTO, mapper, service, and filtered repository query without creating, updating, or deleting transactions, ledger entries, or wallet balances.
 - Step 23 Admin read API foundation: added `ADMIN`-only security for `/admin/**`, read-only admin endpoints for users, transactions, add-money requests, loan requests, recharges, payments placeholder, and audit logs without approval/rejection, dashboard analytics, settings, role management, wallet mutation, or money-changing actions.
+- Step 24 Add Money admin approval/rejection: added `ADMIN` approval/rejection endpoints with idempotency, locked request/wallet reads, wallet credit on approval, `ADD_MONEY` transaction record, immutable credit ledger entry, idempotency completion, and admin audit logs; rejection updates status/audit/idempotency only without wallet balance changes.
 
 ## Last Commit
 
-- Last commit message: `step-23: add admin read api foundation`
-- Last commit hash: pending until Step 23 commit finalization.
+- Last commit message: `step-24: add add money admin decision flow`
+- Last commit hash: pending until Step 24 commit finalization.
 
 ## Important Architecture Decisions
 
@@ -84,6 +85,7 @@
 - Step 21 Savings goal foundation creates savings targets only. Depositing money into savings remains a future money-changing step that must use PIN, idempotency, wallet locking, transactions, and immutable ledger entries.
 - Step 22 Transaction history API is read-only and user-scoped. It can return empty lists until future money-changing flows create transaction records.
 - Step 23 Admin read API foundation protects `/admin/**` with `ROLE_ADMIN` and keeps the admin panel minimal and read-only until dedicated approval/rejection steps are implemented.
+- Step 24 Add Money approval is the first backend money-changing flow. It uses admin role protection, idempotency, request/wallet locking, wallet credit, transaction record, immutable ledger entry, and audit log in one database transaction.
 - Money-changing operations require transactions, safe wallet locking, idempotency keys, and audit logs.
 - Codex uses a manual verification workflow by default: do focused changes, update learning/progress docs, run lightweight checks only, commit/push, and provide manual verification commands.
 
@@ -133,6 +135,7 @@
 - Step 21 creates Savings Goal records only; it does not implement savings deposits, wallet debit, PIN confirmation, idempotency usage, ledger entries, transaction records, audit logging, or FCM alerts yet.
 - Step 22 exposes transaction records for reading only; most current users may see an empty list until future money-changing flows create transaction records.
 - Step 23 exposes minimal admin read APIs only; it does not create admin dashboards, analytics, advanced settings, complex role management, approvals, rejections, wallet mutation, or money-changing actions.
+- Step 24 implements only Add Money admin approval/rejection; it does not implement loan approval, send money, merchant payment, mobile recharge wallet debit, savings deposit, FCM alerts, or frontend UI.
 - `flutter create` timed out in the sandbox, so the minimal Flutter skeleton was created manually and verified with Flutter tooling.
 - Global `mvn` is not available in the Codex session, so backend verification should use Maven Wrapper `.\mvnw.cmd`.
 - Flyway works against local PostgreSQL 17.10 after adding `flyway-database-postgresql`, but logs a warning that this Flyway version officially tested support up to PostgreSQL 16.
@@ -141,7 +144,7 @@
 
 ## Next Recommended Step
 
-- Ask the user to run Step 23 manual verification commands. After verification passes, the next recommended step is Add Money admin approval/rejection foundation with wallet credit still handled carefully through money-changing rules.
+- Ask the user to run Step 24 manual verification commands. After verification passes, the next recommended step is Loan admin approval/rejection status-only flow.
 
 ## Standard Step Completion Format
 

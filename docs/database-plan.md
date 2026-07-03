@@ -129,7 +129,7 @@ Step 13 transaction records are schema/entity/repository foundation only. Transa
 - `created_at`
 - `updated_at`
 
-Step 17 creates the Add Money request foundation only. Customer requests start as `PENDING`. Approval, rejection, wallet credit, ledger entry creation, transaction record creation, idempotency usage, FCM alerts, and audit logging are future scope.
+Step 17 creates the Add Money request foundation only. Customer requests start as `PENDING`. Step 24 adds admin approval/rejection. Approval credits the customer wallet, creates a user-facing transaction record, creates an immutable credit ledger entry, stores idempotency completion, and records admin audit logs. Rejection updates request status and audit/idempotency only; it does not change wallet balance.
 
 ### merchants
 

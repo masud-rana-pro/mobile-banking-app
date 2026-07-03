@@ -105,4 +105,9 @@ public class Wallet {
     public Instant getUpdatedAt() {
         return updatedAt;
     }
+
+    public BigDecimal credit(BigDecimal amount) {
+        balance = balance.add(amount);
+        return balance;
+    }
 }

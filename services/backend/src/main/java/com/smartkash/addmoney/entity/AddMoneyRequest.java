@@ -121,4 +121,16 @@ public class AddMoneyRequest {
     public Instant getUpdatedAt() {
         return updatedAt;
     }
+
+    public void approve(User adminUser) {
+        this.status = AddMoneyStatus.APPROVED;
+        this.approvedBy = adminUser;
+        this.approvedAt = Instant.now();
+    }
+
+    public void reject(User adminUser) {
+        this.status = AddMoneyStatus.REJECTED;
+        this.approvedBy = adminUser;
+        this.approvedAt = Instant.now();
+    }
 }

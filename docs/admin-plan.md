@@ -43,6 +43,8 @@ Admin functionality remains backend-owned through Spring Boot routes/APIs. The F
 
 Step 23 implements the minimal read-only admin API foundation for these `GET` routes. All `/admin/**` routes require authenticated `ADMIN` role. Approval/rejection routes, dashboards, analytics, advanced settings, and complex role management remain future scope.
 
+Step 24 implements Add Money approval/rejection only. Approval is a money-changing admin action and must create wallet credit, transaction record, immutable ledger entry, idempotency record, and audit log. Rejection must not change wallet balance.
+
 ## Admin Actions
 
 ### Add Money Approval
@@ -53,8 +55,8 @@ Step 23 implements the minimal read-only admin API foundation for these `GET` ro
 - Credit customer wallet.
 - Create immutable ledger entry.
 - Create user-facing transaction record.
-- Send important FCM alert when possible.
-- Step 17 creates customer pending Add Money requests only. Admin approval/rejection APIs and wallet credit are future scope.
+- Create admin audit log.
+- Step 24 implements approval wallet credit, transaction, ledger, idempotency, and audit logging. FCM alert is still future notification scope.
 
 ### Add Money Rejection
 

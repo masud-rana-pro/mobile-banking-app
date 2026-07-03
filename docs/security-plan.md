@@ -88,6 +88,8 @@ Admin actions such as Add Money approval, Add Money rejection, Loan approval, an
 
 Critical money operations such as Send Money, Merchant Payment, Savings Deposit, Mobile Recharge, and Add Money approval should also be auditable through transaction references, ledger entries, and audit records where appropriate.
 
+Step 24 applies this rule to Add Money approval. The admin approval endpoint requires `ADMIN` role and idempotency key, locks the target wallet, creates a transaction record and immutable ledger entry, and records an admin audit log. Repeating the same idempotency key must not credit the wallet twice.
+
 Step 16 creates the admin audit log persistence foundation only. It does not expose audit logs through admin APIs yet and does not wire audit logging into approval flows yet.
 
 ## API Safety Rules
