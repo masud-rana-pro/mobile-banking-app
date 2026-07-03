@@ -195,6 +195,8 @@ All admin routes require authenticated `ADMIN` role.
 
 Step 16 adds admin audit log persistence foundation only. It does not implement `GET /admin/audit-logs` or wire audit logging into admin approval/rejection APIs yet.
 
+Step 23 implements the minimal read-only admin API foundation for `GET /admin/users`, `GET /admin/transactions`, `GET /admin/add-money/requests`, `GET /admin/loans/requests`, `GET /admin/recharges`, `GET /admin/payments`, and `GET /admin/audit-logs`. All `/admin/**` routes require authenticated `ADMIN` role. Step 23 does not implement approval, rejection, analytics, settings, dashboards, complex role management, wallet mutation, or money-changing admin actions. `GET /admin/payments` returns an empty list until merchant payment persistence exists.
+
 ## Idempotency Rule
 
 All money-changing APIs must accept a unique `clientRequestId` or `idempotencyKey`. If the same key is submitted again for the same request type and user, the backend must not create duplicate ledger entries, transaction records, or wallet changes.

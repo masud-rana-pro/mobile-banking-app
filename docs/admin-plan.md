@@ -41,6 +41,8 @@ Admin functionality remains backend-owned through Spring Boot routes/APIs. The F
 - `GET /admin/payments`
 - `GET /admin/audit-logs`
 
+Step 23 implements the minimal read-only admin API foundation for these `GET` routes. All `/admin/**` routes require authenticated `ADMIN` role. Approval/rejection routes, dashboards, analytics, advanced settings, and complex role management remain future scope.
+
 ## Admin Actions
 
 ### Add Money Approval

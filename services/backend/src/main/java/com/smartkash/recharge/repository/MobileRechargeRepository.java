@@ -11,4 +11,6 @@ public interface MobileRechargeRepository extends JpaRepository<MobileRecharge, 
     List<MobileRecharge> findByUser_IdOrderByCreatedAtDesc(Long userId);
 
     List<MobileRecharge> findByStatusOrderByCreatedAtDesc(RechargeStatus status);
+
+    List<MobileRecharge> findAllByOrderByCreatedAtDesc();
 }

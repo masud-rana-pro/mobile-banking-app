@@ -19,6 +19,8 @@ public interface TransactionRecordRepository extends JpaRepository<TransactionRe
 
     Optional<TransactionRecord> findByIdAndUserId(Long id, Long userId);
 
+    List<TransactionRecord> findAllByOrderByCreatedAtDesc();
+
     @Query("""
             select t
             from TransactionRecord t
