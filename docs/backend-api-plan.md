@@ -122,12 +122,14 @@ com.smartkash.wallet.enums
 - Profile update resolves the user from the authenticated backend JWT/Firebase UID and never accepts a user ID in the request body.
 - Firebase login now creates or finds the minimal persisted `users` record by Firebase UID, using the Firebase phone number as the unique SmartKash mobile number.
 - New Firebase-linked users start as `CUSTOMER` and `ACTIVE` until later profile, PIN, merchant, or admin management steps update them.
-- Firebase login does not create wallets, PINs, transactions, ledgers, or money-changing records.
+- Firebase login creates or finds the user's zero-balance wallet lifecycle record.
+- Firebase login does not create PINs, transactions, ledgers, idempotency records, or money-changing records.
 
 ## Wallet APIs
 
 - `GET /api/wallet/me`: get current user's wallet balance.
 - Step 12 wallet foundation exposes wallet read only. It does not create wallets automatically, mutate balances, create ledger entries, or create transaction records.
+- Step 15 links wallet lifecycle to Firebase login so each authenticated user has one zero-balance `BDT` wallet. This is not a money movement and does not create ledger entries or transaction records.
 
 ## Add Money APIs
 

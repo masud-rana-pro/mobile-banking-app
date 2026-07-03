@@ -79,7 +79,7 @@ Profile fields stay minimal in the first foundation step. KYC/NID/provider-backe
 - `created_at`
 - `updated_at`
 
-Wallet balance is stored for fast reads. Step 12 creates the wallet table and read model foundation only. `version` supports optimistic locking in future money-changing wallet updates. Wallet balance changes must not be implemented without immutable ledger entries and user-facing transaction records.
+Wallet balance is stored for fast reads. Step 12 creates the wallet table and read model foundation only. Step 15 creates a zero-balance wallet lifecycle record when a Firebase-linked user logs in and has no wallet yet. `version` supports optimistic locking in future money-changing wallet updates. Wallet balance changes must not be implemented without immutable ledger entries and user-facing transaction records.
 
 ### ledger_entries
 

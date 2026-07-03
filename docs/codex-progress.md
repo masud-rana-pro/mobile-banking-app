@@ -26,11 +26,12 @@
 - Step 12 wallet database foundation: added `wallets` table, wallet entity/repository/DTO/mapper/service/controller, optimistic version field, and read-only `GET /api/wallet/me` without wallet creation, balance mutation, ledger, transaction, or money-changing APIs.
 - Step 13 ledger and transaction database foundation: added `transactions` and `ledger_entries` tables, enums, entities, and repositories for immutable ledger/user-facing transaction records without APIs, wallet balance changes, or money movement.
 - Step 14 idempotency key database foundation: added `idempotency_keys` table, enums, entity, repository, and internal service helper foundation without controllers, public APIs, wallet balance mutation, or money-changing flows.
+- Step 15 wallet creation lifecycle: linked Firebase login to backend wallet provisioning so authenticated users get one zero-balance `BDT` wallet when missing, without ledger entries, transaction records, wallet balance mutation APIs, or money-changing flows.
 
 ## Last Commit
 
-- Last commit message: `step-14: add idempotency key foundation`
-- Last commit hash: reported in the Step 14 completion summary after commit finalization.
+- Last commit message: `step-15: add wallet creation lifecycle`
+- Last commit hash: reported in the Step 15 completion summary after commit finalization.
 
 ## Important Architecture Decisions
 
@@ -55,7 +56,8 @@
 - Minimal persisted user foundation uses `users.firebase_uid` and `users.mobile_number` as unique identifiers.
 - Minimal persisted role/status values use `UserRole` and `UserStatus` enums.
 - `GET /api/users/me` is read-only and returns the current persisted user/profile record when it exists.
-- Firebase login creates or finds the minimal persisted user record, but does not create wallet, PIN, ledger, transaction, or money-changing records.
+- Firebase login creates or finds the minimal persisted user record and ensures one zero-balance wallet exists, but does not create PIN, ledger, transaction, idempotency, or money-changing records.
+- Firebase login now also ensures one zero-balance wallet exists for the authenticated user, but does not create ledger, transaction, idempotency, or money-changing records.
 - `PUT /api/users/me/profile` creates or updates only the authenticated user's minimal profile fields and resolves ownership from JWT/Firebase UID.
 - `POST /api/auth/set-pin` requires backend JWT, resolves the user from Firebase UID, validates a 5-digit numeric PIN, stores only a BCrypt hash, and returns only PIN setup metadata.
 - `POST /api/auth/verify-pin` requires backend JWT, checks the raw request PIN against the stored BCrypt hash, tracks failed attempts, and blocks PIN verification for 15 minutes after 5 wrong attempts.
@@ -65,6 +67,7 @@
 - Step 12 wallet foundation creates the wallet table/read model only; balance mutation is intentionally blocked until ledger and transaction foundations exist.
 - Step 13 ledger/transaction foundation adds persistence only; services must later create transaction records and immutable ledger entries together in one database transaction when money movement is implemented.
 - Step 14 idempotency foundation stores one key per user plus request hash, operation type, status, optional saved response body, and expiry time so future money-changing APIs can safely handle retries.
+- Step 15 wallet lifecycle creates only the initial wallet record with zero balance and `ACTIVE` status; future balance changes still require ledger entries and transaction records.
 - Money-changing operations require transactions, safe wallet locking, idempotency keys, and audit logs.
 - Codex uses a manual verification workflow by default: do focused changes, update learning/progress docs, run lightweight checks only, commit/push, and provide manual verification commands.
 
@@ -105,6 +108,7 @@
 - Step 12 adds wallet database/read foundation only; no wallet auto-creation, balance mutation, ledger, transaction, admin management, or money-changing API exists yet.
 - Step 13 adds ledger and transaction persistence only; no transaction history API, wallet balance mutation, idempotency table, admin management, or money-changing API exists yet.
 - Step 14 adds idempotency persistence and internal helper only; it is not wired into Add Money, Send Money, Payment, Recharge, Savings, Loan, wallet mutation, or admin approval flows yet.
+- Step 15 creates initial wallet records during login only; it does not implement wallet top-up, send money, payment, recharge, savings, loan, transaction history, or admin flows.
 - `flutter create` timed out in the sandbox, so the minimal Flutter skeleton was created manually and verified with Flutter tooling.
 - Global `mvn` is not available in the Codex session, so backend verification should use Maven Wrapper `.\mvnw.cmd`.
 - Flyway works against local PostgreSQL 17.10 after adding `flyway-database-postgresql`, but logs a warning that this Flyway version officially tested support up to PostgreSQL 16.
@@ -113,7 +117,7 @@
 
 ## Next Recommended Step
 
-- Ask the user to run Step 14 manual verification commands. After verification passes, the next recommended step is wallet creation lifecycle or audit log foundation, still without money-changing APIs.
+- Ask the user to run Step 15 manual verification commands. After verification passes, the next recommended step is audit log foundation, still without money-changing APIs.
 
 ## Standard Step Completion Format
 

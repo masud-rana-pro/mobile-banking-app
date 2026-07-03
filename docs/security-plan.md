@@ -8,6 +8,7 @@
 - Flutter sends Firebase ID token to Spring Boot.
 - Spring Boot verifies the Firebase token.
 - Spring Boot creates or finds the minimal persisted user record by Firebase UID and verified Firebase phone number.
+- Spring Boot creates or finds the user's zero-balance wallet lifecycle record after successful Firebase login.
 - Spring Boot issues its own backend JWT for API access.
 - Backend JWT role comes from the persisted user record.
 
@@ -18,6 +19,7 @@
 - Customer and merchant users must not access admin pages or admin APIs.
 - User profile update must resolve the user from the authenticated backend JWT/Firebase UID and must not accept a user ID from the request body.
 - Wallet read must resolve the user from the authenticated backend JWT/Firebase UID and must not accept a user ID from the request body.
+- Wallet lifecycle creation must happen from backend-trusted authenticated user context, not from a user-supplied user ID.
 - Avoid complex role/permission management in MVP Phase 1.
 
 ## PIN Security

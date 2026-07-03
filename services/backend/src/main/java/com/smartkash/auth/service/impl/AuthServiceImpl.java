@@ -19,6 +19,7 @@ import com.smartkash.user.entity.User;
 import com.smartkash.user.enums.UserRole;
 import com.smartkash.user.enums.UserStatus;
 import com.smartkash.user.repository.UserRepository;
+import com.smartkash.wallet.service.WalletService;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -36,17 +37,20 @@ public class AuthServiceImpl implements AuthService {
     private final FirebaseTokenVerifier firebaseTokenVerifier;
     private final JwtService jwtService;
     private final UserRepository userRepository;
+    private final WalletService walletService;
     private final PasswordEncoder passwordEncoder;
 
     public AuthServiceImpl(
             FirebaseTokenVerifier firebaseTokenVerifier,
             JwtService jwtService,
             UserRepository userRepository,
+            WalletService walletService,
             PasswordEncoder passwordEncoder
     ) {
         this.firebaseTokenVerifier = firebaseTokenVerifier;
         this.jwtService = jwtService;
         this.userRepository = userRepository;
+        this.walletService = walletService;
         this.passwordEncoder = passwordEncoder;
     }
 
@@ -56,6 +60,7 @@ public class AuthServiceImpl implements AuthService {
         FirebaseToken firebaseToken = verifyFirebaseToken(request.firebaseIdToken());
         String phoneNumber = phoneNumber(firebaseToken);
         User user = findOrCreateUser(firebaseToken.getUid(), phoneNumber);
+        walletService.ensureWalletForUser(user);
         String role = user.getRole().name();
         JwtToken jwtToken = jwtService.generateToken(user.getFirebaseUid(), user.getMobileNumber(), role);
 
