@@ -199,6 +199,8 @@ Step 23 implements the minimal read-only admin API foundation for `GET /admin/us
 
 Step 24 implements Add Money admin approval/rejection. Approval requires `ADMIN` role and an idempotency key, locks the Add Money request and customer wallet, changes the request to `APPROVED`, credits the customer wallet, creates a user-facing `ADD_MONEY` transaction record, creates an immutable `CREDIT` ledger entry, stores idempotency completion, and records an admin audit log in one database transaction. Rejection changes only the request status to `REJECTED`, stores idempotency completion, and records an audit log; it does not change wallet balance or create ledger/transaction records.
 
+Step 25 implements Loan admin approval/rejection status-only flow. Approval or rejection requires `ADMIN` role, locks the loan request, updates `status`, `reviewed_by`, and `reviewed_at`, and records an admin audit log. It does not disburse money, credit wallets, create transactions, create ledger entries, create idempotency records, or manage repayments/installments.
+
 ## Idempotency Rule
 
 All money-changing APIs must accept a unique `clientRequestId` or `idempotencyKey`. If the same key is submitted again for the same request type and user, the backend must not create duplicate ledger entries, transaction records, or wallet changes.

@@ -111,4 +111,16 @@ public class LoanRequest {
     public Instant getUpdatedAt() {
         return updatedAt;
     }
+
+    public void approve(User adminUser) {
+        status = LoanStatus.APPROVED;
+        reviewedBy = adminUser;
+        reviewedAt = Instant.now();
+    }
+
+    public void reject(User adminUser) {
+        status = LoanStatus.REJECTED;
+        reviewedBy = adminUser;
+        reviewedAt = Instant.now();
+    }
 }

@@ -45,6 +45,8 @@ Step 23 implements the minimal read-only admin API foundation for these `GET` ro
 
 Step 24 implements Add Money approval/rejection only. Approval is a money-changing admin action and must create wallet credit, transaction record, immutable ledger entry, idempotency record, and audit log. Rejection must not change wallet balance.
 
+Step 25 implements Loan approval/rejection as status-only. Loan approval does not disburse money, credit wallets, create transactions, create ledger entries, create idempotency records, or create repayment/installment records in MVP Phase 1.
+
 ## Admin Actions
 
 ### Add Money Approval
@@ -70,6 +72,7 @@ Step 24 implements Add Money approval/rejection only. Approval is a money-changi
 - Validate loan request is pending.
 - Validate admin role.
 - Update status to approved or rejected.
+- Store reviewed by and reviewed at.
 - Create audit log.
 
 Loan disbursement, wallet credit, repayment, and installment tracking are future scope.

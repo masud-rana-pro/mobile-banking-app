@@ -191,7 +191,7 @@ Savings deposits are future scope because they are money-changing operations. A 
 - `created_at`
 - `updated_at`
 
-MVP Phase 1 loan approval/rejection only updates request status. Step 19 creates customer loan request create/list foundation only. Loan disbursement, wallet credit, repayment, installment tracking, transaction records, ledger entries, idempotency, and notifications are future scope.
+MVP Phase 1 loan approval/rejection only updates request status. Step 19 creates customer loan request create/list foundation only. Step 25 adds admin approval/rejection status updates with `reviewed_by`, `reviewed_at`, and audit logs only. Loan disbursement, wallet credit, repayment, installment tracking, transaction records, ledger entries, idempotency, and notifications are future scope.
 
 ### mobile_recharges
 
