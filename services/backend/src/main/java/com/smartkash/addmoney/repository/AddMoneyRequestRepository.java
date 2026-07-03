@@ -11,4 +11,6 @@ public interface AddMoneyRequestRepository extends JpaRepository<AddMoneyRequest
     List<AddMoneyRequest> findByUser_IdOrderByCreatedAtDesc(Long userId);
 
     List<AddMoneyRequest> findByStatusOrderByCreatedAtDesc(AddMoneyStatus status);
+
+    List<AddMoneyRequest> findAllByOrderByCreatedAtDesc();
 }

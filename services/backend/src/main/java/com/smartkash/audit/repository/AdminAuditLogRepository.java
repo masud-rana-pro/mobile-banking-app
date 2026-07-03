@@ -9,6 +9,8 @@ import java.util.List;
 
 public interface AdminAuditLogRepository extends JpaRepository<AdminAuditLog, Long> {
 
+    List<AdminAuditLog> findAllByOrderByCreatedAtDesc();
+
     List<AdminAuditLog> findByAdminUser_IdOrderByCreatedAtDesc(Long adminUserId);
 
     List<AdminAuditLog> findByActionOrderByCreatedAtDesc(AuditAction action);

@@ -11,4 +11,6 @@ public interface LoanRequestRepository extends JpaRepository<LoanRequest, Long> 
     List<LoanRequest> findByUser_IdOrderByCreatedAtDesc(Long userId);
 
     List<LoanRequest> findByStatusOrderByCreatedAtDesc(LoanStatus status);
+
+    List<LoanRequest> findAllByOrderByCreatedAtDesc();
 }
