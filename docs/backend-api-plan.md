@@ -165,6 +165,7 @@ com.smartkash.wallet.enums
 
 - `POST /api/loans/requests`: create loan request.
 - `GET /api/loans/requests`: list current user's loan requests.
+- Step 19 implements customer Loan request create/list foundation only. New requests are saved as `PENDING`; no admin approval/rejection, wallet disbursement, repayment, installment tracking, ledger entry, transaction record, idempotency record, or notification is created yet.
 
 ## Recharge APIs
 

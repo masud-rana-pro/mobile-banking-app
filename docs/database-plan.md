@@ -185,8 +185,9 @@ merchants.user_id -> users.id
 - `reviewed_by`
 - `reviewed_at`
 - `created_at`
+- `updated_at`
 
-MVP Phase 1 loan approval/rejection only updates request status.
+MVP Phase 1 loan approval/rejection only updates request status. Step 19 creates customer loan request create/list foundation only. Loan disbursement, wallet credit, repayment, installment tracking, transaction records, ledger entries, idempotency, and notifications are future scope.
 
 ### mobile_recharges
 
