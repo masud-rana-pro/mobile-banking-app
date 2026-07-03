@@ -154,6 +154,7 @@ com.smartkash.wallet.enums
 - `GET /api/transactions`: list user transactions with date/type/status filters.
 - `GET /api/transactions/{id}`: get receipt/details for one transaction.
 - Step 13 creates transaction and ledger persistence foundation only. It does not expose transaction APIs yet and does not create money movement records.
+- Step 22 implements read-only transaction history APIs. The list endpoint supports optional `type`, `status`, `from`, and `to` query parameters and returns only the authenticated user's transaction records. It does not create, update, or delete transactions and does not create ledger entries or wallet balance changes.
 
 ## Savings APIs
 
