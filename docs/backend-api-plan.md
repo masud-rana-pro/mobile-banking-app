@@ -160,6 +160,8 @@ com.smartkash.wallet.enums
 - `POST /api/savings/goals`: create savings goal.
 - `GET /api/savings/goals`: list savings goals.
 - `POST /api/savings/goals/{id}/deposit`: deposit from wallet to savings goal.
+- Step 21 implements savings goal create/list foundation only. New goals start as `ACTIVE` with `currentAmount = 0.00`; no wallet debit, savings deposit, ledger entry, transaction record, idempotency record, PIN confirmation, or FCM alert is created yet.
+- Savings deposit remains future scope and must follow full money-changing API rules.
 
 ## Loan APIs
 

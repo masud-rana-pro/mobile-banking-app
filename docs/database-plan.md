@@ -166,6 +166,8 @@ merchants.user_id -> users.id
 - `created_at`
 - `updated_at`
 
+Step 21 creates the savings goal foundation only. New goals start with `current_amount = 0.00` and `status = ACTIVE`. It does not create savings deposits, debit wallets, create ledger entries, create transaction records, use idempotency keys, or send FCM alerts yet.
+
 ### savings_deposits
 
 - `id`
@@ -174,6 +176,8 @@ merchants.user_id -> users.id
 - `amount`
 - `transaction_reference`
 - `created_at`
+
+Savings deposits are future scope because they are money-changing operations. A later deposit step must require authenticated user, PIN confirmation, idempotency key, active wallet, sufficient balance, wallet locking, transaction record, and immutable ledger entries.
 
 ### loan_requests
 
