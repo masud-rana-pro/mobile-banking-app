@@ -23,11 +23,12 @@
 - Step 09 user profile completion foundation: added authenticated `PUT /api/users/me/profile` to create or update minimal profile fields using the JWT/Firebase UID, without accepting user IDs or adding wallet, PIN, or money-changing features.
 - Step 10 PIN setup foundation: added user PIN fields, BCrypt password encoder, authenticated `POST /api/auth/set-pin`, 5-digit PIN validation, backend-only hashing, and PIN setup response metadata without PIN verification, rate limiting, wallet, or money-changing features.
 - Step 11 PIN verification foundation: added authenticated `POST /api/auth/verify-pin`, BCrypt PIN matching, failed attempt tracking, 15-minute temporary block after 5 wrong attempts, and UI sample-image workflow reminder without wallet or money-changing APIs.
+- Step 12 wallet database foundation: added `wallets` table, wallet entity/repository/DTO/mapper/service/controller, optimistic version field, and read-only `GET /api/wallet/me` without wallet creation, balance mutation, ledger, transaction, or money-changing APIs.
 
 ## Last Commit
 
-- Last commit message: `step-11: add PIN verification foundation`
-- Last commit hash: reported in the Step 11 completion summary after commit finalization.
+- Last commit message: `step-12: add wallet database foundation`
+- Last commit hash: reported in the Step 12 completion summary after commit finalization.
 
 ## Important Architecture Decisions
 
@@ -59,6 +60,7 @@
 - Before Flutter UI design work starts, Codex must ask the user for sample/reference images and use them as the visual direction.
 - Send Money must support both registered mobile number and QR receiver selection.
 - Wallet balance is stored for fast reads, backed by immutable ledger entries.
+- Step 12 wallet foundation creates the wallet table/read model only; balance mutation is intentionally blocked until ledger and transaction foundations exist.
 - Money-changing operations require transactions, safe wallet locking, idempotency keys, and audit logs.
 - Codex uses a manual verification workflow by default: do focused changes, update learning/progress docs, run lightweight checks only, commit/push, and provide manual verification commands.
 
@@ -96,6 +98,7 @@
 - Step 09 adds minimal profile completion only; no wallet creation, PIN setup, admin profile management, KYC/NID fields, or money-changing API exists yet.
 - Step 10 adds PIN setup only; no PIN verification, PIN rate limiting, temporary blocking, wallet creation, admin management, or money-changing API exists yet.
 - Step 11 adds PIN verification only; no wallet creation, money-changing API, admin management, or Flutter UI design exists yet.
+- Step 12 adds wallet database/read foundation only; no wallet auto-creation, balance mutation, ledger, transaction, admin management, or money-changing API exists yet.
 - `flutter create` timed out in the sandbox, so the minimal Flutter skeleton was created manually and verified with Flutter tooling.
 - Global `mvn` is not available in the Codex session, so backend verification should use Maven Wrapper `.\mvnw.cmd`.
 - Flyway works against local PostgreSQL 17.10 after adding `flyway-database-postgresql`, but logs a warning that this Flyway version officially tested support up to PostgreSQL 16.
@@ -104,7 +107,7 @@
 
 ## Next Recommended Step
 
-- Ask the user to run Step 11 manual verification commands. After verification passes, the next recommended step is wallet database foundation planning/implementation, still without money-changing APIs.
+- Ask the user to run Step 12 manual verification commands. After verification passes, the next recommended step is ledger and transaction database foundation, still without money-changing APIs.
 
 ## Standard Step Completion Format
 

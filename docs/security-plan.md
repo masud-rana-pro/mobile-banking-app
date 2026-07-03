@@ -17,6 +17,7 @@
 - Admin routes and admin APIs require authenticated `ADMIN` role.
 - Customer and merchant users must not access admin pages or admin APIs.
 - User profile update must resolve the user from the authenticated backend JWT/Firebase UID and must not accept a user ID from the request body.
+- Wallet read must resolve the user from the authenticated backend JWT/Firebase UID and must not accept a user ID from the request body.
 - Avoid complex role/permission management in MVP Phase 1.
 
 ## PIN Security

@@ -126,6 +126,7 @@ com.smartkash.wallet.enums
 ## Wallet APIs
 
 - `GET /api/wallet/me`: get current user's wallet balance.
+- Step 12 wallet foundation exposes wallet read only. It does not create wallets automatically, mutate balances, create ledger entries, or create transaction records.
 
 ## Add Money APIs
 
