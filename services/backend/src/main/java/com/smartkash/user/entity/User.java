@@ -154,4 +154,8 @@ public class User {
         this.pinFailedAttempts = 0;
         this.pinBlockedUntil = null;
     }
+
+    public void makeMerchant() {
+        this.role = UserRole.MERCHANT;
+    }
 }
