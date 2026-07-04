@@ -14,6 +14,7 @@ import com.smartkash.recharge.dto.response.MobileRechargeResponse;
 import com.smartkash.recharge.mapper.MobileRechargeMapper;
 import com.smartkash.recharge.repository.MobileRechargeRepository;
 import com.smartkash.transaction.dto.response.TransactionResponse;
+import com.smartkash.transaction.enums.TransactionType;
 import com.smartkash.transaction.mapper.TransactionRecordMapper;
 import com.smartkash.transaction.repository.TransactionRecordRepository;
 import com.smartkash.user.dto.response.UserResponse;
@@ -114,8 +115,12 @@ public class AdminReadServiceImpl implements AdminReadService {
     }
 
     @Override
-    public List<Object> getPayments() {
-        return List.of();
+    @Transactional(readOnly = true)
+    public List<TransactionResponse> getPayments() {
+        return transactionRecordRepository.findByTypeOrderByCreatedAtDesc(TransactionType.MERCHANT_PAYMENT)
+                .stream()
+                .map(transactionRecordMapper::toResponse)
+                .toList();
     }
 
     @Override
