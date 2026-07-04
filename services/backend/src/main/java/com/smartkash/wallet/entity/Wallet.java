@@ -110,4 +110,9 @@ public class Wallet {
         balance = balance.add(amount);
         return balance;
     }
+
+    public BigDecimal debit(BigDecimal amount) {
+        balance = balance.subtract(amount);
+        return balance;
+    }
 }

@@ -126,4 +126,8 @@ public class LedgerEntry {
     public Instant getCreatedAt() {
         return createdAt;
     }
+
+    public void linkTo(LedgerEntry linkedEntry) {
+        this.linkedEntry = linkedEntry;
+    }
 }
