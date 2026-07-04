@@ -151,6 +151,7 @@ com.smartkash.wallet.enums
 - `POST /api/payments/merchant`: pay merchant by merchant number/account number.
 - Merchant payment debits customer wallet and credits merchant wallet.
 - Step 18 adds merchant profile foundation with `POST /api/merchants/me` and `GET /api/merchants/me`. Merchant payment is still future scope and no wallet debit/credit is implemented yet.
+- Step 28 implements `POST /api/payments/merchant`. It validates authenticated active customer, active merchant profile, active merchant user, PIN, idempotency key, active customer/merchant wallets, and sufficient customer balance. A successful payment debits the customer wallet, credits the merchant wallet, creates `MERCHANT_PAYMENT` transaction records for customer and merchant, creates linked debit/credit ledger entries under the customer payment reference, and completes the idempotency key.
 
 ## Transaction APIs
 
@@ -198,7 +199,9 @@ All admin routes require authenticated `ADMIN` role.
 
 Step 16 adds admin audit log persistence foundation only. It does not implement `GET /admin/audit-logs` or wire audit logging into admin approval/rejection APIs yet.
 
-Step 23 implements the minimal read-only admin API foundation for `GET /admin/users`, `GET /admin/transactions`, `GET /admin/add-money/requests`, `GET /admin/loans/requests`, `GET /admin/recharges`, `GET /admin/payments`, and `GET /admin/audit-logs`. All `/admin/**` routes require authenticated `ADMIN` role. Step 23 does not implement approval, rejection, analytics, settings, dashboards, complex role management, wallet mutation, or money-changing admin actions. `GET /admin/payments` returns an empty list until merchant payment persistence exists.
+Step 23 implements the minimal read-only admin API foundation for `GET /admin/users`, `GET /admin/transactions`, `GET /admin/add-money/requests`, `GET /admin/loans/requests`, `GET /admin/recharges`, `GET /admin/payments`, and `GET /admin/audit-logs`. All `/admin/**` routes require authenticated `ADMIN` role. Step 23 does not implement approval, rejection, analytics, settings, dashboards, complex role management, wallet mutation, or money-changing admin actions.
+
+Step 28 updates `GET /admin/payments` to return `MERCHANT_PAYMENT` transaction records after merchant payment persistence exists.
 
 Step 24 implements Add Money admin approval/rejection. Approval requires `ADMIN` role and an idempotency key, locks the Add Money request and customer wallet, changes the request to `APPROVED`, credits the customer wallet, creates a user-facing `ADD_MONEY` transaction record, creates an immutable `CREDIT` ledger entry, stores idempotency completion, and records an admin audit log in one database transaction. Rejection changes only the request status to `REJECTED`, stores idempotency completion, and records an audit log; it does not change wallet balance or create ledger/transaction records.
 

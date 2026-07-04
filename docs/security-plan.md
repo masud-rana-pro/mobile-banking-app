@@ -75,6 +75,12 @@ Step 26 adds the receiver validation foundation. The MVP QR payload format is `S
 
 Step 27 applies the full money-changing security rule to Send Money. `POST /api/send-money` requires backend JWT, PIN confirmation, idempotency key, registered active receiver, active sender/receiver wallets, sufficient sender balance, safe wallet locking, linked immutable ledger entries, and user-facing transaction records. Repeating the same idempotency key with the same request must not debit the sender twice.
 
+## Merchant Payment Security
+
+Merchant Payment must validate authenticated active customer, active merchant profile, active merchant user account, active customer wallet, active merchant wallet, customer balance, PIN confirmation, and idempotency key. The backend must prevent a user from paying their own merchant account in the MVP.
+
+Step 28 applies the full money-changing security rule to `POST /api/payments/merchant`. A successful payment creates customer and merchant transaction records plus linked immutable ledger entries. Repeating the same idempotency key with the same request must not debit the customer twice.
+
 ## Secret Management
 
 Do not hardcode:

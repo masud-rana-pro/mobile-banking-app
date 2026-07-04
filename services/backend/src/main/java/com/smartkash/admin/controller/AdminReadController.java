@@ -50,7 +50,7 @@ public class AdminReadController {
     }
 
     @GetMapping("/payments")
-    public ResponseEntity<List<Object>> payments() {
+    public ResponseEntity<List<TransactionResponse>> payments() {
         return ResponseEntity.ok(adminReadService.getPayments());
     }
 

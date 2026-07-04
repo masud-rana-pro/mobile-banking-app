@@ -21,7 +21,7 @@ public interface AdminReadService {
 
     List<MobileRechargeResponse> getRecharges();
 
-    List<Object> getPayments();
+    List<TransactionResponse> getPayments();
 
     List<AdminAuditLogResponse> getAuditLogs();
 }

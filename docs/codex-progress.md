@@ -39,11 +39,12 @@
 - Step 25 Loan admin approval/rejection: added `ADMIN` status-only loan decision endpoints with locked loan request reads, `reviewed_by`, `reviewed_at`, and admin audit logs without wallet credit, disbursement, transaction records, ledger entries, idempotency records, repayment, or installments.
 - Step 26 Send Money receiver validation: added authenticated receiver resolve API for registered mobile number or SmartKash QR payload, validating active sender, registered active receiver, self-transfer block, and active receiver wallet without wallet transfer, PIN verification, idempotency, transaction records, or ledger entries.
 - Step 27 Send Money transfer flow: added authenticated money-changing `POST /api/send-money` with mobile/QR receiver selection, PIN confirmation, idempotency, locked sender/receiver wallets, balance debit/credit, sender/receiver transaction records, and linked immutable ledger entries.
+- Step 28 Merchant Payment transfer flow: added authenticated money-changing `POST /api/payments/merchant` with merchant number lookup, PIN confirmation, idempotency, locked customer/merchant wallets, customer debit, merchant credit, merchant payment transaction records, linked immutable ledger entries, and admin payments read support.
 
 ## Last Commit
 
-- Last commit message: `step-27: add send money transfer flow`
-- Last commit hash: pending until Step 27 commit finalization.
+- Last commit message: `step-28: add merchant payment transfer flow`
+- Last commit hash: pending until Step 28 commit finalization.
 
 ## Important Architecture Decisions
 
@@ -92,6 +93,7 @@
 - Step 25 Loan approval follows MVP Phase 1 scope and is intentionally status-only with audit logging; future loan disbursement must be a separate money-changing flow.
 - Step 26 Send Money receiver validation supports both registered mobile number and QR receiver selection. The MVP QR payload format is `SMARTKASH_USER:<mobile-number>`, and it must resolve to an active registered receiver with an active wallet before future transfer processing.
 - Step 27 Send Money transfer is the first customer wallet-to-wallet money-changing flow. It uses PIN verification, idempotency, pessimistic wallet locking, balance debit/credit, sender `SEND_MONEY` transaction, receiver `RECEIVE_MONEY` transaction, and linked debit/credit ledger entries.
+- Step 28 Merchant Payment uses the same money-changing safety model as Send Money, but resolves the receiving account through `merchants.merchant_number` and credits the merchant user's wallet.
 - Money-changing operations require transactions, safe wallet locking, idempotency keys, and audit logs.
 - Codex uses a manual verification workflow by default: do focused changes, update learning/progress docs, run lightweight checks only, commit/push, and provide manual verification commands.
 
@@ -145,6 +147,7 @@
 - Step 25 implements Loan admin approval/rejection status updates only; it does not implement loan disbursement, repayment, installments, wallet credit, transaction records, ledger entries, idempotency usage, FCM alerts, or frontend UI.
 - Step 26 implements Send Money receiver validation only; it does not verify PIN, check sender balance, mutate wallets, create transaction records, create ledger entries, store idempotency records, send FCM alerts, or build Flutter UI.
 - Step 27 implements backend Send Money transfer only; it does not build Flutter UI, QR scanner UI, FCM alerts, merchant payment, savings deposit, mobile recharge wallet debit, or admin screens.
+- Step 28 implements backend Merchant Payment transfer only; it does not build Flutter UI, QR scanner UI, FCM alerts, merchant settlement, refunds, chargebacks, or provider/payment gateway integration.
 - `flutter create` timed out in the sandbox, so the minimal Flutter skeleton was created manually and verified with Flutter tooling.
 - Global `mvn` is not available in the Codex session, so backend verification should use Maven Wrapper `.\mvnw.cmd`.
 - Flyway works against local PostgreSQL 17.10 after adding `flyway-database-postgresql`, but logs a warning that this Flyway version officially tested support up to PostgreSQL 16.
@@ -153,7 +156,7 @@
 
 ## Next Recommended Step
 
-- Ask the user to run Step 27 manual verification commands. After verification passes, the next recommended step is Merchant Payment wallet transfer flow or FCM transaction alert foundation, depending on priority.
+- Ask the user to run Step 28 manual verification commands. After verification passes, the next recommended step is Savings Deposit money-changing flow or Mobile Recharge wallet debit flow, depending on priority.
 
 ## Standard Step Completion Format
 
