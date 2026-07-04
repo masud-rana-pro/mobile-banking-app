@@ -139,9 +139,11 @@ com.smartkash.wallet.enums
 
 ## Send Money APIs
 
+- `POST /api/send-money/resolve-receiver`: resolve and validate a receiver by registered mobile number or SmartKash QR payload before transfer.
 - `POST /api/send-money`: send money using registered mobile number or QR payload.
 - Required validation: authenticated user, PIN, receiver, account status, sender balance, idempotency key.
 - Successful wallet-to-wallet transfer must create linked debit and credit ledger entries under one transaction reference.
+- Step 26 implements receiver validation only. It accepts either `mobileNumber` or QR payload format `SMARTKASH_USER:<mobile-number>`, resolves the receiver from registered backend users, checks sender/receiver account status, prevents self-transfer, and checks receiver wallet status. It does not debit wallets, credit wallets, verify PIN, create transaction records, create ledger entries, or use idempotency yet.
 
 ## Payment APIs
 

@@ -37,11 +37,12 @@
 - Step 23 Admin read API foundation: added `ADMIN`-only security for `/admin/**`, read-only admin endpoints for users, transactions, add-money requests, loan requests, recharges, payments placeholder, and audit logs without approval/rejection, dashboard analytics, settings, role management, wallet mutation, or money-changing actions.
 - Step 24 Add Money admin approval/rejection: added `ADMIN` approval/rejection endpoints with idempotency, locked request/wallet reads, wallet credit on approval, `ADD_MONEY` transaction record, immutable credit ledger entry, idempotency completion, and admin audit logs; rejection updates status/audit/idempotency only without wallet balance changes.
 - Step 25 Loan admin approval/rejection: added `ADMIN` status-only loan decision endpoints with locked loan request reads, `reviewed_by`, `reviewed_at`, and admin audit logs without wallet credit, disbursement, transaction records, ledger entries, idempotency records, repayment, or installments.
+- Step 26 Send Money receiver validation: added authenticated receiver resolve API for registered mobile number or SmartKash QR payload, validating active sender, registered active receiver, self-transfer block, and active receiver wallet without wallet transfer, PIN verification, idempotency, transaction records, or ledger entries.
 
 ## Last Commit
 
-- Last commit message: `step-25: add loan admin decision flow`
-- Last commit hash: pending until Step 25 commit finalization.
+- Last commit message: `step-26: add send money receiver validation`
+- Last commit hash: pending until Step 26 commit finalization.
 
 ## Important Architecture Decisions
 
@@ -88,6 +89,7 @@
 - Step 23 Admin read API foundation protects `/admin/**` with `ROLE_ADMIN` and keeps the admin panel minimal and read-only until dedicated approval/rejection steps are implemented.
 - Step 24 Add Money approval is the first backend money-changing flow. It uses admin role protection, idempotency, request/wallet locking, wallet credit, transaction record, immutable ledger entry, and audit log in one database transaction.
 - Step 25 Loan approval follows MVP Phase 1 scope and is intentionally status-only with audit logging; future loan disbursement must be a separate money-changing flow.
+- Step 26 Send Money receiver validation supports both registered mobile number and QR receiver selection. The MVP QR payload format is `SMARTKASH_USER:<mobile-number>`, and it must resolve to an active registered receiver with an active wallet before future transfer processing.
 - Money-changing operations require transactions, safe wallet locking, idempotency keys, and audit logs.
 - Codex uses a manual verification workflow by default: do focused changes, update learning/progress docs, run lightweight checks only, commit/push, and provide manual verification commands.
 
@@ -139,6 +141,7 @@
 - Step 23 exposes minimal admin read APIs only; it does not create admin dashboards, analytics, advanced settings, complex role management, approvals, rejections, wallet mutation, or money-changing actions.
 - Step 24 implements only Add Money admin approval/rejection; it does not implement loan approval, send money, merchant payment, mobile recharge wallet debit, savings deposit, FCM alerts, or frontend UI.
 - Step 25 implements Loan admin approval/rejection status updates only; it does not implement loan disbursement, repayment, installments, wallet credit, transaction records, ledger entries, idempotency usage, FCM alerts, or frontend UI.
+- Step 26 implements Send Money receiver validation only; it does not verify PIN, check sender balance, mutate wallets, create transaction records, create ledger entries, store idempotency records, send FCM alerts, or build Flutter UI.
 - `flutter create` timed out in the sandbox, so the minimal Flutter skeleton was created manually and verified with Flutter tooling.
 - Global `mvn` is not available in the Codex session, so backend verification should use Maven Wrapper `.\mvnw.cmd`.
 - Flyway works against local PostgreSQL 17.10 after adding `flyway-database-postgresql`, but logs a warning that this Flyway version officially tested support up to PostgreSQL 16.
@@ -147,7 +150,7 @@
 
 ## Next Recommended Step
 
-- Ask the user to run Step 25 manual verification commands. After verification passes, the next recommended step is Send Money foundation with mobile/QR receiver validation before wallet transfer.
+- Ask the user to run Step 26 manual verification commands. After verification passes, the next recommended step is the full Send Money transfer flow with PIN confirmation, idempotency, sender wallet locking, balance debit, receiver wallet credit, linked ledger entries, transaction records, and optional transaction alert foundation.
 
 ## Standard Step Completion Format
 

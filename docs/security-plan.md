@@ -71,6 +71,8 @@ QR Send Money must validate:
 
 The backend must not trust QR data without resolving it against registered backend records.
 
+Step 26 adds the receiver validation foundation. The MVP QR payload format is `SMARTKASH_USER:<mobile-number>`. The backend resolves that mobile number against the registered `users` table, rejects missing/invalid/self receivers, and requires the receiver wallet to be active before a future Send Money transfer can continue. Step 26 does not move money, verify PIN, or create idempotency/ledger/transaction records yet.
+
 ## Secret Management
 
 Do not hardcode:
