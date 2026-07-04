@@ -113,4 +113,12 @@ public class SavingsGoal {
     public Instant getUpdatedAt() {
         return updatedAt;
     }
+
+    public BigDecimal deposit(BigDecimal amount) {
+        currentAmount = currentAmount.add(amount);
+        if (currentAmount.compareTo(targetAmount) >= 0) {
+            status = SavingsGoalStatus.COMPLETED;
+        }
+        return currentAmount;
+    }
 }
