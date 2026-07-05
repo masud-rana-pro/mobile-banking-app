@@ -98,4 +98,8 @@ public class MobileRecharge {
     public Instant getCreatedAt() {
         return createdAt;
     }
+
+    public void attachTransactionReference(String transactionReference) {
+        this.transactionReference = transactionReference;
+    }
 }

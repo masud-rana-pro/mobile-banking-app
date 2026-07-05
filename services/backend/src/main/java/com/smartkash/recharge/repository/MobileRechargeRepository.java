@@ -5,6 +5,7 @@ import com.smartkash.recharge.enums.RechargeStatus;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.util.List;
+import java.util.Optional;
 
 public interface MobileRechargeRepository extends JpaRepository<MobileRecharge, Long> {
 
@@ -13,4 +14,6 @@ public interface MobileRechargeRepository extends JpaRepository<MobileRecharge, 
     List<MobileRecharge> findByStatusOrderByCreatedAtDesc(RechargeStatus status);
 
     List<MobileRecharge> findAllByOrderByCreatedAtDesc();
+
+    Optional<MobileRecharge> findByTransactionReference(String transactionReference);
 }
