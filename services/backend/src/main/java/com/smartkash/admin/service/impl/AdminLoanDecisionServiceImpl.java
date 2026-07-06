@@ -11,11 +11,15 @@ import com.smartkash.loan.entity.LoanRequest;
 import com.smartkash.loan.enums.LoanStatus;
 import com.smartkash.loan.mapper.LoanRequestMapper;
 import com.smartkash.loan.repository.LoanRequestRepository;
+import com.smartkash.notification.enums.NotificationType;
+import com.smartkash.notification.service.TransactionAlertService;
 import com.smartkash.security.JwtPrincipal;
 import com.smartkash.user.entity.User;
 import com.smartkash.user.repository.UserRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.util.Map;
 
 @Service
 public class AdminLoanDecisionServiceImpl implements AdminLoanDecisionService {
@@ -24,17 +28,20 @@ public class AdminLoanDecisionServiceImpl implements AdminLoanDecisionService {
     private final LoanRequestRepository loanRequestRepository;
     private final LoanRequestMapper loanRequestMapper;
     private final AdminAuditLogService adminAuditLogService;
+    private final TransactionAlertService transactionAlertService;
 
     public AdminLoanDecisionServiceImpl(
             UserRepository userRepository,
             LoanRequestRepository loanRequestRepository,
             LoanRequestMapper loanRequestMapper,
-            AdminAuditLogService adminAuditLogService
+            AdminAuditLogService adminAuditLogService,
+            TransactionAlertService transactionAlertService
     ) {
         this.userRepository = userRepository;
         this.loanRequestRepository = loanRequestRepository;
         this.loanRequestMapper = loanRequestMapper;
         this.adminAuditLogService = adminAuditLogService;
+        this.transactionAlertService = transactionAlertService;
     }
 
     @Override
@@ -50,6 +57,13 @@ public class AdminLoanDecisionServiceImpl implements AdminLoanDecisionService {
                 AuditTargetType.LOAN_REQUEST,
                 String.valueOf(savedRequest.getId()),
                 "Approved Loan request. note=" + nullToEmpty(request.note())
+        );
+        transactionAlertService.sendTransactionAlert(
+                savedRequest.getUser(),
+                NotificationType.LOAN,
+                "Loan request approved",
+                "Your loan request of BDT " + savedRequest.getAmount() + " was approved.",
+                Map.of("loanRequestId", String.valueOf(savedRequest.getId()), "status", LoanStatus.APPROVED.name())
         );
         return loanRequestMapper.toResponse(savedRequest);
     }
@@ -67,6 +81,13 @@ public class AdminLoanDecisionServiceImpl implements AdminLoanDecisionService {
                 AuditTargetType.LOAN_REQUEST,
                 String.valueOf(savedRequest.getId()),
                 "Rejected Loan request. note=" + nullToEmpty(request.note())
+        );
+        transactionAlertService.sendTransactionAlert(
+                savedRequest.getUser(),
+                NotificationType.LOAN,
+                "Loan request rejected",
+                "Your loan request of BDT " + savedRequest.getAmount() + " was rejected.",
+                Map.of("loanRequestId", String.valueOf(savedRequest.getId()), "status", LoanStatus.REJECTED.name())
         );
         return loanRequestMapper.toResponse(savedRequest);
     }

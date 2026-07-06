@@ -19,6 +19,8 @@ import com.smartkash.idempotency.service.IdempotencyKeyService;
 import com.smartkash.ledger.entity.LedgerEntry;
 import com.smartkash.ledger.enums.LedgerEntryType;
 import com.smartkash.ledger.repository.LedgerEntryRepository;
+import com.smartkash.notification.enums.NotificationType;
+import com.smartkash.notification.service.TransactionAlertService;
 import com.smartkash.security.JwtPrincipal;
 import com.smartkash.transaction.entity.TransactionRecord;
 import com.smartkash.transaction.enums.TransactionStatus;
@@ -39,6 +41,7 @@ import java.security.NoSuchAlgorithmException;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.HexFormat;
+import java.util.Map;
 import java.util.UUID;
 
 @Service
@@ -54,6 +57,7 @@ public class AdminAddMoneyDecisionServiceImpl implements AdminAddMoneyDecisionSe
     private final LedgerEntryRepository ledgerEntryRepository;
     private final IdempotencyKeyService idempotencyKeyService;
     private final AdminAuditLogService adminAuditLogService;
+    private final TransactionAlertService transactionAlertService;
 
     public AdminAddMoneyDecisionServiceImpl(
             UserRepository userRepository,
@@ -63,7 +67,8 @@ public class AdminAddMoneyDecisionServiceImpl implements AdminAddMoneyDecisionSe
             TransactionRecordRepository transactionRecordRepository,
             LedgerEntryRepository ledgerEntryRepository,
             IdempotencyKeyService idempotencyKeyService,
-            AdminAuditLogService adminAuditLogService
+            AdminAuditLogService adminAuditLogService,
+            TransactionAlertService transactionAlertService
     ) {
         this.userRepository = userRepository;
         this.addMoneyRequestRepository = addMoneyRequestRepository;
@@ -73,6 +78,7 @@ public class AdminAddMoneyDecisionServiceImpl implements AdminAddMoneyDecisionSe
         this.ledgerEntryRepository = ledgerEntryRepository;
         this.idempotencyKeyService = idempotencyKeyService;
         this.adminAuditLogService = adminAuditLogService;
+        this.transactionAlertService = transactionAlertService;
     }
 
     @Override
@@ -136,6 +142,13 @@ public class AdminAddMoneyDecisionServiceImpl implements AdminAddMoneyDecisionSe
                 "Approved Add Money request. transactionReference=" + transactionReference
         );
         idempotencyKeyService.markCompleted(idempotencyKey, "APPROVED:" + savedRequest.getId() + ":" + transactionReference);
+        transactionAlertService.sendTransactionAlert(
+                savedRequest.getUser(),
+                NotificationType.ADD_MONEY,
+                "Add Money approved",
+                "Your Add Money request of BDT " + savedRequest.getAmount() + " was approved.",
+                Map.of("transactionReference", transactionReference, "type", TransactionType.ADD_MONEY.name())
+        );
 
         return response(savedRequest, transactionReference, balanceAfter);
     }
@@ -169,6 +182,13 @@ public class AdminAddMoneyDecisionServiceImpl implements AdminAddMoneyDecisionSe
                 "Rejected Add Money request. note=" + nullToEmpty(request.note())
         );
         idempotencyKeyService.markCompleted(idempotencyKey, "REJECTED:" + savedRequest.getId());
+        transactionAlertService.sendTransactionAlert(
+                savedRequest.getUser(),
+                NotificationType.ADD_MONEY,
+                "Add Money rejected",
+                "Your Add Money request of BDT " + savedRequest.getAmount() + " was rejected.",
+                Map.of("requestId", String.valueOf(savedRequest.getId()), "status", AddMoneyStatus.REJECTED.name())
+        );
 
         return response(savedRequest, null, currentWalletBalance(savedRequest.getUser().getId()));
     }

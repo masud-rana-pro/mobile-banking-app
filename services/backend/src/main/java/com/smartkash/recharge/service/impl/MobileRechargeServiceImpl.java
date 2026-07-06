@@ -11,6 +11,8 @@ import com.smartkash.idempotency.service.IdempotencyKeyService;
 import com.smartkash.ledger.entity.LedgerEntry;
 import com.smartkash.ledger.enums.LedgerEntryType;
 import com.smartkash.ledger.repository.LedgerEntryRepository;
+import com.smartkash.notification.enums.NotificationType;
+import com.smartkash.notification.service.TransactionAlertService;
 import com.smartkash.recharge.dto.request.CreateMobileRechargeRequest;
 import com.smartkash.recharge.dto.response.MobileRechargeResponse;
 import com.smartkash.recharge.entity.MobileRecharge;
@@ -39,6 +41,7 @@ import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.HexFormat;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 
 @Service
@@ -54,6 +57,7 @@ public class MobileRechargeServiceImpl implements MobileRechargeService {
     private final LedgerEntryRepository ledgerEntryRepository;
     private final IdempotencyKeyService idempotencyKeyService;
     private final AuthService authService;
+    private final TransactionAlertService transactionAlertService;
 
     public MobileRechargeServiceImpl(
             UserRepository userRepository,
@@ -63,7 +67,8 @@ public class MobileRechargeServiceImpl implements MobileRechargeService {
             TransactionRecordRepository transactionRecordRepository,
             LedgerEntryRepository ledgerEntryRepository,
             IdempotencyKeyService idempotencyKeyService,
-            AuthService authService
+            AuthService authService,
+            TransactionAlertService transactionAlertService
     ) {
         this.userRepository = userRepository;
         this.mobileRechargeRepository = mobileRechargeRepository;
@@ -73,6 +78,7 @@ public class MobileRechargeServiceImpl implements MobileRechargeService {
         this.ledgerEntryRepository = ledgerEntryRepository;
         this.idempotencyKeyService = idempotencyKeyService;
         this.authService = authService;
+        this.transactionAlertService = transactionAlertService;
     }
 
     @Override
@@ -131,6 +137,13 @@ public class MobileRechargeServiceImpl implements MobileRechargeService {
         idempotencyKeyService.markCompleted(
                 idempotencyKey,
                 "SUCCESS:" + savedRecharge.getId() + ":" + transactionReference + ":" + balanceAfter
+        );
+        transactionAlertService.sendTransactionAlert(
+                user,
+                NotificationType.RECHARGE,
+                "Mobile Recharge completed",
+                "BDT " + request.amount() + " recharge to " + request.mobileNumber() + " was completed.",
+                Map.of("transactionReference", transactionReference, "rechargeId", String.valueOf(savedRecharge.getId()))
         );
 
         return mobileRechargeMapper.toResponse(savedRecharge);

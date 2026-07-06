@@ -11,6 +11,8 @@ import com.smartkash.idempotency.service.IdempotencyKeyService;
 import com.smartkash.ledger.entity.LedgerEntry;
 import com.smartkash.ledger.enums.LedgerEntryType;
 import com.smartkash.ledger.repository.LedgerEntryRepository;
+import com.smartkash.notification.enums.NotificationType;
+import com.smartkash.notification.service.TransactionAlertService;
 import com.smartkash.savings.dto.request.CreateSavingsGoalRequest;
 import com.smartkash.savings.dto.request.SavingsDepositRequest;
 import com.smartkash.savings.dto.response.SavingsDepositResponse;
@@ -42,6 +44,7 @@ import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.HexFormat;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 
 @Service
@@ -57,6 +60,7 @@ public class SavingsGoalServiceImpl implements SavingsGoalService {
     private final LedgerEntryRepository ledgerEntryRepository;
     private final IdempotencyKeyService idempotencyKeyService;
     private final AuthService authService;
+    private final TransactionAlertService transactionAlertService;
 
     public SavingsGoalServiceImpl(
             UserRepository userRepository,
@@ -66,7 +70,8 @@ public class SavingsGoalServiceImpl implements SavingsGoalService {
             TransactionRecordRepository transactionRecordRepository,
             LedgerEntryRepository ledgerEntryRepository,
             IdempotencyKeyService idempotencyKeyService,
-            AuthService authService
+            AuthService authService,
+            TransactionAlertService transactionAlertService
     ) {
         this.userRepository = userRepository;
         this.savingsGoalRepository = savingsGoalRepository;
@@ -76,6 +81,7 @@ public class SavingsGoalServiceImpl implements SavingsGoalService {
         this.ledgerEntryRepository = ledgerEntryRepository;
         this.idempotencyKeyService = idempotencyKeyService;
         this.authService = authService;
+        this.transactionAlertService = transactionAlertService;
     }
 
     @Override
@@ -156,6 +162,13 @@ public class SavingsGoalServiceImpl implements SavingsGoalService {
         idempotencyKeyService.markCompleted(
                 idempotencyKey,
                 "SUCCESS:" + transactionReference + ":" + walletBalanceAfter
+        );
+        transactionAlertService.sendTransactionAlert(
+                user,
+                NotificationType.SAVINGS,
+                "Savings deposit completed",
+                "BDT " + request.amount() + " was deposited to " + savedGoal.getName() + ".",
+                Map.of("transactionReference", transactionReference, "goalId", String.valueOf(savedGoal.getId()))
         );
 
         return new SavingsDepositResponse(

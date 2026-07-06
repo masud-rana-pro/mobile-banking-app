@@ -11,6 +11,8 @@ import com.smartkash.idempotency.service.IdempotencyKeyService;
 import com.smartkash.ledger.entity.LedgerEntry;
 import com.smartkash.ledger.enums.LedgerEntryType;
 import com.smartkash.ledger.repository.LedgerEntryRepository;
+import com.smartkash.notification.enums.NotificationType;
+import com.smartkash.notification.service.TransactionAlertService;
 import com.smartkash.security.JwtPrincipal;
 import com.smartkash.sendmoney.dto.request.SendMoneyRequest;
 import com.smartkash.sendmoney.dto.response.SendMoneyTransferResponse;
@@ -35,6 +37,7 @@ import java.security.NoSuchAlgorithmException;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.HexFormat;
+import java.util.Map;
 import java.util.UUID;
 
 @Service
@@ -49,6 +52,7 @@ public class SendMoneyTransferServiceImpl implements SendMoneyTransferService {
     private final LedgerEntryRepository ledgerEntryRepository;
     private final IdempotencyKeyService idempotencyKeyService;
     private final AuthService authService;
+    private final TransactionAlertService transactionAlertService;
 
     public SendMoneyTransferServiceImpl(
             UserRepository userRepository,
@@ -56,7 +60,8 @@ public class SendMoneyTransferServiceImpl implements SendMoneyTransferService {
             TransactionRecordRepository transactionRecordRepository,
             LedgerEntryRepository ledgerEntryRepository,
             IdempotencyKeyService idempotencyKeyService,
-            AuthService authService
+            AuthService authService,
+            TransactionAlertService transactionAlertService
     ) {
         this.userRepository = userRepository;
         this.walletRepository = walletRepository;
@@ -64,6 +69,7 @@ public class SendMoneyTransferServiceImpl implements SendMoneyTransferService {
         this.ledgerEntryRepository = ledgerEntryRepository;
         this.idempotencyKeyService = idempotencyKeyService;
         this.authService = authService;
+        this.transactionAlertService = transactionAlertService;
     }
 
     @Override
@@ -150,6 +156,20 @@ public class SendMoneyTransferServiceImpl implements SendMoneyTransferService {
         idempotencyKeyService.markCompleted(
                 idempotencyKey,
                 "SUCCESS:" + senderTransactionReference + ":" + senderBalanceAfter
+        );
+        transactionAlertService.sendTransactionAlert(
+                sender,
+                NotificationType.SEND_MONEY,
+                "Send Money completed",
+                "You sent BDT " + request.amount() + " to " + receiver.getMobileNumber() + ".",
+                Map.of("transactionReference", senderTransactionReference, "type", TransactionType.SEND_MONEY.name())
+        );
+        transactionAlertService.sendTransactionAlert(
+                receiver,
+                NotificationType.SEND_MONEY,
+                "Money received",
+                "You received BDT " + request.amount() + " from " + sender.getMobileNumber() + ".",
+                Map.of("transactionReference", senderTransactionReference, "type", TransactionType.RECEIVE_MONEY.name())
         );
 
         return new SendMoneyTransferResponse(

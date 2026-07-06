@@ -14,6 +14,8 @@ import com.smartkash.ledger.repository.LedgerEntryRepository;
 import com.smartkash.merchant.entity.Merchant;
 import com.smartkash.merchant.enums.MerchantStatus;
 import com.smartkash.merchant.repository.MerchantRepository;
+import com.smartkash.notification.enums.NotificationType;
+import com.smartkash.notification.service.TransactionAlertService;
 import com.smartkash.payment.dto.request.MerchantPaymentRequest;
 import com.smartkash.payment.dto.response.MerchantPaymentResponse;
 import com.smartkash.payment.service.MerchantPaymentService;
@@ -38,6 +40,7 @@ import java.security.NoSuchAlgorithmException;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.HexFormat;
+import java.util.Map;
 import java.util.UUID;
 
 @Service
@@ -52,6 +55,7 @@ public class MerchantPaymentServiceImpl implements MerchantPaymentService {
     private final LedgerEntryRepository ledgerEntryRepository;
     private final IdempotencyKeyService idempotencyKeyService;
     private final AuthService authService;
+    private final TransactionAlertService transactionAlertService;
 
     public MerchantPaymentServiceImpl(
             UserRepository userRepository,
@@ -60,7 +64,8 @@ public class MerchantPaymentServiceImpl implements MerchantPaymentService {
             TransactionRecordRepository transactionRecordRepository,
             LedgerEntryRepository ledgerEntryRepository,
             IdempotencyKeyService idempotencyKeyService,
-            AuthService authService
+            AuthService authService,
+            TransactionAlertService transactionAlertService
     ) {
         this.userRepository = userRepository;
         this.merchantRepository = merchantRepository;
@@ -69,6 +74,7 @@ public class MerchantPaymentServiceImpl implements MerchantPaymentService {
         this.ledgerEntryRepository = ledgerEntryRepository;
         this.idempotencyKeyService = idempotencyKeyService;
         this.authService = authService;
+        this.transactionAlertService = transactionAlertService;
     }
 
     @Override
@@ -156,6 +162,20 @@ public class MerchantPaymentServiceImpl implements MerchantPaymentService {
         idempotencyKeyService.markCompleted(
                 idempotencyKey,
                 "SUCCESS:" + customerTransactionReference + ":" + customerBalanceAfter
+        );
+        transactionAlertService.sendTransactionAlert(
+                customer,
+                NotificationType.PAYMENT,
+                "Merchant Payment completed",
+                "You paid BDT " + request.amount() + " to " + merchant.getBusinessName() + ".",
+                Map.of("transactionReference", customerTransactionReference, "type", TransactionType.MERCHANT_PAYMENT.name())
+        );
+        transactionAlertService.sendTransactionAlert(
+                merchantUser,
+                NotificationType.PAYMENT,
+                "Merchant Payment received",
+                "You received BDT " + request.amount() + " from " + customer.getMobileNumber() + ".",
+                Map.of("transactionReference", customerTransactionReference, "type", TransactionType.MERCHANT_PAYMENT.name())
         );
 
         return new MerchantPaymentResponse(
