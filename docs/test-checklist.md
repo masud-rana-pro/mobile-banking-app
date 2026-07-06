@@ -93,3 +93,13 @@
 - DTOs and mappers are used.
 - Bean Validation validates request DTOs.
 - Global exception handling returns consistent errors.
+
+## API Error Outputs
+
+- Protected API without `Authorization: Bearer <token>` returns JSON `401 Unauthorized`.
+- Protected API with invalid/expired backend JWT returns JSON `401 Unauthorized`.
+- Customer or merchant user calling `/admin/**` returns JSON `403 Forbidden`.
+- Invalid request body returns JSON `400 Bad Request` with field errors.
+- Duplicate unique values or database constraint conflicts return JSON `409 Conflict`.
+- Missing resources return JSON `404 Not Found`.
+- Unexpected server errors return JSON `500 Internal Server Error` with a safe generic message.

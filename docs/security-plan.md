@@ -121,3 +121,7 @@ Step 16 creates the admin audit log persistence foundation only. It does not exp
 - DTOs must be used for request and response payloads.
 - Bean Validation annotations should validate incoming request DTOs.
 - Global exception handling should return consistent API errors.
+- Missing or invalid backend JWT responses should use the same JSON error shape as controller errors.
+- Non-admin access to admin APIs should return a consistent `403 Forbidden` JSON error.
+- Duplicate database constraints, such as reused mobile numbers, merchant numbers, or idempotency keys, should return a safe `409 Conflict` message without leaking database internals.
+- Unexpected backend failures should return a generic safe `500 Internal Server Error` message instead of stack traces or secret-bearing details.

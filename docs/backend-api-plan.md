@@ -92,6 +92,30 @@ com.smartkash.wallet.enums
 - Do not update or delete immutable ledger entries.
 - Use reversal ledger entries for corrections.
 
+## API Error Response Contract
+
+Backend API errors should use the shared `ApiErrorResponse` shape:
+
+- `timestamp`
+- `status`
+- `error`
+- `message`
+- `path`
+- `errors`
+
+Expected error behavior:
+
+- Missing backend JWT on protected API: `401 Unauthorized` with message `Authentication is required.`
+- Invalid or expired backend JWT: `401 Unauthorized` with message `Invalid or expired backend JWT.`
+- Authenticated non-admin user on `/admin/**`: `403 Forbidden`
+- Bean Validation failure: `400 Bad Request` with field-level messages in `errors`
+- Invalid business request: `400 Bad Request`
+- Missing resource: `404 Not Found`
+- Duplicate/constraint conflict: `409 Conflict`
+- Unexpected server problem: `500 Internal Server Error` with a generic safe message
+
+Step 33 improves this shared API error behavior for Spring Security and global exception handling so Flutter can rely on consistent error payloads.
+
 ## Important Backend Enums
 
 - `UserRole`: `CUSTOMER`, `MERCHANT`, `ADMIN`
