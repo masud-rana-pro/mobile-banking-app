@@ -218,6 +218,8 @@ Step 20 creates the mobile recharge demo record foundation only. It stores an au
 - `created_at`
 - `updated_at`
 
+Step 31 creates `firebase_devices` for storing current user FCM tokens. FCM tokens are registered through authenticated API calls and are used only for important transaction alerts. Local notification delivery can be skipped when `FCM_ENABLED=false` or Firebase Admin credentials are not configured.
+
 ### idempotency_keys
 
 - `id`

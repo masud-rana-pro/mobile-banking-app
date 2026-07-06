@@ -8,6 +8,14 @@ Notification logic should live in a dedicated backend notification module, not i
 
 FCM platform support should be added carefully per Flutter platform. Android remains the primary local notification testing target; full platform-specific notification verification can happen later when each platform is configured.
 
+Step 31 backend foundation:
+
+- `POST /api/devices/fcm-token` stores or refreshes the authenticated user's FCM token.
+- `firebase_devices` stores `user_id`, `fcm_token`, `device_type`, `active`, and timestamps.
+- `TransactionAlertService` provides a backend service boundary for important transaction alerts.
+- `FCM_ENABLED=false` or missing Firebase Admin credentials makes notification sending skip safely.
+- Step 31 does not send alerts from every transaction service yet; wiring alerts into each successful money flow can be done in a focused later step.
+
 ## MVP Notification Events
 
 - Add Money approved.

@@ -114,6 +114,7 @@ com.smartkash.wallet.enums
 - `POST /api/auth/verify-pin`: verify PIN in backend only.
 - PIN verification requires authenticated backend JWT, validates a 5-digit PIN, compares it with BCrypt, tracks failed attempts, and temporarily blocks verification after 5 wrong attempts for 15 minutes.
 - `POST /api/devices/fcm-token`: save/update FCM device token.
+- Step 31 implements authenticated `POST /api/devices/fcm-token` to save or refresh the current user's FCM token and device type. Notification sending remains dedicated to the backend notification module and respects `FCM_ENABLED`.
 
 ## User APIs
 
