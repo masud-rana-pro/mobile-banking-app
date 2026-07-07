@@ -285,7 +285,7 @@ class _NextActionBar extends StatelessWidget {
           Text(
             'Next',
             style: TextStyle(
-              color: Colors.white.withOpacity(enabled ? 1 : 0.72),
+              color: Colors.white.withValues(alpha: enabled ? 1 : 0.72),
               fontSize: 20,
               fontWeight: FontWeight.w800,
             ),
