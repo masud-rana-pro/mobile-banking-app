@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
-import '../../../app/config/app_config.dart';
 import '../../auth/presentation/login_screen.dart';
 
 class HomeScreen extends StatelessWidget {
@@ -75,7 +74,7 @@ class _HomeHeader extends StatelessWidget {
           Positioned(
             right: 26,
             bottom: 32,
-            child: _HeaderMascot(color: Colors.white.withOpacity(0.9)),
+            child: _HeaderMascot(color: Colors.white.withValues(alpha: 0.9)),
           ),
           Padding(
             padding: const EdgeInsets.fromLTRB(20, 50, 20, 0),
@@ -310,7 +309,7 @@ class _ActionTile extends StatelessWidget {
           width: 54,
           height: 54,
           decoration: BoxDecoration(
-            color: action.color.withOpacity(0.08),
+            color: action.color.withValues(alpha: 0.08),
             shape: BoxShape.circle,
           ),
           child: Icon(action.icon, color: action.color, size: 30),
@@ -366,7 +365,7 @@ class _PromoSection extends StatelessWidget {
                   bottom: -30,
                   child: Icon(
                     Icons.card_giftcard,
-                    color: Colors.white.withOpacity(0.16),
+                    color: Colors.white.withValues(alpha: 0.16),
                     size: 124,
                   ),
                 ),
@@ -377,7 +376,7 @@ class _PromoSection extends StatelessWidget {
                   child: Container(
                     width: 74,
                     decoration: BoxDecoration(
-                      color: Colors.white.withOpacity(0.14),
+                      color: Colors.white.withValues(alpha: 0.14),
                       borderRadius: BorderRadius.circular(8),
                     ),
                     child: const Icon(
@@ -447,12 +446,12 @@ class _QuickFeaturesSection extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.fromLTRB(18, 22, 18, 0),
+    return const Padding(
+      padding: EdgeInsets.fromLTRB(18, 22, 18, 0),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text(
+          Text(
             'Quick Features',
             style: TextStyle(
               color: Color(0xFF263238),
@@ -460,9 +459,9 @@ class _QuickFeaturesSection extends StatelessWidget {
               fontSize: 18,
             ),
           ),
-          const SizedBox(height: 14),
+          SizedBox(height: 14),
           Row(
-            children: const [
+            children: [
               Expanded(
                   child: _QuickChip(icon: Icons.lightbulb, label: 'DESCO')),
               SizedBox(width: 10),
@@ -473,9 +472,9 @@ class _QuickFeaturesSection extends StatelessWidget {
               Expanded(child: _QuickChip(icon: Icons.send, label: 'Transfer')),
             ],
           ),
-          const SizedBox(height: 16),
+          SizedBox(height: 16),
           Row(
-            children: const [
+            children: [
               Expanded(
                   child: _FeatureCard(
                       icon: Icons.card_giftcard, label: 'Rewards')),

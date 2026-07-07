@@ -49,11 +49,12 @@
 - Step 35 Flutter API client foundation: added Dio, secure token storage, centralized API client/providers, backend auth repository, backend token model, configurable API base URL, and Flutter-side API error mapping without adding UI screens or feature flows.
 - Step 36 Flutter auth flow foundation: added auth session state/status, Riverpod auth controller, Firebase current-user backend JWT sync, and local sign-out coordination without adding login/OTP UI or visual screen design.
 - Step 37 Flutter reference UI shell: recorded the user's reference-image UI rule and added SmartKash-original Home and Login UI shells inspired by the provided layout/hierarchy while using different branding and colors.
+- Step 37b Flutter UI run fix: cleaned analyzer-blocking UI shell warnings by removing an unused import, replacing deprecated opacity calls, and fixing const lint issues so Flutter analysis passes again.
 
 ## Last Commit
 
-- Last commit message: `step-37: add Flutter reference UI shell`
-- Last commit hash: pending until Step 37 commit finalization.
+- Last commit message: `step-37b: fix Flutter UI run issues`
+- Last commit hash: pending until Step 37b commit finalization.
 
 ## Important Architecture Decisions
 
@@ -112,6 +113,7 @@
 - Step 35 centralizes Flutter backend communication through `ApiClient`, maps backend `ApiErrorResponse` into `ApiException`, and stores only backend JWT values in secure storage.
 - Step 36 separates auth orchestration from UI: Firebase Auth remains in `FirebasePhoneAuthService`, backend JWT exchange remains in `BackendAuthRepository`, and `AuthController` coordinates state for future screens.
 - Step 37 establishes the UI reference rule: use provided screenshots for layout direction only, keep SmartKash branding/colors original, and ask for more screen-specific references or asset dimensions before future visual screen work when needed.
+- Step 37b keeps the UI shell presentation-only while making analyzer output clean enough for local Flutter run/build verification.
 - Money-changing operations require transactions, safe wallet locking, idempotency keys, and audit logs.
 - Codex uses a manual verification workflow by default: do focused changes, update learning/progress docs, run lightweight checks only, commit/push, and provide manual verification commands.
 
@@ -175,6 +177,7 @@
 - Step 35 adds Flutter networking/storage foundation only; it does not add login screens, wallet screens, QR scanner UI, feature API integration, PIN storage, or visual design.
 - Step 36 adds Flutter auth state/controller foundation only; it does not add login/OTP screens, route guards, wallet feature UI, PIN UI, or final app visual design.
 - Step 37 adds visual UI shells only; it does not connect real Firebase OTP submission, backend login button actions, wallet APIs, QR scanner, feature APIs, or real promotional images.
+- Step 37b fixes analyzer-blocking UI shell warnings only; it does not wire Firebase OTP, backend login actions, wallet APIs, QR scanner, or feature APIs.
 - `flutter create` timed out in the sandbox, so the minimal Flutter skeleton was created manually and verified with Flutter tooling.
 - Global `mvn` is not available in the Codex session, so backend verification should use Maven Wrapper `.\mvnw.cmd`.
 - Flyway works against local PostgreSQL 17.10 after adding `flyway-database-postgresql`, but logs a warning that this Flyway version officially tested support up to PostgreSQL 16.
@@ -183,7 +186,7 @@
 
 ## Next Recommended Step
 
-- Ask the user to run Step 37 manual Flutter verification commands and visually inspect Home/Login screens. After verification passes, the next recommended step is wiring auth UI actions to Firebase test OTP flow.
+- Ask the user to rerun Flutter manual verification commands and visually inspect Home/Login screens. After verification passes, the next recommended step is wiring auth UI actions to Firebase test OTP flow.
 
 ## Standard Step Completion Format
 

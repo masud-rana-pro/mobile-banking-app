@@ -222,3 +222,50 @@ git push
 ## 12. What I learned from this step
 
 এই ধাপে শিখলাম কীভাবে reference image থেকে layout idea নেওয়া যায়, কিন্তু branding copy না করে নিজের app-এর original UI তৈরি করা যায়। আরও শিখলাম Flutter-এ dashboard layout, route setup, theme color, keypad UI এবং future auth flow-এর জন্য clean visual shell তৈরি করার পদ্ধতি।
+
+## 13. Step 37b run fix note
+
+Step 37-এর পরে Flutter app run/check করার সময় `flutter analyze` fail করছিল, কারণ project-এর lint rules warning/info-কেও issue হিসেবে ধরছিল।
+
+### What was fixed
+
+- Home screen থেকে unused `AppConfig` import remove করা হয়েছে।
+- Deprecated `withOpacity(...)` call replace করে `withValues(alpha: ...)` ব্যবহার করা হয়েছে।
+- Static Quick Features section-এ const usage ঠিক করা হয়েছে।
+- Login screen-এর `Next` bar color opacity একইভাবে update করা হয়েছে।
+
+### Important snippet
+
+```dart
+color: Colors.white.withValues(alpha: enabled ? 1 : 0.72),
+```
+
+### Bangla explanation
+
+- `Colors.white` হলো base color।
+- `withValues(alpha: ...)` দিয়ে color-এর transparency set করা হয়।
+- `enabled ? 1 : 0.72` মানে button active হলে full white, inactive হলে হালকা transparent white।
+- আগে `withOpacity(...)` ব্যবহার করা হয়েছিল, কিন্তু নতুন Flutter lint সেটিকে deprecated দেখাচ্ছিল।
+
+### Verification result
+
+```bat
+cd /d D:\github\my-kash\apps\mobile
+flutter analyze
+```
+
+Expected output:
+
+```text
+No issues found!
+```
+
+### Note
+
+`flutter build web` sandbox timeout-এর কারণে Codex environment-এ শেষ করা যায়নি। তাই local CMD/IDE থেকে নিচের command চালিয়ে final run/build verify করতে হবে:
+
+```bat
+cd /d D:\github\my-kash\apps\mobile
+flutter run -d chrome --dart-define=SMARTKASH_API_BASE_URL=http://localhost:8080
+flutter build web
+```
