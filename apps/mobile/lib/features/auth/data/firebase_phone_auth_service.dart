@@ -20,4 +20,8 @@ class FirebasePhoneAuthService {
 
     return user.getIdToken(forceRefresh);
   }
+
+  Future<void> signOut() {
+    return _firebaseAuth.signOut();
+  }
 }
