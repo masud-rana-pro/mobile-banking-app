@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../app/config/app_config.dart';
+import '../../../core/constants/app_assets.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -154,30 +155,24 @@ class _SmartKashMark extends StatelessWidget {
   Widget build(BuildContext context) {
     return Row(
       children: [
-        Container(
-          width: 58,
-          height: 58,
-          decoration: BoxDecoration(
-            gradient: const LinearGradient(
-              colors: [Color(0xFF008F7A), Color(0xFF2446A6)],
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
-            ),
-            borderRadius: BorderRadius.circular(16),
-          ),
-          child: const Icon(
-            Icons.account_balance_wallet,
-            color: Colors.white,
-            size: 32,
+        ClipRRect(
+          borderRadius: BorderRadius.circular(16),
+          child: Image.asset(
+            AppAssets.smartKashLogoMark,
+            width: 72,
+            height: 72,
+            fit: BoxFit.cover,
           ),
         ),
         const SizedBox(width: 12),
-        const Text(
-          AppConfig.appName,
-          style: TextStyle(
-            color: Color(0xFF263238),
-            fontWeight: FontWeight.w900,
-            fontSize: 20,
+        const Flexible(
+          child: Text(
+            AppConfig.appName,
+            style: TextStyle(
+              color: Color(0xFF263238),
+              fontWeight: FontWeight.w900,
+              fontSize: 20,
+            ),
           ),
         ),
       ],

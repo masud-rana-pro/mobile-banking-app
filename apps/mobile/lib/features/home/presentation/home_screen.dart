@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../../core/constants/app_assets.dart';
 import '../../auth/presentation/login_screen.dart';
 
 class HomeScreen extends StatelessWidget {
@@ -59,6 +60,27 @@ class _HomeHeader extends StatelessWidget {
       ),
       child: Stack(
         children: [
+          Positioned.fill(
+            child: Image.asset(
+              AppAssets.smartKashHeader,
+              fit: BoxFit.cover,
+              opacity: const AlwaysStoppedAnimation(0.72),
+            ),
+          ),
+          Positioned.fill(
+            child: DecoratedBox(
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  colors: [
+                    const Color(0xFF00695C).withValues(alpha: 0.84),
+                    const Color(0xFF2446A6).withValues(alpha: 0.56),
+                  ],
+                  begin: Alignment.centerLeft,
+                  end: Alignment.centerRight,
+                ),
+              ),
+            ),
+          ),
           Positioned(
             left: -48,
             right: -32,
@@ -74,23 +96,20 @@ class _HomeHeader extends StatelessWidget {
           Positioned(
             right: 26,
             bottom: 32,
-            child: _HeaderMascot(color: Colors.white.withValues(alpha: 0.9)),
+            child: _HeaderBadge(color: Colors.white.withValues(alpha: 0.9)),
           ),
           Padding(
             padding: const EdgeInsets.fromLTRB(20, 50, 20, 0),
             child: Row(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const CircleAvatar(
-                  radius: 28,
-                  backgroundColor: Color(0xFFFFC857),
-                  child: Text(
-                    'S',
-                    style: TextStyle(
-                      color: Color(0xFF0B2447),
-                      fontWeight: FontWeight.w800,
-                      fontSize: 24,
-                    ),
+                ClipRRect(
+                  borderRadius: BorderRadius.circular(28),
+                  child: Image.asset(
+                    AppAssets.smartKashLogoMark,
+                    width: 56,
+                    height: 56,
+                    fit: BoxFit.cover,
                   ),
                 ),
                 const SizedBox(width: 12),
@@ -165,8 +184,8 @@ class _HomeHeader extends StatelessWidget {
   }
 }
 
-class _HeaderMascot extends StatelessWidget {
-  const _HeaderMascot({required this.color});
+class _HeaderBadge extends StatelessWidget {
+  const _HeaderBadge({required this.color});
 
   final Color color;
 
@@ -180,12 +199,16 @@ class _HeaderMascot extends StatelessWidget {
         children: [
           Positioned(
             bottom: 4,
-            child: Icon(Icons.savings_outlined, color: color, size: 58),
+            child: Icon(Icons.shield, color: color, size: 58),
           ),
           Positioned(
             top: 12,
             right: 2,
-            child: Icon(Icons.flag, color: Colors.amber.shade300, size: 28),
+            child: Icon(
+              Icons.check_circle,
+              color: Colors.amber.shade300,
+              size: 28,
+            ),
           ),
         ],
       ),
@@ -336,103 +359,97 @@ class _PromoSection extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 18),
+    return const Padding(
+      padding: EdgeInsets.symmetric(horizontal: 18),
       child: Column(
         children: [
-          Container(
-            height: 118,
-            width: double.infinity,
+          _PromoBanner(),
+        ],
+      ),
+    );
+  }
+}
+
+class _PromoBanner extends StatelessWidget {
+  const _PromoBanner();
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      height: 118,
+      width: double.infinity,
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(8),
+        boxShadow: const [
+          BoxShadow(
+            color: Color(0x18000000),
+            blurRadius: 16,
+            offset: Offset(0, 8),
+          ),
+        ],
+      ),
+      clipBehavior: Clip.antiAlias,
+      child: Stack(
+        fit: StackFit.expand,
+        children: [
+          Image.asset(AppAssets.smartKashPromo, fit: BoxFit.cover),
+          DecoratedBox(
             decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(8),
-              gradient: const LinearGradient(
-                colors: [Color(0xFF123C69), Color(0xFF00A896)],
+              gradient: LinearGradient(
+                colors: [
+                  const Color(0xFF003B46).withValues(alpha: 0.84),
+                  const Color(0xFF003B46).withValues(alpha: 0.32),
+                  Colors.transparent,
+                ],
                 begin: Alignment.centerLeft,
                 end: Alignment.centerRight,
               ),
-              boxShadow: const [
-                BoxShadow(
-                  color: Color(0x18000000),
-                  blurRadius: 16,
-                  offset: Offset(0, 8),
+            ),
+          ),
+          const Padding(
+            padding: EdgeInsets.fromLTRB(18, 20, 118, 18),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Text(
+                  'Recharge faster with SmartKash',
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontSize: 17,
+                    fontWeight: FontWeight.w800,
+                  ),
+                ),
+                SizedBox(height: 6),
+                Text(
+                  'Demo offers for your learning MVP',
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: TextStyle(color: Colors.white70, fontSize: 12),
                 ),
               ],
             ),
-            child: Stack(
-              children: [
-                Positioned(
-                  left: -18,
-                  bottom: -30,
-                  child: Icon(
-                    Icons.card_giftcard,
-                    color: Colors.white.withValues(alpha: 0.16),
-                    size: 124,
+          ),
+          Positioned(
+            bottom: 8,
+            left: 0,
+            right: 0,
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: List.generate(
+                5,
+                (index) => Container(
+                  width: index == 1 ? 18 : 7,
+                  height: 7,
+                  margin: const EdgeInsets.symmetric(horizontal: 2),
+                  decoration: BoxDecoration(
+                    color: index == 1 ? Colors.white : Colors.white54,
+                    borderRadius: BorderRadius.circular(8),
                   ),
                 ),
-                Positioned(
-                  right: 16,
-                  top: 16,
-                  bottom: 16,
-                  child: Container(
-                    width: 74,
-                    decoration: BoxDecoration(
-                      color: Colors.white.withValues(alpha: 0.14),
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                    child: const Icon(
-                      Icons.phone_iphone,
-                      color: Colors.white,
-                      size: 44,
-                    ),
-                  ),
-                ),
-                const Padding(
-                  padding: EdgeInsets.fromLTRB(22, 20, 104, 18),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Text(
-                        'Recharge faster with SmartKash',
-                        maxLines: 2,
-                        overflow: TextOverflow.ellipsis,
-                        style: TextStyle(
-                          color: Colors.white,
-                          fontSize: 18,
-                          fontWeight: FontWeight.w800,
-                        ),
-                      ),
-                      SizedBox(height: 6),
-                      Text(
-                        'Demo offers for your learning MVP',
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                        style: TextStyle(color: Colors.white70, fontSize: 12),
-                      ),
-                    ],
-                  ),
-                ),
-                Positioned(
-                  bottom: 8,
-                  left: 0,
-                  right: 0,
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: List.generate(
-                      5,
-                      (index) => Container(
-                        width: index == 1 ? 18 : 7,
-                        height: 7,
-                        margin: const EdgeInsets.symmetric(horizontal: 2),
-                        decoration: BoxDecoration(
-                          color: index == 1 ? Colors.white : Colors.white54,
-                          borderRadius: BorderRadius.circular(8),
-                        ),
-                      ),
-                    ),
-                  ),
-                ),
-              ],
+              ),
             ),
           ),
         ],
