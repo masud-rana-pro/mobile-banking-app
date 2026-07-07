@@ -112,3 +112,14 @@
 - Seed script creates one admin, 15 customers, 15 merchants, profiles, wallets, and at least 15 rows for each main business table.
 - Seed count output should be checked after running the script.
 - `docs/backend-e2e-api-test-guide.md` explains expected manual database and API outputs.
+
+## Flutter API Client Foundation
+
+- `flutter pub get` resolves `dio` and `flutter_secure_storage`.
+- Flutter API base URL can be changed with `--dart-define=SMARTKASH_API_BASE_URL=<url>`.
+- Android emulator default backend URL is `http://10.0.2.2:8080`.
+- Web/desktop local backend URL should usually be `http://localhost:8080`.
+- Backend JWT is stored in secure storage.
+- PIN is not stored in Flutter.
+- API requests attach `Authorization: Bearer <backend-jwt>` only when a token exists.
+- Backend `ApiErrorResponse` JSON maps to Flutter `ApiException`.

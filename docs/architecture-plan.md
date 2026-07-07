@@ -180,6 +180,16 @@ Flutter rules:
 - Keep Firebase Auth logic separated from UI screens.
 - Keep QR scan logic inside a dedicated QR feature/module.
 
+Step 35 adds the Flutter API client foundation:
+
+- `dio` is the centralized HTTP client dependency.
+- `flutter_secure_storage` stores the backend JWT only.
+- `AppConfig.backendBaseUrl` uses `SMARTKASH_API_BASE_URL` from Dart defines, with Android emulator default `http://10.0.2.2:8080`.
+- `ApiClient` attaches `Authorization: Bearer <token>` when a backend JWT exists.
+- `ApiException` maps backend `ApiErrorResponse` JSON into a Flutter-friendly exception.
+- `BackendAuthRepository` exchanges Firebase ID token with `POST /api/auth/firebase-login` and saves the backend JWT.
+- Feature UI must call repositories/providers, not `Dio` directly.
+
 ## Flutter To Spring Boot Flow
 
 - User opens Flutter app.
