@@ -1,4 +1,6 @@
 spring:
+  config:
+    import: optional:file:.env[.properties]
   application:
     name: smartkash-backend
   profiles:
@@ -18,3 +20,8 @@ springdoc:
     enabled: true
   swagger-ui:
     enabled: true
+
+smartkash:
+  firebase:
+    private-key-id: ${FIREBASE_PRIVATE_KEY_ID:}
+    client-id: ${FIREBASE_CLIENT_ID:}

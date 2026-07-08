@@ -63,15 +63,24 @@ public class FirebaseAdminInitializer {
                 {
                   "type": "service_account",
                   "project_id": "%s",
+                  "private_key_id": "%s",
                   "private_key": "%s",
                   "client_email": "%s",
+                  "client_id": "%s",
+                  "auth_uri": "https://accounts.google.com/o/oauth2/auth",
                   "token_uri": "https://oauth2.googleapis.com/token"
                 }
                 """.formatted(
                 escapeJson(properties.projectId()),
+                escapeJson(orEmpty(properties.privateKeyId())),
                 escapeJson(properties.normalizedPrivateKey()),
-                escapeJson(properties.clientEmail())
+                escapeJson(properties.clientEmail()),
+                escapeJson(orEmpty(properties.clientId()))
         );
+    }
+
+    private String orEmpty(String value) {
+        return value == null ? "" : value;
     }
 
     private String escapeJson(String value) {

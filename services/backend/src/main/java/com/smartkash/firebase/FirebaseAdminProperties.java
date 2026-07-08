@@ -6,7 +6,9 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 public record FirebaseAdminProperties(
         String projectId,
         String clientEmail,
-        String privateKey
+        String privateKey,
+        String privateKeyId,
+        String clientId
 ) {
 
     public boolean isConfigured() {
@@ -14,7 +16,16 @@ public record FirebaseAdminProperties(
     }
 
     public String normalizedPrivateKey() {
-        return privateKey == null ? "" : privateKey.replace("\\n", "\n");
+        if (privateKey == null) {
+            return "";
+        }
+
+        String normalized = privateKey.trim();
+        if (normalized.length() >= 2 && normalized.startsWith("\"") && normalized.endsWith("\"")) {
+            normalized = normalized.substring(1, normalized.length() - 1);
+        }
+
+        return normalized.replace("\\n", "\n").trim();
     }
 
     private boolean hasText(String value) {
