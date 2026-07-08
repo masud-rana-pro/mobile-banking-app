@@ -23,6 +23,8 @@ import com.smartkash.wallet.service.WalletService;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
@@ -30,6 +32,7 @@ import java.time.temporal.ChronoUnit;
 @Service
 public class AuthServiceImpl implements AuthService {
 
+    private static final Logger log = LoggerFactory.getLogger(AuthServiceImpl.class);
     private static final String PHONE_NUMBER_CLAIM = "phone_number";
     private static final int MAX_PIN_ATTEMPTS = 5;
     private static final int PIN_BLOCK_MINUTES = 15;
@@ -118,7 +121,15 @@ public class AuthServiceImpl implements AuthService {
     private FirebaseToken verifyFirebaseToken(String firebaseIdToken) {
         try {
             return firebaseTokenVerifier.verifyIdToken(firebaseIdToken);
-        } catch (FirebaseAuthException | IllegalStateException exception) {
+        } catch (FirebaseAuthException exception) {
+            log.warn(
+                    "Firebase ID token verification failed. code={}, message={}",
+                    exception.getErrorCode(),
+                    exception.getMessage()
+            );
+            throw new AuthException("Invalid Firebase ID token.", exception);
+        } catch (IllegalStateException exception) {
+            log.warn("Firebase Admin SDK is not configured for backend login: {}", exception.getMessage());
             throw new AuthException("Invalid Firebase ID token.", exception);
         }
     }

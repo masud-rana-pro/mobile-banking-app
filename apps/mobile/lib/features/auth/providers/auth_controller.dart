@@ -210,7 +210,7 @@ class AuthController extends StateNotifier<AuthSessionState> {
 
     if (error is ApiException) {
       if (error.path == '/api/auth/firebase-login') {
-        return 'Firebase OTP verified, but backend login failed. Check backend Firebase Admin env values.';
+        return 'Firebase OTP verified, but backend login failed: ${error.message}';
       }
 
       if (error.errors.isNotEmpty) {
@@ -231,7 +231,7 @@ class AuthController extends StateNotifier<AuthSessionState> {
       return 'Firebase is disabled. Run Flutter with FIREBASE_ENABLED=true.';
     }
     if (message.contains('/api/auth/firebase-login')) {
-      return 'Firebase OTP verified, but backend login failed. Check backend Firebase Admin env values.';
+      return 'Firebase OTP verified, but backend login failed. Check the backend terminal for the exact error.';
     }
 
     return message;
