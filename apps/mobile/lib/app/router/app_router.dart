@@ -1,20 +1,45 @@
+import 'package:flutter/foundation.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../features/auth/presentation/login_screen.dart';
+import '../../features/auth/providers/auth_providers.dart';
 import '../../features/home/presentation/home_screen.dart';
 
-final GoRouter appRouter = GoRouter(
-  initialLocation: HomeScreen.routePath,
-  routes: [
-    GoRoute(
-      path: HomeScreen.routePath,
-      name: HomeScreen.routeName,
-      builder: (context, state) => const HomeScreen(),
-    ),
-    GoRoute(
-      path: LoginScreen.routePath,
-      name: LoginScreen.routeName,
-      builder: (context, state) => const LoginScreen(),
-    ),
-  ],
+final appRouterProvider = Provider<GoRouter>(
+  (ref) {
+    final refreshListenable = ValueNotifier<int>(0);
+    ref.onDispose(refreshListenable.dispose);
+
+    ref.listen(authControllerProvider, (previous, next) {
+      refreshListenable.value++;
+    });
+
+    return GoRouter(
+      initialLocation: HomeScreen.routePath,
+      refreshListenable: refreshListenable,
+      redirect: (context, state) {
+        final authState = ref.read(authControllerProvider);
+        final isLoginRoute = state.matchedLocation == LoginScreen.routePath;
+
+        if (authState.isAuthenticated) {
+          return isLoginRoute ? HomeScreen.routePath : null;
+        }
+
+        return isLoginRoute ? null : LoginScreen.routePath;
+      },
+      routes: [
+        GoRoute(
+          path: HomeScreen.routePath,
+          name: HomeScreen.routeName,
+          builder: (context, state) => const HomeScreen(),
+        ),
+        GoRoute(
+          path: LoginScreen.routePath,
+          name: LoginScreen.routeName,
+          builder: (context, state) => const LoginScreen(),
+        ),
+      ],
+    );
+  },
 );

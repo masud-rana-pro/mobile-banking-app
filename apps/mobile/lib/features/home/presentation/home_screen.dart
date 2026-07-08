@@ -1,25 +1,42 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../core/constants/app_assets.dart';
 import '../../auth/presentation/login_screen.dart';
+import '../../auth/providers/auth_providers.dart';
 
-class HomeScreen extends StatelessWidget {
+class HomeScreen extends ConsumerWidget {
   const HomeScreen({super.key});
 
   static const routeName = 'home';
   static const routePath = '/';
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final theme = Theme.of(context);
+    final authState = ref.watch(authControllerProvider);
+    final backendToken = authState.backendToken;
+    final accountLabel =
+        backendToken == null || backendToken.phoneNumber.isEmpty
+            ? 'SmartKash Account'
+            : backendToken.phoneNumber;
+    final roleLabel = backendToken?.role ?? 'CUSTOMER';
 
     return Scaffold(
       body: SafeArea(
         top: false,
         child: CustomScrollView(
           slivers: [
-            SliverToBoxAdapter(child: _HomeHeader(theme: theme)),
+            SliverToBoxAdapter(
+              child: _HomeHeader(
+                theme: theme,
+                accountLabel: accountLabel,
+                roleLabel: roleLabel,
+                onSignOut: () =>
+                    ref.read(authControllerProvider.notifier).signOut(),
+              ),
+            ),
             SliverToBoxAdapter(
               child: Transform.translate(
                 offset: const Offset(0, -24),
@@ -43,9 +60,17 @@ class HomeScreen extends StatelessWidget {
 }
 
 class _HomeHeader extends StatelessWidget {
-  const _HomeHeader({required this.theme});
+  const _HomeHeader({
+    required this.theme,
+    required this.accountLabel,
+    required this.roleLabel,
+    required this.onSignOut,
+  });
 
   final ThemeData theme;
+  final String accountLabel;
+  final String roleLabel;
+  final VoidCallback onSignOut;
 
   @override
   Widget build(BuildContext context) {
@@ -117,11 +142,11 @@ class _HomeHeader extends StatelessWidget {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      const Text(
-                        'Md. Masud Rana',
+                      Text(
+                        accountLabel,
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
-                        style: TextStyle(
+                        style: const TextStyle(
                           color: Colors.white,
                           fontSize: 18,
                           fontWeight: FontWeight.w700,
@@ -144,18 +169,18 @@ class _HomeHeader extends StatelessWidget {
                             ),
                           ],
                         ),
-                        child: const Row(
+                        child: Row(
                           mainAxisSize: MainAxisSize.min,
                           children: [
-                            Icon(
+                            const Icon(
                               Icons.account_balance_wallet,
                               color: Color(0xFF00796B),
                               size: 18,
                             ),
-                            SizedBox(width: 8),
+                            const SizedBox(width: 8),
                             Text(
-                              'Tap for Balance',
-                              style: TextStyle(
+                              'Logged in - $roleLabel',
+                              style: const TextStyle(
                                 color: Color(0xFF263238),
                                 fontWeight: FontWeight.w700,
                               ),
@@ -172,8 +197,8 @@ class _HomeHeader extends StatelessWidget {
                 ),
                 const SizedBox(width: 10),
                 _HeaderIconButton(
-                  icon: Icons.notifications_none,
-                  onTap: () => context.pushNamed(LoginScreen.routeName),
+                  icon: Icons.logout,
+                  onTap: onSignOut,
                 ),
               ],
             ),

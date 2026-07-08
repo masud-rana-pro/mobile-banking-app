@@ -1,5 +1,6 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../app/config/firebase_config.dart';
 import '../../../core/errors/api_exception.dart';
 import '../data/backend_auth_repository.dart';
 import '../data/firebase_phone_auth_service.dart';
@@ -16,6 +17,20 @@ class AuthController extends StateNotifier<AuthSessionState> {
 
   final FirebasePhoneAuthService _firebasePhoneAuthService;
   final BackendAuthRepository _backendAuthRepository;
+
+  Future<void> restoreSession() async {
+    if (!FirebaseConfig.enabled) {
+      state = const AuthSessionState(status: AuthSessionStatus.unauthenticated);
+      return;
+    }
+
+    if (_firebasePhoneAuthService.currentUser == null) {
+      state = const AuthSessionState(status: AuthSessionStatus.unauthenticated);
+      return;
+    }
+
+    await syncBackendSession();
+  }
 
   Future<void> sendLoginOtp(String phoneNumber) async {
     state = state.copyWith(
