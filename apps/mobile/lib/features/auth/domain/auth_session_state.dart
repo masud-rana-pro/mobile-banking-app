@@ -36,6 +36,7 @@ class AuthSessionState {
       status == AuthSessionStatus.authenticated || backendToken != null;
   bool get isLoading => status == AuthSessionStatus.authenticating;
   bool get isOtpSent => status == AuthSessionStatus.otpSent;
+  bool get canVerifyOtp => verificationId != null && verificationId!.isNotEmpty;
   bool get needsPinSetup => isAuthenticated && pinSet != true;
 
   AuthSessionState copyWith({

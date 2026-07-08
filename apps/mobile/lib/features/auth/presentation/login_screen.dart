@@ -74,7 +74,9 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
       return;
     }
 
-    if (!authState.isOtpSent) {
+    final canVerifyOtp = authState.isOtpSent || authState.canVerifyOtp;
+
+    if (!canVerifyOtp) {
       if (!_canSendOtp) {
         _showMessage('Enter a valid mobile number first.');
         return;
@@ -104,8 +106,9 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
   @override
   Widget build(BuildContext context) {
     final authState = ref.watch(authControllerProvider);
-    final nextEnabled = authState.isOtpSent ? _canContinue : _canSendOtp;
-    final nextLabel = authState.isOtpSent ? 'Verify & Login' : 'Send OTP';
+    final canVerifyOtp = authState.isOtpSent || authState.canVerifyOtp;
+    final nextEnabled = canVerifyOtp ? _canContinue : _canSendOtp;
+    final nextLabel = canVerifyOtp ? 'Verify & Login' : 'Send OTP';
 
     ref.listen(authControllerProvider, (previous, next) {
       if (next.isAuthenticated) {
