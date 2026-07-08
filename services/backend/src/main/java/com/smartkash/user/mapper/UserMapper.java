@@ -20,6 +20,8 @@ public class UserMapper {
                 user.getMobileNumber(),
                 user.getRole(),
                 user.getStatus(),
+                user.isPinSet(),
+                user.getPinUpdatedAt(),
                 toProfileResponse(profile),
                 user.getCreatedAt(),
                 user.getUpdatedAt()

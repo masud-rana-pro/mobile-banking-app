@@ -1,6 +1,8 @@
 import '../../../core/network/api_client.dart';
 import '../../../core/storage/secure_token_storage.dart';
 import '../domain/backend_auth_token.dart';
+import '../domain/current_user_summary.dart';
+import '../domain/pin_setup_result.dart';
 
 class BackendAuthRepository {
   BackendAuthRepository({
@@ -26,6 +28,29 @@ class BackendAuthRepository {
     );
 
     return token;
+  }
+
+  Future<CurrentUserSummary> getCurrentUser() async {
+    final response = await _apiClient.get<Map<String, dynamic>>(
+      '/api/users/me',
+    );
+
+    return CurrentUserSummary.fromJson(response.data ?? const {});
+  }
+
+  Future<PinSetupResult> setPin({
+    required String pin,
+    required String confirmPin,
+  }) async {
+    final response = await _apiClient.post<Map<String, dynamic>>(
+      '/api/auth/set-pin',
+      data: {
+        'pin': pin,
+        'confirmPin': confirmPin,
+      },
+    );
+
+    return PinSetupResult.fromJson(response.data ?? const {});
   }
 
   Future<void> signOutLocally() {

@@ -119,10 +119,60 @@ class AuthController extends StateNotifier<AuthSessionState> {
           await _backendAuthRepository.loginWithFirebaseIdToken(
         firebaseIdToken,
       );
+      final currentUser = await _backendAuthRepository.getCurrentUser();
 
       state = AuthSessionState(
         status: AuthSessionStatus.authenticated,
         backendToken: backendToken,
+        pinSet: currentUser.pinSet,
+        pinUpdatedAt: currentUser.pinUpdatedAt,
+      );
+    } catch (error) {
+      state = state.copyWith(
+        status: AuthSessionStatus.failure,
+        errorMessage: _friendlyError(error),
+      );
+    }
+  }
+
+  Future<void> setPin({
+    required String pin,
+    required String confirmPin,
+  }) async {
+    if (!_isFiveDigitPin(pin) || !_isFiveDigitPin(confirmPin)) {
+      state = state.copyWith(
+        status: AuthSessionStatus.failure,
+        errorMessage: 'PIN must be exactly 5 digits.',
+      );
+      return;
+    }
+
+    if (pin != confirmPin) {
+      state = state.copyWith(
+        status: AuthSessionStatus.failure,
+        errorMessage: 'PIN and confirm PIN do not match.',
+      );
+      return;
+    }
+
+    state = state.copyWith(
+      status: AuthSessionStatus.authenticating,
+      clearError: true,
+      clearInfo: true,
+    );
+
+    try {
+      final result = await _backendAuthRepository.setPin(
+        pin: pin,
+        confirmPin: confirmPin,
+      );
+
+      state = state.copyWith(
+        status: AuthSessionStatus.authenticated,
+        pinSet: result.pinSet,
+        pinUpdatedAt: result.pinUpdatedAt,
+        infoMessage: 'PIN setup completed.',
+        clearError: true,
       );
     } catch (error) {
       state = state.copyWith(
@@ -142,7 +192,15 @@ class AuthController extends StateNotifier<AuthSessionState> {
 
   String _friendlyError(Object error) {
     if (error is ApiException) {
-      return 'Firebase OTP verified, but backend login failed. Check backend Firebase Admin env values.';
+      if (error.path == '/api/auth/firebase-login') {
+        return 'Firebase OTP verified, but backend login failed. Check backend Firebase Admin env values.';
+      }
+
+      if (error.errors.isNotEmpty) {
+        return error.errors.first;
+      }
+
+      return error.message;
     }
 
     final message = error.toString();
@@ -160,5 +218,9 @@ class AuthController extends StateNotifier<AuthSessionState> {
     }
 
     return message;
+  }
+
+  bool _isFiveDigitPin(String pin) {
+    return RegExp(r'^\d{5}$').hasMatch(pin);
   }
 }

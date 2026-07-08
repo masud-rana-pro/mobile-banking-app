@@ -170,3 +170,13 @@
 - Logout clears Firebase/backend local session and returns to Login.
 - Restarting the app attempts to restore an existing Firebase session and sync backend JWT.
 - This step does not add PIN setup UI, wallet UI, QR scanner UI, or money-changing feature UI.
+
+## Flutter PIN Setup UI
+
+- `GET /api/users/me` exposes `pinSet` and `pinUpdatedAt` only; raw PIN and PIN hash are never returned.
+- Authenticated users with `pinSet=false` are routed to `/pin-setup` before Home.
+- PIN setup screen accepts exactly 5 digits and asks for confirmation.
+- Mismatched PIN and confirm PIN shows a user-facing error.
+- Successful `POST /api/auth/set-pin` updates auth state to `pinSet=true` and routes to Home.
+- Flutter does not store the raw PIN locally.
+- This step does not add PIN reset, biometric login, wallet UI, QR scanner UI, or money-changing feature UI.

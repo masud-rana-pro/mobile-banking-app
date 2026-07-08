@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../features/auth/presentation/login_screen.dart';
+import '../../features/auth/presentation/pin_setup_screen.dart';
 import '../../features/auth/providers/auth_providers.dart';
 import '../../features/home/presentation/home_screen.dart';
 
@@ -21,8 +22,18 @@ final appRouterProvider = Provider<GoRouter>(
       redirect: (context, state) {
         final authState = ref.read(authControllerProvider);
         final isLoginRoute = state.matchedLocation == LoginScreen.routePath;
+        final isPinSetupRoute =
+            state.matchedLocation == PinSetupScreen.routePath;
 
         if (authState.isAuthenticated) {
+          if (authState.needsPinSetup) {
+            return isPinSetupRoute ? null : PinSetupScreen.routePath;
+          }
+
+          if (isPinSetupRoute) {
+            return HomeScreen.routePath;
+          }
+
           return isLoginRoute ? HomeScreen.routePath : null;
         }
 
@@ -38,6 +49,11 @@ final appRouterProvider = Provider<GoRouter>(
           path: LoginScreen.routePath,
           name: LoginScreen.routeName,
           builder: (context, state) => const LoginScreen(),
+        ),
+        GoRoute(
+          path: PinSetupScreen.routePath,
+          name: PinSetupScreen.routeName,
+          builder: (context, state) => const PinSetupScreen(),
         ),
       ],
     );
