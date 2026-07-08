@@ -53,7 +53,10 @@ class FirebasePhoneAuthService {
       },
       verificationFailed: (exception) {
         if (!completer.isCompleted) {
-          completer.completeError(exception);
+          completer.completeError(
+            FirebasePhoneAuthException.fromFirebase(exception),
+            StackTrace.current,
+          );
         }
       },
       codeSent: (verificationId, forceResendingToken) {
@@ -96,4 +99,26 @@ class FirebasePhoneAuthService {
   Future<void> signOut() {
     return _auth.signOut();
   }
+}
+
+class FirebasePhoneAuthException implements Exception {
+  const FirebasePhoneAuthException({
+    required this.code,
+    required this.message,
+  });
+
+  factory FirebasePhoneAuthException.fromFirebase(
+    FirebaseAuthException exception,
+  ) {
+    return FirebasePhoneAuthException(
+      code: exception.code,
+      message: exception.message ?? exception.code,
+    );
+  }
+
+  final String code;
+  final String message;
+
+  @override
+  String toString() => 'Firebase phone auth failed [$code]: $message';
 }

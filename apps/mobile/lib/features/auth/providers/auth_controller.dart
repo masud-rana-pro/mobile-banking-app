@@ -191,6 +191,10 @@ class AuthController extends StateNotifier<AuthSessionState> {
   }
 
   String _friendlyError(Object error) {
+    if (error is FirebasePhoneAuthException) {
+      return _firebasePhoneAuthMessage(error);
+    }
+
     if (error is ApiException) {
       if (error.path == '/api/auth/firebase-login') {
         return 'Firebase OTP verified, but backend login failed. Check backend Firebase Admin env values.';
@@ -218,6 +222,25 @@ class AuthController extends StateNotifier<AuthSessionState> {
     }
 
     return message;
+  }
+
+  String _firebasePhoneAuthMessage(FirebasePhoneAuthException error) {
+    switch (error.code) {
+      case 'invalid-phone-number':
+        return 'Invalid phone number. Use +880 format or a valid BD mobile number.';
+      case 'too-many-requests':
+        return 'Too many OTP attempts. Please wait before trying again.';
+      case 'quota-exceeded':
+        return 'Firebase SMS quota is not available. Use Firebase test phone/OTP only.';
+      case 'operation-not-allowed':
+        return 'Firebase Phone Auth is not enabled for this project.';
+      case 'app-not-authorized':
+        return 'This Android app is not authorized in Firebase. Check package name and google-services.json.';
+      case 'missing-client-identifier':
+        return 'Firebase cannot identify this app. Recheck google-services.json and run flutter clean.';
+      default:
+        return 'Firebase OTP failed: ${error.message}';
+    }
   }
 
   bool _isFiveDigitPin(String pin) {
