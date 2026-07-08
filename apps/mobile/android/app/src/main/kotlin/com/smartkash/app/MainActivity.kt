@@ -1,6 +1,5 @@
-package com.imran.smartkash
+package com.smartkash.app
 
 import io.flutter.embedding.android.FlutterActivity
 
 class MainActivity : FlutterActivity()
-
