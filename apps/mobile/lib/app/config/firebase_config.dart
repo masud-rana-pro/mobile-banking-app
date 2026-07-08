@@ -16,7 +16,14 @@ class FirebaseConfig {
     projectId: String.fromEnvironment('FIREBASE_PROJECT_ID'),
   );
 
-  static FirebaseOptions get currentPlatform {
+  static bool get hasAndroidDartDefines {
+    return androidOptions.apiKey.isNotEmpty &&
+        androidOptions.appId.isNotEmpty &&
+        androidOptions.messagingSenderId.isNotEmpty &&
+        androidOptions.projectId.isNotEmpty;
+  }
+
+  static FirebaseOptions? get currentPlatform {
     if (!enabled) {
       throw StateError('Firebase is disabled for this app run.');
     }
@@ -25,19 +32,10 @@ class FirebaseConfig {
       throw UnsupportedError('SmartKash MVP supports Android Firebase first.');
     }
 
-    _validateAndroidOptions();
-    return androidOptions;
-  }
-
-  static void _validateAndroidOptions() {
-    if (androidOptions.apiKey.isEmpty ||
-        androidOptions.appId.isEmpty ||
-        androidOptions.messagingSenderId.isEmpty ||
-        androidOptions.projectId.isEmpty) {
-      throw StateError(
-        'Missing Firebase Android dart-defines. Provide Firebase client config '
-        'before running with FIREBASE_ENABLED=true.',
-      );
+    if (!hasAndroidDartDefines) {
+      return null;
     }
+
+    return androidOptions;
   }
 }
