@@ -11,6 +11,8 @@ public record UserResponse(
         String mobileNumber,
         UserRole role,
         UserStatus status,
+        boolean pinSet,
+        Instant pinUpdatedAt,
         UserProfileResponse profile,
         Instant createdAt,
         Instant updatedAt
