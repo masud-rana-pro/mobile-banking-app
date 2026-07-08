@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../app/config/firebase_config.dart';
@@ -33,6 +34,18 @@ class AuthController extends StateNotifier<AuthSessionState> {
   }
 
   Future<void> sendLoginOtp(String phoneNumber) async {
+    final firebaseBlockReason = _firebaseOtpBlockReason();
+    if (firebaseBlockReason != null) {
+      state = state.copyWith(
+        status: AuthSessionStatus.failure,
+        phoneNumber: phoneNumber,
+        clearOtp: true,
+        clearInfo: true,
+        errorMessage: firebaseBlockReason,
+      );
+      return;
+    }
+
     state = state.copyWith(
       status: AuthSessionStatus.authenticating,
       phoneNumber: phoneNumber,
@@ -241,6 +254,22 @@ class AuthController extends StateNotifier<AuthSessionState> {
       default:
         return 'Firebase OTP failed: ${error.message}';
     }
+  }
+
+  String? _firebaseOtpBlockReason() {
+    if (!FirebaseConfig.enabled) {
+      return 'Firebase is disabled. Run with --dart-define=FIREBASE_ENABLED=true.';
+    }
+
+    if (kIsWeb) {
+      return 'You are running on Chrome/Web. Current SmartKash OTP setup is Android-only. Run on Android emulator, or add a Firebase Web app config first.';
+    }
+
+    if (defaultTargetPlatform != TargetPlatform.android) {
+      return 'Firebase OTP is configured for Android in this MVP. Run on Android emulator for now.';
+    }
+
+    return null;
   }
 
   bool _isFiveDigitPin(String pin) {

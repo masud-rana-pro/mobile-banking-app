@@ -58,11 +58,12 @@
 - Step 42 backend local env import: configured Spring Boot to import ignored `services/backend/.env` during local runs, normalized Firebase private key formatting, completed Firebase service account JSON fields, and verified Firebase Admin initialization without committing secrets.
 - Step 43 Firebase Android package alignment: aligned Android `namespace`, `applicationId`, and `MainActivity` package with the provided Firebase Android client config package `com.smartkash.app`.
 - Step 44 Firebase OTP error handling fix: wrapped Firebase phone verification failures in an app-safe exception and mapped them to clear user-facing messages instead of leaking platform TypeError text.
+- Step 45 Firebase OTP platform guard: blocked unsupported Chrome/Web OTP attempts with a clear message because the current Firebase client setup is Android-only.
 
 ## Last Commit
 
-- Last commit message: `step-44: fix Firebase OTP error handling`
-- Last commit hash: pending until Step 44 commit finalization.
+- Last commit message: `step-45: guard unsupported Firebase OTP platforms`
+- Last commit hash: pending until Step 45 commit finalization.
 
 ## Important Architecture Decisions
 
@@ -130,6 +131,7 @@
 - Step 42 uses Spring Boot config import `optional:file:.env[.properties]` from the backend working directory. The `.env` file remains ignored by Git and must not be committed. Firebase private key formatting is normalized before Google credential parsing.
 - Step 43 uses Android application ID `com.smartkash.app` because the provided Firebase Android client config contains package name `com.smartkash.app`.
 - Step 44 keeps Firebase platform exceptions out of UI state by converting phone auth failures into a small local `FirebasePhoneAuthException` model before the controller builds user-facing copy.
+- Step 45 confirms Firebase OTP is currently Android-only until a Firebase Web app config is added for Chrome/Web.
 - Money-changing operations require transactions, safe wallet locking, idempotency keys, and audit logs.
 - Codex uses a manual verification workflow by default: do focused changes, update learning/progress docs, run lightweight checks only, commit/push, and provide manual verification commands.
 
@@ -203,6 +205,7 @@
 - Step 42 adds environment loading only; it does not add mock auth, bypass Firebase token verification, change business APIs, or commit secrets.
 - Step 43 fixes Firebase Android package mismatch only; it does not add new login UI, wallet UI, business APIs, money-changing flows, or commit Firebase secret files.
 - Step 44 fixes OTP error messaging only; it does not bypass Firebase verification, add fake login, change backend auth, or implement wallet/feature screens.
+- Step 45 adds only a Flutter platform guard; it does not implement Web Firebase Phone Auth config, bypass OTP, or change backend authentication.
 - `flutter create` timed out in the sandbox, so the minimal Flutter skeleton was created manually and verified with Flutter tooling.
 - Global `mvn` is not available in the Codex session, so backend verification should use Maven Wrapper `.\mvnw.cmd`.
 - Flyway works against local PostgreSQL 17.10 after adding `flyway-database-postgresql`, but logs a warning that this Flyway version officially tested support up to PostgreSQL 16.
@@ -211,7 +214,7 @@
 
 ## Next Recommended Step
 
-- Ask the user to run Firebase OTP login verification again. If OTP still fails, the UI should now show a clear Firebase reason instead of a platform TypeError; after verification passes, continue Flutter wallet dashboard API integration.
+- Run Firebase OTP login on Android emulator. If the user wants Chrome/Web OTP, first add a Firebase Web app in Firebase Console and provide the web config values.
 
 ## Standard Step Completion Format
 
