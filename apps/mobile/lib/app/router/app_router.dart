@@ -6,6 +6,8 @@ import '../../features/auth/presentation/login_screen.dart';
 import '../../features/auth/presentation/pin_setup_screen.dart';
 import '../../features/auth/providers/auth_providers.dart';
 import '../../features/home/presentation/home_screen.dart';
+import '../../features/transaction/presentation/transaction_detail_screen.dart';
+import '../../features/transaction/presentation/transaction_list_screen.dart';
 
 final appRouterProvider = Provider<GoRouter>(
   (ref) {
@@ -54,6 +56,19 @@ final appRouterProvider = Provider<GoRouter>(
           path: PinSetupScreen.routePath,
           name: PinSetupScreen.routeName,
           builder: (context, state) => const PinSetupScreen(),
+        ),
+        GoRoute(
+          path: TransactionListScreen.routePath,
+          name: TransactionListScreen.routeName,
+          builder: (context, state) => const TransactionListScreen(),
+        ),
+        GoRoute(
+          path: TransactionDetailScreen.routePath,
+          name: TransactionDetailScreen.routeName,
+          builder: (context, state) {
+            final id = int.parse(state.pathParameters['id'] ?? '0');
+            return TransactionDetailScreen(transactionId: id);
+          },
         ),
       ],
     );
