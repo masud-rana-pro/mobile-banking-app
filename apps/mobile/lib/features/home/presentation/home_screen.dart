@@ -5,17 +5,33 @@ import 'package:go_router/go_router.dart';
 import '../../../core/constants/app_assets.dart';
 import '../../auth/presentation/login_screen.dart';
 import '../../auth/providers/auth_providers.dart';
+import '../../wallet/domain/wallet_summary.dart';
+import '../../wallet/providers/wallet_providers.dart';
 
-class HomeScreen extends ConsumerWidget {
+class HomeScreen extends ConsumerStatefulWidget {
   const HomeScreen({super.key});
 
   static const routeName = 'home';
   static const routePath = '/';
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<HomeScreen> createState() => _HomeScreenState();
+}
+
+class _HomeScreenState extends ConsumerState<HomeScreen> {
+  @override
+  void initState() {
+    super.initState();
+    Future.microtask(
+      () => ref.read(walletRefreshProvider)(),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final authState = ref.watch(authControllerProvider);
+    final walletAsync = ref.watch(walletSummaryProvider);
     final backendToken = authState.backendToken;
     final accountLabel =
         backendToken == null || backendToken.phoneNumber.isEmpty
@@ -33,6 +49,7 @@ class HomeScreen extends ConsumerWidget {
                 theme: theme,
                 accountLabel: accountLabel,
                 roleLabel: roleLabel,
+                walletAsync: walletAsync,
                 onSignOut: () =>
                     ref.read(authControllerProvider.notifier).signOut(),
               ),
@@ -64,18 +81,20 @@ class _HomeHeader extends StatelessWidget {
     required this.theme,
     required this.accountLabel,
     required this.roleLabel,
+    required this.walletAsync,
     required this.onSignOut,
   });
 
   final ThemeData theme;
   final String accountLabel;
   final String roleLabel;
+  final AsyncValue<WalletSummary> walletAsync;
   final VoidCallback onSignOut;
 
   @override
   Widget build(BuildContext context) {
     return Container(
-      height: 238,
+      height: 300,
       decoration: const BoxDecoration(
         gradient: LinearGradient(
           colors: [Color(0xFF00796B), Color(0xFF2446A6)],
@@ -120,90 +139,201 @@ class _HomeHeader extends StatelessWidget {
           ),
           Positioned(
             right: 26,
-            bottom: 32,
+            bottom: 80,
             child: _HeaderBadge(color: Colors.white.withValues(alpha: 0.9)),
           ),
           Padding(
             padding: const EdgeInsets.fromLTRB(20, 50, 20, 0),
-            child: Row(
+            child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                ClipRRect(
-                  borderRadius: BorderRadius.circular(28),
-                  child: Image.asset(
-                    AppAssets.smartKashLogoMark,
-                    width: 56,
-                    height: 56,
-                    fit: BoxFit.cover,
-                  ),
-                ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        accountLabel,
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                        style: const TextStyle(
-                          color: Colors.white,
-                          fontSize: 18,
-                          fontWeight: FontWeight.w700,
-                        ),
+                Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    ClipRRect(
+                      borderRadius: BorderRadius.circular(28),
+                      child: Image.asset(
+                        AppAssets.smartKashLogoMark,
+                        width: 56,
+                        height: 56,
+                        fit: BoxFit.cover,
                       ),
-                      const SizedBox(height: 8),
-                      Container(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 12,
-                          vertical: 8,
-                        ),
-                        decoration: BoxDecoration(
-                          color: Colors.white,
-                          borderRadius: BorderRadius.circular(22),
-                          boxShadow: const [
-                            BoxShadow(
-                              color: Color(0x24000000),
-                              blurRadius: 16,
-                              offset: Offset(0, 6),
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            accountLabel,
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: const TextStyle(
+                              color: Colors.white,
+                              fontSize: 18,
+                              fontWeight: FontWeight.w700,
                             ),
-                          ],
-                        ),
-                        child: Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            const Icon(
-                              Icons.account_balance_wallet,
-                              color: Color(0xFF00796B),
-                              size: 18,
+                          ),
+                          const SizedBox(height: 8),
+                          Container(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 12,
+                              vertical: 8,
                             ),
-                            const SizedBox(width: 8),
-                            Text(
-                              'Logged in - $roleLabel',
-                              style: const TextStyle(
-                                color: Color(0xFF263238),
-                                fontWeight: FontWeight.w700,
-                              ),
+                            decoration: BoxDecoration(
+                              color: Colors.white,
+                              borderRadius: BorderRadius.circular(22),
+                              boxShadow: const [
+                                BoxShadow(
+                                  color: Color(0x24000000),
+                                  blurRadius: 16,
+                                  offset: Offset(0, 6),
+                                ),
+                              ],
                             ),
-                          ],
-                        ),
+                            child: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                const Icon(
+                                  Icons.account_balance_wallet,
+                                  color: Color(0xFF00796B),
+                                  size: 18,
+                                ),
+                                const SizedBox(width: 8),
+                                Text(
+                                  'Logged in - $roleLabel',
+                                  style: const TextStyle(
+                                    color: Color(0xFF263238),
+                                    fontWeight: FontWeight.w700,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ],
                       ),
-                    ],
-                  ),
+                    ),
+                    _HeaderIconButton(
+                      icon: Icons.search,
+                      onTap: () {},
+                    ),
+                    const SizedBox(width: 10),
+                    _HeaderIconButton(
+                      icon: Icons.logout,
+                      onTap: onSignOut,
+                    ),
+                  ],
                 ),
-                _HeaderIconButton(
-                  icon: Icons.search,
-                  onTap: () {},
-                ),
-                const SizedBox(width: 10),
-                _HeaderIconButton(
-                  icon: Icons.logout,
-                  onTap: onSignOut,
-                ),
+                const SizedBox(height: 16),
+                _BalancePanel(walletAsync: walletAsync),
               ],
             ),
           ),
         ],
+      ),
+    );
+  }
+}
+
+class _BalancePanel extends StatelessWidget {
+  const _BalancePanel({required this.walletAsync});
+
+  final AsyncValue<WalletSummary> walletAsync;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.fromLTRB(18, 16, 18, 16),
+      decoration: BoxDecoration(
+        color: Colors.white.withValues(alpha: 0.15),
+        borderRadius: BorderRadius.circular(18),
+      ),
+      child: walletAsync.when(
+        data: (wallet) => Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Text(
+              'Available Balance',
+              style: TextStyle(
+                color: Colors.white70,
+                fontSize: 13,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+            const SizedBox(height: 6),
+            Text(
+              wallet.balanceFormatted,
+              style: const TextStyle(
+                color: Colors.white,
+                fontSize: 32,
+                fontWeight: FontWeight.w900,
+                letterSpacing: -0.5,
+              ),
+            ),
+          ],
+        ),
+        loading: () => Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Text(
+              'Available Balance',
+              style: TextStyle(
+                color: Colors.white70,
+                fontSize: 13,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+            const SizedBox(height: 10),
+            const SizedBox(
+              width: 160,
+              height: 24,
+              child: LinearProgressIndicator(
+                backgroundColor: Colors.white24,
+                valueColor: AlwaysStoppedAnimation<Color>(Colors.white54),
+              ),
+            ),
+          ],
+        ),
+        error: (error, stack) => const Text(
+          'Balance unavailable',
+          style: TextStyle(
+            color: Colors.white70,
+            fontSize: 20,
+            fontWeight: FontWeight.w700,
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _HeaderIconButton extends StatelessWidget {
+  const _HeaderIconButton({required this.icon, required this.onTap});
+
+  final IconData icon;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(28),
+      child: Container(
+        width: 52,
+        height: 52,
+        decoration: const BoxDecoration(
+          color: Colors.white,
+          shape: BoxShape.circle,
+          boxShadow: [
+            BoxShadow(
+              color: Color(0x22000000),
+              blurRadius: 14,
+              offset: Offset(0, 6),
+            ),
+          ],
+        ),
+        child: Icon(icon, color: const Color(0xFF263238), size: 26),
       ),
     );
   }
@@ -236,37 +366,6 @@ class _HeaderBadge extends StatelessWidget {
             ),
           ),
         ],
-      ),
-    );
-  }
-}
-
-class _HeaderIconButton extends StatelessWidget {
-  const _HeaderIconButton({required this.icon, required this.onTap});
-
-  final IconData icon;
-  final VoidCallback onTap;
-
-  @override
-  Widget build(BuildContext context) {
-    return InkWell(
-      onTap: onTap,
-      borderRadius: BorderRadius.circular(28),
-      child: Container(
-        width: 52,
-        height: 52,
-        decoration: const BoxDecoration(
-          color: Colors.white,
-          shape: BoxShape.circle,
-          boxShadow: [
-            BoxShadow(
-              color: Color(0x22000000),
-              blurRadius: 14,
-              offset: Offset(0, 6),
-            ),
-          ],
-        ),
-        child: Icon(icon, color: const Color(0xFF263238), size: 26),
       ),
     );
   }
