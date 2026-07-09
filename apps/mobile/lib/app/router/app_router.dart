@@ -2,6 +2,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../features/add_money/presentation/add_money_screen.dart';
 import '../../features/auth/presentation/login_screen.dart';
 import '../../features/auth/presentation/pin_setup_screen.dart';
 import '../../features/auth/providers/auth_providers.dart';
@@ -69,6 +70,11 @@ final appRouterProvider = Provider<GoRouter>(
             final id = int.parse(state.pathParameters['id'] ?? '0');
             return TransactionDetailScreen(transactionId: id);
           },
+        ),
+        GoRoute(
+          path: AddMoneyScreen.routePath,
+          name: AddMoneyScreen.routeName,
+          builder: (context, state) => const AddMoneyScreen(),
         ),
       ],
     );
