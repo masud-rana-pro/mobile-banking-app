@@ -25,5 +25,8 @@ springdoc:
 
 smartkash:
   firebase:
+    project-id: ${FIREBASE_PROJECT_ID:}
+    client-email: ${FIREBASE_CLIENT_EMAIL:}
+    private-key: ${FIREBASE_PRIVATE_KEY:}
     private-key-id: ${FIREBASE_PRIVATE_KEY_ID:}
     client-id: ${FIREBASE_CLIENT_ID:}
