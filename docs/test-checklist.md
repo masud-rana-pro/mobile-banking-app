@@ -184,6 +184,8 @@
 ## Backend Local Env Import
 
 - `services/backend/.env` exists locally and is ignored by Git.
+- `services/backend/.env` contains `JWT_SECRET` with at least 32 bytes/characters for local JWT signing.
+- `services/backend/.env` contains `JWT_EXPIRATION_MINUTES`.
 - Spring Boot imports `optional:file:.env[.properties]` from the backend working directory.
 - Spring Boot also imports `optional:file:services/backend/.env[.properties]` so IDE/repository-root runs can still load backend env values.
 - Backend logs should say `Firebase Admin SDK initialized for project ...` when Firebase Admin values are valid.
