@@ -84,3 +84,7 @@ services/backend/build/
 *.sqlite3
 generated/
 out/
+
+# Local uploaded MVP profile images
+services/backend/src/main/resources/profile-images/*
+!services/backend/src/main/resources/profile-images/.gitkeep

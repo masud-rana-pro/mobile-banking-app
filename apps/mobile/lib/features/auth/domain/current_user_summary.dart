@@ -1,3 +1,5 @@
+import '../../../app/config/app_config.dart';
+
 class CurrentUserSummary {
   const CurrentUserSummary({
     required this.id,
@@ -7,6 +9,7 @@ class CurrentUserSummary {
     required this.profileComplete,
     this.fullName,
     this.email,
+    this.avatarImageId,
     this.avatarUrl,
     this.pinUpdatedAt,
   });
@@ -18,6 +21,7 @@ class CurrentUserSummary {
   final bool profileComplete;
   final String? fullName;
   final String? email;
+  final String? avatarImageId;
   final String? avatarUrl;
   final DateTime? pinUpdatedAt;
 
@@ -25,7 +29,7 @@ class CurrentUserSummary {
     final pinUpdatedAtValue = json['pinUpdatedAt'] as String?;
     final profile = json['profile'] as Map<String, dynamic>?;
     final fullName = profile?['fullName'] as String?;
-    final avatarUrl = profile?['avatarUrl'] as String?;
+    final avatarUrl = _absoluteAvatarUrl(profile?['avatarUrl'] as String?);
 
     return CurrentUserSummary(
       id: json['id'] as int? ?? 0,
@@ -35,10 +39,25 @@ class CurrentUserSummary {
       profileComplete: fullName != null && fullName.trim().isNotEmpty,
       fullName: fullName,
       email: profile?['email'] as String?,
+      avatarImageId: profile?['avatarImageId'] as String?,
       avatarUrl: avatarUrl,
       pinUpdatedAt: pinUpdatedAtValue == null
           ? null
           : DateTime.tryParse(pinUpdatedAtValue),
     );
+  }
+
+  static String? _absoluteAvatarUrl(String? avatarUrl) {
+    if (avatarUrl == null || avatarUrl.isEmpty) {
+      return null;
+    }
+
+    if (avatarUrl.startsWith('http://') || avatarUrl.startsWith('https://')) {
+      return avatarUrl;
+    }
+
+    final baseUrl = AppConfig.backendBaseUrl.replaceFirst(RegExp(r'/$'), '');
+    final path = avatarUrl.startsWith('/') ? avatarUrl : '/$avatarUrl';
+    return '$baseUrl$path';
   }
 }

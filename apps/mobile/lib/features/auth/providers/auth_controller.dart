@@ -1,3 +1,5 @@
+import 'dart:typed_data';
+
 import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -142,6 +144,7 @@ class AuthController extends StateNotifier<AuthSessionState> {
         profileComplete: currentUser.profileComplete,
         fullName: currentUser.fullName,
         email: currentUser.email,
+        avatarImageId: currentUser.avatarImageId,
         avatarUrl: currentUser.avatarUrl,
       );
     } catch (error) {
@@ -202,7 +205,6 @@ class AuthController extends StateNotifier<AuthSessionState> {
   Future<void> updateProfile({
     required String fullName,
     String? email,
-    String? avatarUrl,
   }) async {
     if (fullName.trim().isEmpty) {
       state = state.copyWith(
@@ -222,7 +224,6 @@ class AuthController extends StateNotifier<AuthSessionState> {
       final currentUser = await _backendAuthRepository.updateProfile(
         fullName: fullName.trim(),
         email: email?.trim(),
-        avatarUrl: avatarUrl?.trim(),
       );
 
       state = state.copyWith(
@@ -230,6 +231,61 @@ class AuthController extends StateNotifier<AuthSessionState> {
         profileComplete: currentUser.profileComplete,
         fullName: currentUser.fullName,
         email: currentUser.email,
+        avatarImageId: currentUser.avatarImageId,
+        avatarUrl: currentUser.avatarUrl,
+        infoMessage: 'Profile saved.',
+        clearError: true,
+      );
+    } catch (error) {
+      state = state.copyWith(
+        status: AuthSessionStatus.failure,
+        errorMessage: _friendlyError(error),
+      );
+    }
+  }
+
+  Future<void> completeProfile({
+    required String fullName,
+    String? email,
+    Uint8List? avatarImageBytes,
+    String? avatarFileName,
+  }) async {
+    if (fullName.trim().isEmpty) {
+      state = state.copyWith(
+        status: AuthSessionStatus.failure,
+        errorMessage: 'Full name is required.',
+      );
+      return;
+    }
+
+    state = state.copyWith(
+      status: AuthSessionStatus.authenticating,
+      clearError: true,
+      clearInfo: true,
+    );
+
+    try {
+      var currentUser = await _backendAuthRepository.updateProfile(
+        fullName: fullName.trim(),
+        email: email?.trim(),
+      );
+
+      if (avatarImageBytes != null &&
+          avatarImageBytes.isNotEmpty &&
+          avatarFileName != null &&
+          avatarFileName.isNotEmpty) {
+        currentUser = await _backendAuthRepository.uploadProfileImage(
+          imageBytes: avatarImageBytes,
+          fileName: avatarFileName,
+        );
+      }
+
+      state = state.copyWith(
+        status: AuthSessionStatus.authenticated,
+        profileComplete: currentUser.profileComplete,
+        fullName: currentUser.fullName,
+        email: currentUser.email,
+        avatarImageId: currentUser.avatarImageId,
         avatarUrl: currentUser.avatarUrl,
         infoMessage: 'Profile saved.',
         clearError: true,

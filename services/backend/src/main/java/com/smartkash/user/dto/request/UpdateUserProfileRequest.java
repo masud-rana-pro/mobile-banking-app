@@ -9,9 +9,6 @@ public record UpdateUserProfileRequest(
 
         @Email(message = "Email must be valid.")
         @Size(max = 160, message = "Email must be at most 160 characters.")
-        String email,
-
-        @Size(max = 500, message = "Avatar URL must be at most 500 characters.")
-        String avatarUrl
+        String email
 ) {
 }

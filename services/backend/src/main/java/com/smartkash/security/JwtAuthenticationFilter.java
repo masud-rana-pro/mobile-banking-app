@@ -68,6 +68,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     protected boolean shouldNotFilter(HttpServletRequest request) throws ServletException {
         String path = request.getRequestURI();
         return path.equals("/api/auth/firebase-login")
+                || path.startsWith("/api/users/profile-images/")
                 || path.startsWith("/actuator/")
                 || path.startsWith("/v3/api-docs")
                 || path.startsWith("/swagger-ui");

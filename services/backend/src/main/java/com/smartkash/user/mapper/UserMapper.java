@@ -36,7 +36,16 @@ public class UserMapper {
         return new UserProfileResponse(
                 profile.getFullName(),
                 profile.getEmail(),
-                profile.getAvatarUrl()
+                profile.getAvatarImageId(),
+                avatarUrl(profile)
         );
+    }
+
+    private String avatarUrl(UserProfile profile) {
+        if (profile.getAvatarImageId() != null && !profile.getAvatarImageId().isBlank()) {
+            return "/api/users/profile-images/" + profile.getAvatarImageId();
+        }
+
+        return profile.getAvatarUrl();
     }
 }

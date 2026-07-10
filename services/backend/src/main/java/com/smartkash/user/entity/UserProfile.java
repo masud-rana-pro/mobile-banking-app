@@ -35,6 +35,9 @@ public class UserProfile {
     @Column(name = "avatar_url", length = 500)
     private String avatarUrl;
 
+    @Column(name = "avatar_image_id", length = 120, unique = true)
+    private String avatarImageId;
+
     @Column(name = "created_at", nullable = false, updatable = false)
     private Instant createdAt;
 
@@ -51,10 +54,14 @@ public class UserProfile {
         this.avatarUrl = avatarUrl;
     }
 
-    public void update(String fullName, String email, String avatarUrl) {
+    public void update(String fullName, String email) {
         this.fullName = fullName;
         this.email = email;
-        this.avatarUrl = avatarUrl;
+    }
+
+    public void updateAvatarImageId(String avatarImageId) {
+        this.avatarImageId = avatarImageId;
+        this.avatarUrl = null;
     }
 
     @PrePersist
@@ -87,6 +94,10 @@ public class UserProfile {
 
     public String getAvatarUrl() {
         return avatarUrl;
+    }
+
+    public String getAvatarImageId() {
+        return avatarImageId;
     }
 
     public Instant getCreatedAt() {

@@ -14,6 +14,7 @@ class AuthSessionState {
     this.profileComplete,
     this.fullName,
     this.email,
+    this.avatarImageId,
     this.avatarUrl,
   });
 
@@ -29,6 +30,7 @@ class AuthSessionState {
         profileComplete = null,
         fullName = null,
         email = null,
+        avatarImageId = null,
         avatarUrl = null;
 
   final AuthSessionStatus status;
@@ -42,6 +44,7 @@ class AuthSessionState {
   final bool? profileComplete;
   final String? fullName;
   final String? email;
+  final String? avatarImageId;
   final String? avatarUrl;
 
   bool get isAuthenticated =>
@@ -65,6 +68,7 @@ class AuthSessionState {
     bool? profileComplete,
     String? fullName,
     String? email,
+    String? avatarImageId,
     String? avatarUrl,
     bool clearBackendToken = false,
     bool clearError = false,
@@ -87,6 +91,8 @@ class AuthSessionState {
           clearProfileState ? null : profileComplete ?? this.profileComplete,
       fullName: clearProfileState ? null : fullName ?? this.fullName,
       email: clearProfileState ? null : email ?? this.email,
+      avatarImageId:
+          clearProfileState ? null : avatarImageId ?? this.avatarImageId,
       avatarUrl: clearProfileState ? null : avatarUrl ?? this.avatarUrl,
     );
   }

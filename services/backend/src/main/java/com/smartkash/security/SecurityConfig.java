@@ -37,6 +37,7 @@ public class SecurityConfig {
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers(
                                 "/api/auth/firebase-login",
+                                "/api/users/profile-images/**",
                                 "/actuator/health",
                                 "/actuator/info",
                                 "/v3/api-docs/**",

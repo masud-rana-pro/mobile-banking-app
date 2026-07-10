@@ -7,6 +7,10 @@ spring:
     name: smartkash-backend
   profiles:
     default: local
+  servlet:
+    multipart:
+      max-file-size: 2MB
+      max-request-size: 2MB
 
 server:
   port: ${SERVER_PORT:8080}
@@ -30,3 +34,5 @@ smartkash:
     private-key: ${FIREBASE_PRIVATE_KEY:}
     private-key-id: ${FIREBASE_PRIVATE_KEY_ID:}
     client-id: ${FIREBASE_CLIENT_ID:}
+  profile-images:
+    storage-directory: ${PROFILE_IMAGE_STORAGE_DIR:src/main/resources/profile-images}

@@ -1,6 +1,9 @@
+import 'dart:typed_data';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:image_picker/image_picker.dart';
 
 import '../../auth/providers/auth_providers.dart';
 import '../../home/presentation/home_screen.dart';
@@ -20,7 +23,9 @@ class _ProfileCompletionScreenState
     extends ConsumerState<ProfileCompletionScreen> {
   final _fullNameController = TextEditingController();
   final _emailController = TextEditingController();
-  final _avatarUrlController = TextEditingController();
+  final _imagePicker = ImagePicker();
+  Uint8List? _selectedImageBytes;
+  String? _selectedImageName;
 
   @override
   void initState() {
@@ -28,29 +33,45 @@ class _ProfileCompletionScreenState
     final authState = ref.read(authControllerProvider);
     _fullNameController.text = authState.fullName ?? '';
     _emailController.text = authState.email ?? '';
-    _avatarUrlController.text = authState.avatarUrl ?? '';
   }
 
   @override
   void dispose() {
     _fullNameController.dispose();
     _emailController.dispose();
-    _avatarUrlController.dispose();
     super.dispose();
   }
 
   Future<void> _saveProfile() async {
-    await ref.read(authControllerProvider.notifier).updateProfile(
+    await ref.read(authControllerProvider.notifier).completeProfile(
           fullName: _fullNameController.text,
           email: _emailController.text,
-          avatarUrl: _avatarUrlController.text,
+          avatarImageBytes: _selectedImageBytes,
+          avatarFileName: _selectedImageName,
         );
+  }
+
+  Future<void> _pickProfileImage() async {
+    final pickedImage = await _imagePicker.pickImage(
+      source: ImageSource.gallery,
+      maxWidth: 900,
+      imageQuality: 85,
+    );
+
+    if (pickedImage == null) {
+      return;
+    }
+
+    final bytes = await pickedImage.readAsBytes();
+    setState(() {
+      _selectedImageBytes = bytes;
+      _selectedImageName = pickedImage.name;
+    });
   }
 
   @override
   Widget build(BuildContext context) {
     final authState = ref.watch(authControllerProvider);
-    final avatarUrl = _avatarUrlController.text.trim();
 
     ref.listen(authControllerProvider, (previous, next) {
       if (next.profileComplete == true && !next.needsPinSetup) {
@@ -70,8 +91,21 @@ class _ProfileCompletionScreenState
           children: [
             Center(
               child: _ProfileAvatarPreview(
-                avatarUrl: avatarUrl,
+                selectedImageBytes: _selectedImageBytes,
+                avatarUrl: authState.avatarUrl,
                 fallbackText: _fullNameController.text,
+              ),
+            ),
+            const SizedBox(height: 12),
+            Center(
+              child: OutlinedButton.icon(
+                onPressed: authState.isLoading ? null : _pickProfileImage,
+                icon: const Icon(Icons.photo_camera_outlined),
+                label: Text(
+                  _selectedImageName == null
+                      ? 'Choose Profile Image'
+                      : 'Change Profile Image',
+                ),
               ),
             ),
             const SizedBox(height: 24),
@@ -85,7 +119,7 @@ class _ProfileCompletionScreenState
             ),
             const SizedBox(height: 8),
             const Text(
-              'Add your name and optional profile image URL. No paid storage service is used in this MVP.',
+              'Add your name and optional profile image. The backend will save the image and keep a unique image reference in PostgreSQL.',
               style: TextStyle(color: Color(0xFF607D8B), height: 1.4),
             ),
             const SizedBox(height: 24),
@@ -103,21 +137,10 @@ class _ProfileCompletionScreenState
             TextField(
               controller: _emailController,
               keyboardType: TextInputType.emailAddress,
-              textInputAction: TextInputAction.next,
+              textInputAction: TextInputAction.done,
               decoration: const InputDecoration(
                 labelText: 'Email (optional)',
                 hintText: 'you@example.com',
-                border: OutlineInputBorder(),
-              ),
-            ),
-            const SizedBox(height: 16),
-            TextField(
-              controller: _avatarUrlController,
-              keyboardType: TextInputType.url,
-              onChanged: (_) => setState(() {}),
-              decoration: const InputDecoration(
-                labelText: 'Profile Image URL (optional)',
-                hintText: 'https://example.com/profile.jpg',
                 border: OutlineInputBorder(),
               ),
             ),
@@ -169,11 +192,13 @@ class _ProfileCompletionScreenState
 
 class _ProfileAvatarPreview extends StatelessWidget {
   const _ProfileAvatarPreview({
+    required this.selectedImageBytes,
     required this.avatarUrl,
     required this.fallbackText,
   });
 
-  final String avatarUrl;
+  final Uint8List? selectedImageBytes;
+  final String? avatarUrl;
   final String fallbackText;
 
   @override
@@ -182,13 +207,20 @@ class _ProfileAvatarPreview extends StatelessWidget {
         ? 'S'
         : fallbackText.trim().substring(0, 1).toUpperCase();
 
+    final existingAvatarUrl = avatarUrl?.trim() ?? '';
+    final imageProvider = selectedImageBytes != null
+        ? MemoryImage(selectedImageBytes!)
+        : existingAvatarUrl.isEmpty
+            ? null
+            : NetworkImage(existingAvatarUrl) as ImageProvider;
+
     return CircleAvatar(
       radius: 56,
       backgroundColor: const Color(0xFFE0F2F1),
       foregroundColor: const Color(0xFF008F7A),
-      backgroundImage: avatarUrl.isEmpty ? null : NetworkImage(avatarUrl),
-      onBackgroundImageError: avatarUrl.isEmpty ? null : (_, __) {},
-      child: avatarUrl.isEmpty
+      backgroundImage: imageProvider,
+      onBackgroundImageError: imageProvider == null ? null : (_, __) {},
+      child: imageProvider == null
           ? Text(
               initial,
               style: const TextStyle(
