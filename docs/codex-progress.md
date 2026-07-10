@@ -63,11 +63,18 @@
 - Step 47 login timeout and retry UX fix: increased Flutter API timeouts, mapped backend timeout/connection errors to clear messages, aligned app package constant, and kept OTP verification retry available after backend login failure.
 - Step 48 backend login diagnostics: replaced the generic Flutter backend-login env message with the actual backend error and added safe backend logging for Firebase token verification failures.
 - Step 49 local JWT secret setup: added a 64-character local-only JWT secret to ignored `services/backend/.env` and documented the 32-byte minimum requirement.
+- Step 50 Firebase Admin SDK properties mapping: fixed backend Firebase Admin property binding so local `.env` Firebase values map correctly into Spring configuration.
+- Step 51 wallet balance home dashboard: connected Flutter Home balance display to authenticated backend wallet API and refreshed wallet state on app start.
+- Step 52 transaction history UI: added Flutter transaction list/detail UI connected to backend read-only transaction APIs.
+- Step 53 Add Money request UI: added Flutter Add Money request create/list UI connected to backend pending request APIs.
+- Step 54 Send Money wizard UI: added Flutter Send Money mobile receiver resolve, amount, PIN, and result flow connected to backend transfer API.
+- Step 55 QR Send Money foundation UI: added QR payload display/paste flow for Send Money receiver selection foundation.
+- Step 56 Merchant Payment UI completion: added backend merchant resolve API, connected Flutter Merchant Payment to real backend merchant validation, removed dummy merchant data, kept one stable idempotency key per payment attempt, refreshed wallet balance after success, and documented manual verification outputs.
 
 ## Last Commit
 
-- Last commit message: `step-49: document local jwt secret setup`
-- Last commit hash: pending until Step 49 commit finalization.
+- Last commit message: `step-56: complete merchant payment UI`
+- Last commit hash: pending until Step 56 commit finalization.
 
 ## Important Architecture Decisions
 
@@ -140,6 +147,8 @@
 - Step 47 treats Firebase OTP and backend JWT login as two separate stages. If backend login times out after OTP, the UI keeps the OTP verification session available for retry instead of resetting to Send OTP.
 - Step 48 keeps Firebase ID tokens out of logs but logs Firebase verification error code/message so local login failures can be diagnosed without guessing.
 - Step 49 keeps JWT secrets local-only. `services/backend/.env` is ignored, and `JWT_SECRET` must be at least 32 bytes for HMAC signing.
+- Step 56 resolves merchant accounts through `GET /api/payments/merchant/resolve` before showing the amount/PIN screens. Flutter must not use dummy merchant data for payment.
+- Step 56 keeps a stable merchant payment idempotency key for one payment attempt, so retrying the same attempt does not create a second payment.
 - Money-changing operations require transactions, safe wallet locking, idempotency keys, and audit logs.
 - Codex uses a manual verification workflow by default: do focused changes, update learning/progress docs, run lightweight checks only, commit/push, and provide manual verification commands.
 
@@ -218,6 +227,7 @@
 - Step 47 improves Flutter login retry/network messaging only; it does not bypass Firebase, create mock login, or change backend auth rules.
 - Step 48 improves diagnostics only; it does not bypass Firebase verification, log raw tokens, change JWT rules, or commit secrets.
 - Step 49 changes only local ignored `.env` and documentation; it does not commit the generated JWT secret or change auth security rules.
+- Step 56 completes Merchant Payment UI for registered active merchants only; it does not add merchant QR payment, refund/chargeback, payment gateway integration, settlement reports, or admin merchant payment approval.
 - `flutter create` timed out in the sandbox, so the minimal Flutter skeleton was created manually and verified with Flutter tooling.
 - Global `mvn` is not available in the Codex session, so backend verification should use Maven Wrapper `.\mvnw.cmd`.
 - Flyway works against local PostgreSQL 17.10 after adding `flyway-database-postgresql`, but logs a warning that this Flyway version officially tested support up to PostgreSQL 16.
@@ -226,7 +236,7 @@
 
 ## Next Recommended Step
 
-- Restart backend so the new local JWT secret loads, then run Android Firebase OTP login again.
+- Step 57: add Mobile Recharge UI connected to the existing backend demo recharge wallet-debit API.
 
 ## Standard Step Completion Format
 

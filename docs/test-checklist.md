@@ -181,6 +181,18 @@
 - Flutter does not store the raw PIN locally.
 - This step does not add PIN reset, biometric login, wallet UI, QR scanner UI, or money-changing feature UI.
 
+## Flutter Merchant Payment UI
+
+- Home `Payment` action opens the Merchant Payment screen.
+- Invalid merchant number stays on merchant lookup step and shows a readable backend error.
+- Valid active merchant number resolves through `GET /api/payments/merchant/resolve` and shows real business name, merchant number, business type, and status.
+- Amount step accepts minimum `BDT 1.00` and does not use dummy merchant data.
+- PIN step requires a 5-digit PIN and sends payment through `POST /api/payments/merchant`.
+- One payment attempt keeps one idempotency key so retrying the same attempt does not create duplicate wallet movement.
+- Successful payment shows amount, merchant, transaction reference, and new customer balance.
+- Home wallet balance refreshes after successful merchant payment.
+- Backend database should show customer wallet debit, merchant wallet credit, transaction records, ledger entries, and idempotency key completion.
+
 ## Backend Local Env Import
 
 - `services/backend/.env` exists locally and is ignored by Git.

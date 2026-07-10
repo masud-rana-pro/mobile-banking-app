@@ -18,6 +18,7 @@ import com.smartkash.notification.enums.NotificationType;
 import com.smartkash.notification.service.TransactionAlertService;
 import com.smartkash.payment.dto.request.MerchantPaymentRequest;
 import com.smartkash.payment.dto.response.MerchantPaymentResponse;
+import com.smartkash.payment.dto.response.MerchantPaymentTargetResponse;
 import com.smartkash.payment.service.MerchantPaymentService;
 import com.smartkash.security.JwtPrincipal;
 import com.smartkash.transaction.entity.TransactionRecord;
@@ -78,12 +79,38 @@ public class MerchantPaymentServiceImpl implements MerchantPaymentService {
     }
 
     @Override
+    @Transactional(readOnly = true)
+    public MerchantPaymentTargetResponse resolveMerchant(JwtPrincipal principal, String merchantNumber) {
+        User customer = currentUser(principal);
+        ensureActiveUser(customer, "Only active users can make merchant payments.");
+
+        Merchant merchant = merchantRepository.findByMerchantNumber(normalizeMerchantNumber(merchantNumber))
+                .orElseThrow(() -> new ResourceNotFoundException("Merchant account was not found."));
+        ensureActiveMerchant(merchant);
+
+        User merchantUser = merchant.getUser();
+        ensureActiveUser(merchantUser, "Merchant user account is not active.");
+        ensureNotPayingOwnMerchant(customer, merchantUser);
+        walletRepository.findByUserId(merchantUser.getId())
+                .filter(wallet -> wallet.getStatus() == WalletStatus.ACTIVE)
+                .orElseThrow(() -> new IllegalArgumentException("Merchant wallet is not active."));
+
+        return new MerchantPaymentTargetResponse(
+                merchantUser.getId(),
+                merchant.getMerchantNumber(),
+                merchant.getBusinessName(),
+                merchant.getBusinessType(),
+                merchant.getStatus()
+        );
+    }
+
+    @Override
     @Transactional
     public MerchantPaymentResponse payMerchant(JwtPrincipal principal, MerchantPaymentRequest request) {
         User customer = currentUser(principal);
         ensureActiveUser(customer, "Only active users can make merchant payments.");
 
-        Merchant merchant = merchantRepository.findByMerchantNumber(request.merchantNumber().trim())
+        Merchant merchant = merchantRepository.findByMerchantNumber(normalizeMerchantNumber(request.merchantNumber()))
                 .orElseThrow(() -> new ResourceNotFoundException("Merchant account was not found."));
         ensureActiveMerchant(merchant);
 
@@ -195,6 +222,13 @@ public class MerchantPaymentServiceImpl implements MerchantPaymentService {
     private User currentUser(JwtPrincipal principal) {
         return userRepository.findByFirebaseUid(principal.firebaseUid())
                 .orElseThrow(() -> new ResourceNotFoundException("User account is not created yet."));
+    }
+
+    private String normalizeMerchantNumber(String merchantNumber) {
+        if (merchantNumber == null || merchantNumber.isBlank()) {
+            throw new IllegalArgumentException("Merchant number is required.");
+        }
+        return merchantNumber.trim();
     }
 
     private IdempotencyKey reserveOrValidateIdempotency(User customer, String key, String requestHash) {
