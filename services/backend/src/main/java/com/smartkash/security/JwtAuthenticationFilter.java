@@ -64,6 +64,15 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         filterChain.doFilter(request, response);
     }
 
+    @Override
+    protected boolean shouldNotFilter(HttpServletRequest request) throws ServletException {
+        String path = request.getRequestURI();
+        return path.equals("/api/auth/firebase-login")
+                || path.startsWith("/actuator/")
+                || path.startsWith("/v3/api-docs")
+                || path.startsWith("/swagger-ui");
+    }
+
     private void writeUnauthorizedResponse(HttpServletRequest request, HttpServletResponse response) throws IOException {
         ApiErrorResponse errorResponse = ApiErrorResponse.of(
                 HttpStatus.UNAUTHORIZED.value(),

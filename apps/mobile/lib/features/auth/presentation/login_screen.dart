@@ -131,7 +131,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                     const _SmartKashMark(),
                     const SizedBox(height: 44),
                     const Text(
-                      'Log in\nto your SmartKash account',
+                      'Log in or register\nyour SmartKash account',
                       style: TextStyle(
                         color: Color(0xFF263238),
                         fontSize: 32,

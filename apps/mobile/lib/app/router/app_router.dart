@@ -8,6 +8,8 @@ import '../../features/auth/presentation/pin_setup_screen.dart';
 import '../../features/auth/providers/auth_providers.dart';
 import '../../features/home/presentation/home_screen.dart';
 import '../../features/loan/presentation/loan_screen.dart';
+import '../../features/profile/presentation/account_screen.dart';
+import '../../features/profile/presentation/profile_completion_screen.dart';
 import '../../features/qr/presentation/qr_screen.dart';
 import '../../features/payment/presentation/merchant_payment_screen.dart';
 import '../../features/recharge/presentation/mobile_recharge_screen.dart';
@@ -33,6 +35,8 @@ final appRouterProvider = Provider<GoRouter>(
         final isLoginRoute = state.matchedLocation == LoginScreen.routePath;
         final isPinSetupRoute =
             state.matchedLocation == PinSetupScreen.routePath;
+        final isProfileCompletionRoute =
+            state.matchedLocation == ProfileCompletionScreen.routePath;
 
         if (authState.isAuthenticated) {
           if (authState.needsPinSetup) {
@@ -40,6 +44,18 @@ final appRouterProvider = Provider<GoRouter>(
           }
 
           if (isPinSetupRoute) {
+            return authState.needsProfileCompletion
+                ? ProfileCompletionScreen.routePath
+                : HomeScreen.routePath;
+          }
+
+          if (authState.needsProfileCompletion) {
+            return isProfileCompletionRoute
+                ? null
+                : ProfileCompletionScreen.routePath;
+          }
+
+          if (isProfileCompletionRoute) {
             return HomeScreen.routePath;
           }
 
@@ -63,6 +79,16 @@ final appRouterProvider = Provider<GoRouter>(
           path: PinSetupScreen.routePath,
           name: PinSetupScreen.routeName,
           builder: (context, state) => const PinSetupScreen(),
+        ),
+        GoRoute(
+          path: ProfileCompletionScreen.routePath,
+          name: ProfileCompletionScreen.routeName,
+          builder: (context, state) => const ProfileCompletionScreen(),
+        ),
+        GoRoute(
+          path: AccountScreen.routePath,
+          name: AccountScreen.routeName,
+          builder: (context, state) => const AccountScreen(),
         ),
         GoRoute(
           path: TransactionListScreen.routePath,

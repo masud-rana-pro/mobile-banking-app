@@ -139,6 +139,10 @@ class AuthController extends StateNotifier<AuthSessionState> {
         backendToken: backendToken,
         pinSet: currentUser.pinSet,
         pinUpdatedAt: currentUser.pinUpdatedAt,
+        profileComplete: currentUser.profileComplete,
+        fullName: currentUser.fullName,
+        email: currentUser.email,
+        avatarUrl: currentUser.avatarUrl,
       );
     } catch (error) {
       state = state.copyWith(
@@ -185,6 +189,49 @@ class AuthController extends StateNotifier<AuthSessionState> {
         pinSet: result.pinSet,
         pinUpdatedAt: result.pinUpdatedAt,
         infoMessage: 'PIN setup completed.',
+        clearError: true,
+      );
+    } catch (error) {
+      state = state.copyWith(
+        status: AuthSessionStatus.failure,
+        errorMessage: _friendlyError(error),
+      );
+    }
+  }
+
+  Future<void> updateProfile({
+    required String fullName,
+    String? email,
+    String? avatarUrl,
+  }) async {
+    if (fullName.trim().isEmpty) {
+      state = state.copyWith(
+        status: AuthSessionStatus.failure,
+        errorMessage: 'Full name is required.',
+      );
+      return;
+    }
+
+    state = state.copyWith(
+      status: AuthSessionStatus.authenticating,
+      clearError: true,
+      clearInfo: true,
+    );
+
+    try {
+      final currentUser = await _backendAuthRepository.updateProfile(
+        fullName: fullName.trim(),
+        email: email?.trim(),
+        avatarUrl: avatarUrl?.trim(),
+      );
+
+      state = state.copyWith(
+        status: AuthSessionStatus.authenticated,
+        profileComplete: currentUser.profileComplete,
+        fullName: currentUser.fullName,
+        email: currentUser.email,
+        avatarUrl: currentUser.avatarUrl,
+        infoMessage: 'Profile saved.',
         clearError: true,
       );
     } catch (error) {

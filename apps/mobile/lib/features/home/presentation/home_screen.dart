@@ -4,10 +4,11 @@ import 'package:go_router/go_router.dart';
 
 import '../../../core/constants/app_assets.dart';
 import '../../add_money/presentation/add_money_screen.dart';
-import '../../auth/presentation/login_screen.dart';
 import '../../auth/providers/auth_providers.dart';
 import '../../loan/presentation/loan_screen.dart';
 import '../../payment/presentation/merchant_payment_screen.dart';
+import '../../profile/presentation/account_screen.dart';
+import '../../qr/presentation/qr_screen.dart';
 import '../../recharge/presentation/mobile_recharge_screen.dart';
 import '../../savings/presentation/savings_screen.dart';
 import '../../send_money/presentation/send_money_screen.dart';
@@ -39,8 +40,9 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     final authState = ref.watch(authControllerProvider);
     final walletAsync = ref.watch(walletSummaryProvider);
     final backendToken = authState.backendToken;
-    final accountLabel =
-        backendToken == null || backendToken.phoneNumber.isEmpty
+    final accountLabel = authState.fullName?.trim().isNotEmpty == true
+        ? authState.fullName!.trim()
+        : backendToken == null || backendToken.phoneNumber.isEmpty
             ? 'SmartKash Account'
             : backendToken.phoneNumber;
     final roleLabel = backendToken?.role ?? 'CUSTOMER';
@@ -731,7 +733,10 @@ class _SmartKashBottomNav extends StatelessWidget {
       selectedIndex: 0,
       onDestinationSelected: (index) {
         if (index == 1) {
-          context.pushNamed(LoginScreen.routeName);
+          context.pushNamed(AccountScreen.routeName);
+        }
+        if (index == 2) {
+          context.pushNamed(QrScreen.routeName);
         }
       },
       destinations: const [

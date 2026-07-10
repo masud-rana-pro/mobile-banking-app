@@ -11,6 +11,10 @@ class AuthSessionState {
     this.verificationId,
     this.pinSet,
     this.pinUpdatedAt,
+    this.profileComplete,
+    this.fullName,
+    this.email,
+    this.avatarUrl,
   });
 
   const AuthSessionState.initial()
@@ -21,7 +25,11 @@ class AuthSessionState {
         phoneNumber = null,
         verificationId = null,
         pinSet = null,
-        pinUpdatedAt = null;
+        pinUpdatedAt = null,
+        profileComplete = null,
+        fullName = null,
+        email = null,
+        avatarUrl = null;
 
   final AuthSessionStatus status;
   final BackendAuthToken? backendToken;
@@ -31,6 +39,10 @@ class AuthSessionState {
   final String? verificationId;
   final bool? pinSet;
   final DateTime? pinUpdatedAt;
+  final bool? profileComplete;
+  final String? fullName;
+  final String? email;
+  final String? avatarUrl;
 
   bool get isAuthenticated =>
       status == AuthSessionStatus.authenticated || backendToken != null;
@@ -38,6 +50,8 @@ class AuthSessionState {
   bool get isOtpSent => status == AuthSessionStatus.otpSent;
   bool get canVerifyOtp => verificationId != null && verificationId!.isNotEmpty;
   bool get needsPinSetup => isAuthenticated && pinSet != true;
+  bool get needsProfileCompletion =>
+      isAuthenticated && !needsPinSetup && profileComplete != true;
 
   AuthSessionState copyWith({
     AuthSessionStatus? status,
@@ -48,11 +62,16 @@ class AuthSessionState {
     String? verificationId,
     bool? pinSet,
     DateTime? pinUpdatedAt,
+    bool? profileComplete,
+    String? fullName,
+    String? email,
+    String? avatarUrl,
     bool clearBackendToken = false,
     bool clearError = false,
     bool clearInfo = false,
     bool clearOtp = false,
     bool clearPinState = false,
+    bool clearProfileState = false,
   }) {
     return AuthSessionState(
       status: status ?? this.status,
@@ -64,6 +83,11 @@ class AuthSessionState {
       verificationId: clearOtp ? null : verificationId ?? this.verificationId,
       pinSet: clearPinState ? null : pinSet ?? this.pinSet,
       pinUpdatedAt: clearPinState ? null : pinUpdatedAt ?? this.pinUpdatedAt,
+      profileComplete:
+          clearProfileState ? null : profileComplete ?? this.profileComplete,
+      fullName: clearProfileState ? null : fullName ?? this.fullName,
+      email: clearProfileState ? null : email ?? this.email,
+      avatarUrl: clearProfileState ? null : avatarUrl ?? this.avatarUrl,
     );
   }
 }

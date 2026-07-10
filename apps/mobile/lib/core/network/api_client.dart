@@ -22,10 +22,12 @@ class ApiClient {
     _dio.interceptors.add(
       InterceptorsWrapper(
         onRequest: (options, handler) async {
-          final token = await _tokenStorage.readAccessToken();
-          if (token != null && token.isNotEmpty) {
-            final tokenType = await _tokenStorage.readTokenType();
-            options.headers['Authorization'] = '$tokenType $token';
+          if (options.path != '/api/auth/firebase-login') {
+            final token = await _tokenStorage.readAccessToken();
+            if (token != null && token.isNotEmpty) {
+              final tokenType = await _tokenStorage.readTokenType();
+              options.headers['Authorization'] = '$tokenType $token';
+            }
           }
           handler.next(options);
         },

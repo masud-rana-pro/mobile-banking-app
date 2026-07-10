@@ -3,7 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../core/constants/app_assets.dart';
-import '../../home/presentation/home_screen.dart';
+import '../../profile/presentation/profile_completion_screen.dart';
 import '../providers/auth_providers.dart';
 
 class PinSetupScreen extends ConsumerStatefulWidget {
@@ -103,7 +103,7 @@ class _PinSetupScreenState extends ConsumerState<PinSetupScreen> {
 
     ref.listen(authControllerProvider, (previous, next) {
       if (next.pinSet == true) {
-        context.goNamed(HomeScreen.routeName);
+        context.goNamed(ProfileCompletionScreen.routeName);
       }
     });
 

@@ -38,6 +38,23 @@ class BackendAuthRepository {
     return CurrentUserSummary.fromJson(response.data ?? const {});
   }
 
+  Future<CurrentUserSummary> updateProfile({
+    required String fullName,
+    String? email,
+    String? avatarUrl,
+  }) async {
+    final response = await _apiClient.put<Map<String, dynamic>>(
+      '/api/users/me/profile',
+      data: {
+        'fullName': fullName,
+        if (email != null && email.isNotEmpty) 'email': email,
+        if (avatarUrl != null && avatarUrl.isNotEmpty) 'avatarUrl': avatarUrl,
+      },
+    );
+
+    return CurrentUserSummary.fromJson(response.data ?? const {});
+  }
+
   Future<PinSetupResult> setPin({
     required String pin,
     required String confirmPin,
