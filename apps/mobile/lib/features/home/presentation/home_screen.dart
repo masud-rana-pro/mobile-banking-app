@@ -438,7 +438,12 @@ class _PrimaryActionPanel extends StatelessWidget {
           ),
           const SizedBox(height: 12),
           TextButton.icon(
-            onPressed: () {},
+            onPressed: () => _showMvpFeatureNotice(
+              context,
+              title: 'More services',
+              message:
+                  'Extra services will be added after the core SmartKash MVP flows are verified. Current active flows are Add Money, Send Money, Payment, Recharge, Savings, Loan, QR, Transactions, Account, and Inbox.',
+            ),
             iconAlignment: IconAlignment.end,
             icon: const Icon(Icons.keyboard_arrow_down),
             label: const Text('See More'),
@@ -469,7 +474,20 @@ class _ActionTile extends StatelessWidget {
       onTap: () {
         if (action.routeName != null) {
           context.pushNamed(action.routeName!);
+          return;
         }
+
+        _showMvpFeatureNotice(
+          context,
+          title: action.label,
+          message: switch (action.label) {
+            'Cash Out' =>
+              'Cash Out needs agent/counter validation and settlement rules. It is intentionally kept out of this zero-budget MVP phase.',
+            'Pay Bill' =>
+              'Pay Bill needs a biller/provider catalog and bill reference validation. It is planned for a later focused step.',
+            _ => '${action.label} is planned for a later SmartKash MVP step.',
+          },
+        );
       },
       borderRadius: BorderRadius.circular(12),
       child: Column(
@@ -501,6 +519,74 @@ class _ActionTile extends StatelessWidget {
       ),
     );
   }
+}
+
+void _showMvpFeatureNotice(
+  BuildContext context, {
+  required String title,
+  required String message,
+}) {
+  showModalBottomSheet<void>(
+    context: context,
+    showDragHandle: true,
+    builder: (context) {
+      return SafeArea(
+        child: Padding(
+          padding: const EdgeInsets.fromLTRB(22, 8, 22, 24),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                children: [
+                  Container(
+                    width: 44,
+                    height: 44,
+                    decoration: const BoxDecoration(
+                      color: Color(0xFFE9F8F4),
+                      shape: BoxShape.circle,
+                    ),
+                    child: const Icon(
+                      Icons.construction_outlined,
+                      color: Color(0xFF008F7A),
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Text(
+                      title,
+                      style: const TextStyle(
+                        color: Color(0xFF263238),
+                        fontSize: 20,
+                        fontWeight: FontWeight.w900,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 14),
+              Text(
+                message,
+                style: const TextStyle(
+                  color: Color(0xFF607D8B),
+                  height: 1.4,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+              const SizedBox(height: 18),
+              SizedBox(
+                width: double.infinity,
+                child: FilledButton(
+                  onPressed: () => Navigator.of(context).pop(),
+                  child: const Text('Got it'),
+                ),
+              ),
+            ],
+          ),
+        ),
+      );
+    },
+  );
 }
 
 class _PromoSection extends StatelessWidget {
