@@ -9,6 +9,7 @@ import '../../features/auth/providers/auth_providers.dart';
 import '../../features/home/presentation/home_screen.dart';
 import '../../features/qr/presentation/qr_screen.dart';
 import '../../features/payment/presentation/merchant_payment_screen.dart';
+import '../../features/recharge/presentation/mobile_recharge_screen.dart';
 import '../../features/send_money/presentation/send_money_screen.dart';
 import '../../features/transaction/presentation/transaction_detail_screen.dart';
 import '../../features/transaction/presentation/transaction_list_screen.dart';
@@ -93,6 +94,11 @@ final appRouterProvider = Provider<GoRouter>(
           path: MerchantPaymentScreen.routePath,
           name: MerchantPaymentScreen.routeName,
           builder: (context, state) => const MerchantPaymentScreen(),
+        ),
+        GoRoute(
+          path: MobileRechargeScreen.routePath,
+          name: MobileRechargeScreen.routeName,
+          builder: (context, state) => const MobileRechargeScreen(),
         ),
       ],
     );

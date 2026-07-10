@@ -7,6 +7,7 @@ import '../../add_money/presentation/add_money_screen.dart';
 import '../../auth/presentation/login_screen.dart';
 import '../../auth/providers/auth_providers.dart';
 import '../../payment/presentation/merchant_payment_screen.dart';
+import '../../recharge/presentation/mobile_recharge_screen.dart';
 import '../../send_money/presentation/send_money_screen.dart';
 import '../../wallet/domain/wallet_summary.dart';
 import '../../wallet/providers/wallet_providers.dart';
@@ -380,7 +381,8 @@ class _PrimaryActionPanel extends StatelessWidget {
   static const _actions = [
     _ActionItem(Icons.send_to_mobile, 'Send Money', Color(0xFF0E9F6E),
         routeName: SendMoneyScreen.routeName),
-    _ActionItem(Icons.phone_android, 'Recharge', Color(0xFF1D7ED6)),
+    _ActionItem(Icons.phone_android, 'Recharge', Color(0xFF1D7ED6),
+        routeName: MobileRechargeScreen.routeName),
     _ActionItem(Icons.payments_outlined, 'Cash Out', Color(0xFF00A8A8)),
     _ActionItem(Icons.shopping_bag_outlined, 'Payment', Color(0xFFE08B2D),
         routeName: MerchantPaymentScreen.routeName),
