@@ -7,6 +7,7 @@ import '../../features/auth/presentation/login_screen.dart';
 import '../../features/auth/presentation/pin_setup_screen.dart';
 import '../../features/auth/providers/auth_providers.dart';
 import '../../features/home/presentation/home_screen.dart';
+import '../../features/loan/presentation/loan_screen.dart';
 import '../../features/qr/presentation/qr_screen.dart';
 import '../../features/payment/presentation/merchant_payment_screen.dart';
 import '../../features/recharge/presentation/mobile_recharge_screen.dart';
@@ -105,6 +106,11 @@ final appRouterProvider = Provider<GoRouter>(
           path: SavingsScreen.routePath,
           name: SavingsScreen.routeName,
           builder: (context, state) => const SavingsScreen(),
+        ),
+        GoRoute(
+          path: LoanScreen.routePath,
+          name: LoanScreen.routeName,
+          builder: (context, state) => const LoanScreen(),
         ),
       ],
     );

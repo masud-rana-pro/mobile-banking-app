@@ -6,6 +6,7 @@ import '../../../core/constants/app_assets.dart';
 import '../../add_money/presentation/add_money_screen.dart';
 import '../../auth/presentation/login_screen.dart';
 import '../../auth/providers/auth_providers.dart';
+import '../../loan/presentation/loan_screen.dart';
 import '../../payment/presentation/merchant_payment_screen.dart';
 import '../../recharge/presentation/mobile_recharge_screen.dart';
 import '../../savings/presentation/savings_screen.dart';
@@ -392,7 +393,8 @@ class _PrimaryActionPanel extends StatelessWidget {
     _ActionItem(Icons.bolt_outlined, 'Pay Bill', Color(0xFF00695C)),
     _ActionItem(Icons.savings_outlined, 'Savings', Color(0xFF9C3A8D),
         routeName: SavingsScreen.routeName),
-    _ActionItem(Icons.account_balance, 'Loan', Color(0xFF795548)),
+    _ActionItem(Icons.account_balance, 'Loan', Color(0xFF795548),
+        routeName: LoanScreen.routeName),
   ];
 
   @override
