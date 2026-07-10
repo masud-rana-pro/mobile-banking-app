@@ -6,6 +6,7 @@ import '../../../core/constants/app_assets.dart';
 import '../../add_money/presentation/add_money_screen.dart';
 import '../../auth/providers/auth_providers.dart';
 import '../../loan/presentation/loan_screen.dart';
+import '../../notification/presentation/notification_inbox_screen.dart';
 import '../../payment/presentation/merchant_payment_screen.dart';
 import '../../profile/presentation/account_screen.dart';
 import '../../qr/presentation/qr_screen.dart';
@@ -737,6 +738,9 @@ class _SmartKashBottomNav extends StatelessWidget {
         }
         if (index == 2) {
           context.pushNamed(QrScreen.routeName);
+        }
+        if (index == 3) {
+          context.pushNamed(NotificationInboxScreen.routeName);
         }
       },
       destinations: const [
