@@ -75,11 +75,12 @@
 - Step 59 Loan request/status UI: added Flutter Loan screen connected to existing backend loan request create/list APIs, showing MVP Phase 1 status-only behavior without wallet disbursement, repayment, installments, or money-changing flow.
 - Step 60 Registration/profile flow: added profile completion registration step after Firebase login and PIN setup, added URL-based profile image support in Flutter, added Account screen from bottom navigation, exposed profile completion in auth state, and hardened Firebase login so stale backend JWT does not block login/register.
 - Step 61 Backend-stored profile image flow: replaced profile image URL input with Flutter image picker upload, added backend multipart profile image upload, stored files under the configured backend profile image folder, saved generated `avatar_image_id` references in PostgreSQL, and exposed profile images through a backend image read endpoint.
+- Step 62 Notification inbox placeholder UI: added a Flutter Inbox screen from bottom navigation that documents important transaction alert categories and local FCM limitations without adding notification history schema or extra backend APIs.
 
 ## Last Commit
 
-- Last commit message: `step-61: store profile images in backend resources`
-- Last commit hash: pending until Step 61 commit finalization.
+- Last commit message: `step-62: add notification inbox UI`
+- Last commit hash: pending until Step 62 commit finalization.
 
 ## Important Architecture Decisions
 
@@ -160,6 +161,7 @@
 - Step 60 registration flow is OTP-first and profile-completion-after-login. Existing users with PIN and profile go to Home; new/minimal users complete PIN and profile before Home. Profile image is URL-based to avoid paid storage services.
 - Step 60 keeps `/api/auth/firebase-login` free from stale backend JWT interference on both Flutter API client and backend JWT filter.
 - Step 61 stores profile images in the backend-controlled profile image folder for the learning MVP. PostgreSQL stores only the generated `avatar_image_id`, and Flutter displays images through the backend `/api/users/profile-images/{imageId}` URL.
+- Step 62 keeps notification history out of scope. The Inbox screen is a lightweight user-facing placeholder for the existing FCM transaction alert plan, not a persisted message center.
 - Money-changing operations require transactions, safe wallet locking, idempotency keys, and audit logs.
 - Codex uses a manual verification workflow by default: do focused changes, update learning/progress docs, run lightweight checks only, commit/push, and provide manual verification commands.
 
@@ -244,6 +246,7 @@
 - Step 59 adds Loan request/status UI only; it does not add loan disbursement, wallet credit, repayment, installments, interest calculation, or loan contract documents.
 - Step 60 adds profile completion/account UI only; it does not add paid image upload storage, KYC/NID verification, or real identity verification.
 - Step 61 adds local backend profile image storage only; it does not add paid cloud storage, image cropping, camera capture, admin image moderation, CDN delivery, or production-grade object storage.
+- Step 62 adds Inbox UI only; it does not add notification history tables, unread counts, push permission prompts, local notification rendering, or admin notification management.
 - `flutter create` timed out in the sandbox, so the minimal Flutter skeleton was created manually and verified with Flutter tooling.
 - Global `mvn` is not available in the Codex session, so backend verification should use Maven Wrapper `.\mvnw.cmd`.
 - Flyway works against local PostgreSQL 17.10 after adding `flyway-database-postgresql`, but logs a warning that this Flyway version officially tested support up to PostgreSQL 16.
@@ -252,7 +255,7 @@
 
 ## Next Recommended Step
 
-- Step 62: add lightweight Inbox/notification list UI or polish remaining placeholder bottom navigation items.
+- Step 63: polish remaining disabled Home actions such as Cash Out, Pay Bill, and See More with clear MVP placeholders, or start final end-to-end demo cleanup.
 
 ## Standard Step Completion Format
 

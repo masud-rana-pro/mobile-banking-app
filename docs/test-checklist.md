@@ -273,3 +273,10 @@
 - If the app is running on Chrome/Web, the login UI should explain that the current OTP setup is Android-only unless Firebase Web app config is added.
 - If backend JWT login times out after OTP, the UI should show a readable backend timeout message and keep `Verify & Login` available for retry instead of resetting to only `Send OTP`.
 - If backend JWT login rejects the Firebase token, Flutter should show the actual backend error instead of a generic Firebase Admin env warning, and the backend terminal should log the Firebase verification error code/message without logging the raw token.
+
+## Flutter Notification Inbox
+
+- Bottom navigation `Inbox` opens the notification inbox screen.
+- Inbox screen explains that SmartKash sends important transaction alerts only.
+- Inbox screen lists alert categories for Add Money, Send Money, Merchant Payment, Recharge/Savings, and Loan status.
+- Inbox screen clearly says persisted notification history is future scope.
