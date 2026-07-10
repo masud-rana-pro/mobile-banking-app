@@ -8,6 +8,7 @@ import '../../auth/presentation/login_screen.dart';
 import '../../auth/providers/auth_providers.dart';
 import '../../payment/presentation/merchant_payment_screen.dart';
 import '../../recharge/presentation/mobile_recharge_screen.dart';
+import '../../savings/presentation/savings_screen.dart';
 import '../../send_money/presentation/send_money_screen.dart';
 import '../../wallet/domain/wallet_summary.dart';
 import '../../wallet/providers/wallet_providers.dart';
@@ -389,7 +390,8 @@ class _PrimaryActionPanel extends StatelessWidget {
     _ActionItem(Icons.add_card_outlined, 'Add Money', Color(0xFF7A4CC2),
         routeName: AddMoneyScreen.routeName),
     _ActionItem(Icons.bolt_outlined, 'Pay Bill', Color(0xFF00695C)),
-    _ActionItem(Icons.savings_outlined, 'Savings', Color(0xFF9C3A8D)),
+    _ActionItem(Icons.savings_outlined, 'Savings', Color(0xFF9C3A8D),
+        routeName: SavingsScreen.routeName),
     _ActionItem(Icons.account_balance, 'Loan', Color(0xFF795548)),
   ];
 
