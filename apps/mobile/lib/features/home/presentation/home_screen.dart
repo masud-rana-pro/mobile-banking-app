@@ -3,8 +3,11 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../core/constants/app_assets.dart';
+import '../../add_money/presentation/add_money_screen.dart';
 import '../../auth/presentation/login_screen.dart';
 import '../../auth/providers/auth_providers.dart';
+import '../../payment/presentation/merchant_payment_screen.dart';
+import '../../send_money/presentation/send_money_screen.dart';
 import '../../wallet/domain/wallet_summary.dart';
 import '../../wallet/providers/wallet_providers.dart';
 
@@ -375,11 +378,14 @@ class _PrimaryActionPanel extends StatelessWidget {
   const _PrimaryActionPanel();
 
   static const _actions = [
-    _ActionItem(Icons.send_to_mobile, 'Send Money', Color(0xFF0E9F6E)),
+    _ActionItem(Icons.send_to_mobile, 'Send Money', Color(0xFF0E9F6E),
+        routeName: SendMoneyScreen.routeName),
     _ActionItem(Icons.phone_android, 'Recharge', Color(0xFF1D7ED6)),
     _ActionItem(Icons.payments_outlined, 'Cash Out', Color(0xFF00A8A8)),
-    _ActionItem(Icons.shopping_bag_outlined, 'Payment', Color(0xFFE08B2D)),
-    _ActionItem(Icons.add_card_outlined, 'Add Money', Color(0xFF7A4CC2)),
+    _ActionItem(Icons.shopping_bag_outlined, 'Payment', Color(0xFFE08B2D),
+        routeName: MerchantPaymentScreen.routeName),
+    _ActionItem(Icons.add_card_outlined, 'Add Money', Color(0xFF7A4CC2),
+        routeName: AddMoneyScreen.routeName),
     _ActionItem(Icons.bolt_outlined, 'Pay Bill', Color(0xFF00695C)),
     _ActionItem(Icons.savings_outlined, 'Savings', Color(0xFF9C3A8D)),
     _ActionItem(Icons.account_balance, 'Loan', Color(0xFF795548)),
@@ -435,11 +441,12 @@ class _PrimaryActionPanel extends StatelessWidget {
 }
 
 class _ActionItem {
-  const _ActionItem(this.icon, this.label, this.color);
+  const _ActionItem(this.icon, this.label, this.color, {this.routeName});
 
   final IconData icon;
   final String label;
   final Color color;
+  final String? routeName;
 }
 
 class _ActionTile extends StatelessWidget {
@@ -449,31 +456,40 @@ class _ActionTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Column(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        Container(
-          width: 54,
-          height: 54,
-          decoration: BoxDecoration(
-            color: action.color.withValues(alpha: 0.08),
-            shape: BoxShape.circle,
+    return InkWell(
+      onTap: () {
+        if (action.routeName != null) {
+          context.pushNamed(action.routeName!);
+        }
+      },
+      borderRadius: BorderRadius.circular(12),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Container(
+            width: 54,
+            height: 54,
+            decoration: BoxDecoration(
+              color: action.color.withValues(alpha: 0.08),
+              shape: BoxShape.circle,
+            ),
+            child: Icon(action.icon, color: action.color, size: 30),
           ),
-          child: Icon(action.icon, color: action.color, size: 30),
-        ),
-        const SizedBox(height: 9),
-        Text(
-          action.label,
-          maxLines: 1,
-          overflow: TextOverflow.ellipsis,
-          textAlign: TextAlign.center,
-          style: const TextStyle(
-            color: Color(0xFF263238),
-            fontWeight: FontWeight.w600,
-            fontSize: 13,
+          const SizedBox(height: 9),
+          Text(
+            action.label,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            textAlign: TextAlign.center,
+            style: const TextStyle(
+              color: Color(0xFF263238),
+              fontWeight: FontWeight.w600,
+              fontSize: 13,
+            ),
           ),
-        ),
-      ],
+        ],
+      ),
     );
   }
 }
