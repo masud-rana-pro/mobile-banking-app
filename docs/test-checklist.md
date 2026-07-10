@@ -193,6 +193,19 @@
 - Home wallet balance refreshes after successful merchant payment.
 - Backend database should show customer wallet debit, merchant wallet credit, transaction records, ledger entries, and idempotency key completion.
 
+## Flutter Mobile Recharge UI
+
+- Home `Recharge` action opens the Mobile Recharge screen.
+- Operator choices include `GP`, `ROBI`, `BANGLALINK`, `TELETALK`, and `AIRTEL`.
+- Mobile number must contain 10 to 15 digits.
+- Amount must be at least `BDT 1.00`.
+- PIN step requires a 5-digit PIN and sends recharge through `POST /api/recharge`.
+- One recharge attempt keeps one idempotency key so retrying the same attempt does not create duplicate wallet movement.
+- Successful recharge shows operator, mobile number, amount, status, and transaction reference.
+- Recent recharge list loads from `GET /api/recharge`.
+- Home wallet balance refreshes after successful recharge.
+- Backend database should show wallet debit, mobile recharge record, transaction record, ledger entry, and idempotency key completion.
+
 ## Backend Local Env Import
 
 - `services/backend/.env` exists locally and is ignored by Git.

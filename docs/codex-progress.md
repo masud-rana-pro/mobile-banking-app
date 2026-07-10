@@ -70,11 +70,12 @@
 - Step 54 Send Money wizard UI: added Flutter Send Money mobile receiver resolve, amount, PIN, and result flow connected to backend transfer API.
 - Step 55 QR Send Money foundation UI: added QR payload display/paste flow for Send Money receiver selection foundation.
 - Step 56 Merchant Payment UI completion: added backend merchant resolve API, connected Flutter Merchant Payment to real backend merchant validation, removed dummy merchant data, kept one stable idempotency key per payment attempt, refreshed wallet balance after success, and documented manual verification outputs.
+- Step 57 Mobile Recharge UI: added Flutter demo Mobile Recharge screen connected to existing backend wallet-debit recharge API, including operator selection, number/amount/note entry, PIN confirmation, stable idempotency key per attempt, recharge history list, wallet refresh, and manual verification documentation.
 
 ## Last Commit
 
-- Last commit message: `step-56: complete merchant payment UI`
-- Last commit hash: pending until Step 56 commit finalization.
+- Last commit message: `step-57: add mobile recharge UI`
+- Last commit hash: pending until Step 57 commit finalization.
 
 ## Important Architecture Decisions
 
@@ -149,6 +150,7 @@
 - Step 49 keeps JWT secrets local-only. `services/backend/.env` is ignored, and `JWT_SECRET` must be at least 32 bytes for HMAC signing.
 - Step 56 resolves merchant accounts through `GET /api/payments/merchant/resolve` before showing the amount/PIN screens. Flutter must not use dummy merchant data for payment.
 - Step 56 keeps a stable merchant payment idempotency key for one payment attempt, so retrying the same attempt does not create a second payment.
+- Step 57 keeps Mobile Recharge as a zero-budget demo flow. Flutter calls the existing backend `/api/recharge` API, and the backend handles PIN verification, idempotency, wallet debit, transaction record, and ledger entry.
 - Money-changing operations require transactions, safe wallet locking, idempotency keys, and audit logs.
 - Codex uses a manual verification workflow by default: do focused changes, update learning/progress docs, run lightweight checks only, commit/push, and provide manual verification commands.
 
@@ -228,6 +230,7 @@
 - Step 48 improves diagnostics only; it does not bypass Firebase verification, log raw tokens, change JWT rules, or commit secrets.
 - Step 49 changes only local ignored `.env` and documentation; it does not commit the generated JWT secret or change auth security rules.
 - Step 56 completes Merchant Payment UI for registered active merchants only; it does not add merchant QR payment, refund/chargeback, payment gateway integration, settlement reports, or admin merchant payment approval.
+- Step 57 adds Mobile Recharge UI only; it does not integrate a real recharge provider, SMS/top-up gateway, refund flow, operator package catalog, or provider callback handling.
 - `flutter create` timed out in the sandbox, so the minimal Flutter skeleton was created manually and verified with Flutter tooling.
 - Global `mvn` is not available in the Codex session, so backend verification should use Maven Wrapper `.\mvnw.cmd`.
 - Flyway works against local PostgreSQL 17.10 after adding `flyway-database-postgresql`, but logs a warning that this Flyway version officially tested support up to PostgreSQL 16.
@@ -236,7 +239,7 @@
 
 ## Next Recommended Step
 
-- Step 57: add Mobile Recharge UI connected to the existing backend demo recharge wallet-debit API.
+- Step 58: add Savings Goal list/create UI connected to the existing backend savings goal APIs.
 
 ## Standard Step Completion Format
 
