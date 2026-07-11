@@ -92,11 +92,20 @@ public class SendMoneyReceiverServiceImpl implements SendMoneyReceiverService {
     }
 
     private String normalizeMobileNumber(String mobileNumber) {
-        String normalized = mobileNumber.trim();
-        if (!normalized.matches("^[0-9]{10,15}$")) {
-            throw new IllegalArgumentException("Receiver mobile number must contain 10 to 15 digits.");
+        String normalized = mobileNumber.trim().replace(" ", "").replace("-", "");
+        if (normalized.startsWith("+880") && normalized.matches("^\\+8801[0-9]{9}$")) {
+            return normalized;
         }
-        return normalized;
+        if (normalized.startsWith("880") && normalized.matches("^8801[0-9]{9}$")) {
+            return "+" + normalized;
+        }
+        if (normalized.startsWith("01") && normalized.matches("^01[0-9]{9}$")) {
+            return "+88" + normalized;
+        }
+        if (normalized.startsWith("1") && normalized.matches("^1[0-9]{9}$")) {
+            return "+880" + normalized;
+        }
+        throw new IllegalArgumentException("Receiver mobile number must be a valid Bangladesh mobile number.");
     }
 
     private void ensureNotSelfTransfer(User sender, User receiver) {
