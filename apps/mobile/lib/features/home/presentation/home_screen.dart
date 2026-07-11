@@ -47,7 +47,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
         : backendToken == null || backendToken.phoneNumber.isEmpty
             ? 'SmartKash Account'
             : backendToken.phoneNumber;
-    final roleLabel = backendToken?.role ?? 'CUSTOMER';
+    final avatarUrl = authState.avatarUrl?.trim() ?? '';
 
     return Scaffold(
       body: SafeArea(
@@ -58,23 +58,17 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
               child: _HomeHeader(
                 theme: theme,
                 accountLabel: accountLabel,
-                roleLabel: roleLabel,
+                avatarUrl: avatarUrl,
                 walletAsync: walletAsync,
                 onSignOut: () =>
                     ref.read(authControllerProvider.notifier).signOut(),
               ),
             ),
             SliverToBoxAdapter(
-              child: Transform.translate(
-                offset: const Offset(0, -24),
-                child: const _PrimaryActionPanel(),
-              ),
+              child: const _PrimaryActionPanel(),
             ),
             SliverToBoxAdapter(
-              child: Transform.translate(
-                offset: const Offset(0, -10),
-                child: const _PromoSection(),
-              ),
+              child: const _PromoSection(),
             ),
             const SliverToBoxAdapter(child: _QuickFeaturesSection()),
             const SliverToBoxAdapter(child: SizedBox(height: 96)),
@@ -86,232 +80,209 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
   }
 }
 
-class _HomeHeader extends StatelessWidget {
+class _HomeHeader extends StatefulWidget {
   const _HomeHeader({
     required this.theme,
     required this.accountLabel,
-    required this.roleLabel,
+    required this.avatarUrl,
     required this.walletAsync,
     required this.onSignOut,
   });
 
   final ThemeData theme;
   final String accountLabel;
-  final String roleLabel;
+  final String avatarUrl;
   final AsyncValue<WalletSummary> walletAsync;
   final VoidCallback onSignOut;
 
   @override
+  State<_HomeHeader> createState() => _HomeHeaderState();
+}
+
+class _HomeHeaderState extends State<_HomeHeader> {
+  bool _showBalance = false;
+
+  @override
   Widget build(BuildContext context) {
-    return Container(
-      height: 300,
-      decoration: const BoxDecoration(
-        gradient: LinearGradient(
-          colors: [Color(0xFF00796B), Color(0xFF2446A6)],
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-        ),
-      ),
-      child: Stack(
-        children: [
-          Positioned.fill(
-            child: Image.asset(
-              AppAssets.smartKashHeader,
-              fit: BoxFit.cover,
-              opacity: const AlwaysStoppedAnimation(0.72),
+    return Column(
+      children: [
+        Container(
+          padding: const EdgeInsets.fromLTRB(22, 46, 22, 16),
+          decoration: const BoxDecoration(
+            gradient: LinearGradient(
+              colors: [Color(0xFF008F7A), Color(0xFF2446A6)],
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
             ),
           ),
-          Positioned.fill(
-            child: DecoratedBox(
-              decoration: BoxDecoration(
-                gradient: LinearGradient(
-                  colors: [
-                    const Color(0xFF00695C).withValues(alpha: 0.84),
-                    const Color(0xFF2446A6).withValues(alpha: 0.56),
-                  ],
-                  begin: Alignment.centerLeft,
-                  end: Alignment.centerRight,
+          child: Row(
+            children: [
+              InkWell(
+                onTap: () => context.pushNamed(AccountScreen.routeName),
+                borderRadius: BorderRadius.circular(32),
+                child: _ProfileAvatar(
+                  avatarUrl: widget.avatarUrl,
+                  fallbackText: widget.accountLabel,
                 ),
               ),
-            ),
-          ),
-          Positioned(
-            left: -48,
-            right: -32,
-            top: 88,
-            child: Container(
-              height: 92,
-              decoration: BoxDecoration(
-                border: Border.all(color: Colors.white24, width: 2),
-                borderRadius: BorderRadius.circular(120),
-              ),
-            ),
-          ),
-          Positioned(
-            right: 26,
-            bottom: 80,
-            child: _HeaderBadge(color: Colors.white.withValues(alpha: 0.9)),
-          ),
-          Padding(
-            padding: const EdgeInsets.fromLTRB(20, 50, 20, 0),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(
+              const SizedBox(width: 14),
+              Expanded(
+                child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    ClipRRect(
-                      borderRadius: BorderRadius.circular(28),
-                      child: Image.asset(
-                        AppAssets.smartKashLogoMark,
-                        width: 56,
-                        height: 56,
-                        fit: BoxFit.cover,
+                    Text(
+                      widget.accountLabel,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: const TextStyle(
+                        color: Colors.white,
+                        fontSize: 19,
+                        fontWeight: FontWeight.w900,
                       ),
                     ),
-                    const SizedBox(width: 12),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            accountLabel,
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                            style: const TextStyle(
-                              color: Colors.white,
-                              fontSize: 18,
-                              fontWeight: FontWeight.w700,
-                            ),
-                          ),
-                          const SizedBox(height: 8),
-                          Container(
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 12,
-                              vertical: 8,
-                            ),
-                            decoration: BoxDecoration(
-                              color: Colors.white,
-                              borderRadius: BorderRadius.circular(22),
-                              boxShadow: const [
-                                BoxShadow(
-                                  color: Color(0x24000000),
-                                  blurRadius: 16,
-                                  offset: Offset(0, 6),
-                                ),
-                              ],
-                            ),
-                            child: Row(
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                const Icon(
-                                  Icons.account_balance_wallet,
-                                  color: Color(0xFF00796B),
-                                  size: 18,
-                                ),
-                                const SizedBox(width: 8),
-                                Text(
-                                  'Logged in - $roleLabel',
-                                  style: const TextStyle(
-                                    color: Color(0xFF263238),
-                                    fontWeight: FontWeight.w700,
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                    _HeaderIconButton(
-                      icon: Icons.search,
-                      onTap: () {},
-                    ),
-                    const SizedBox(width: 10),
-                    _HeaderIconButton(
-                      icon: Icons.logout,
-                      onTap: onSignOut,
+                    const SizedBox(height: 8),
+                    _BalanceTapChip(
+                      walletAsync: widget.walletAsync,
+                      showBalance: _showBalance,
+                      onTap: () => setState(() => _showBalance = !_showBalance),
                     ),
                   ],
                 ),
-                const SizedBox(height: 16),
-                _BalancePanel(walletAsync: walletAsync),
-              ],
-            ),
+              ),
+              _HeaderIconButton(
+                icon: Icons.search,
+                onTap: () {},
+              ),
+              const SizedBox(width: 10),
+              _HeaderIconButton(
+                icon: Icons.logout,
+                onTap: widget.onSignOut,
+              ),
+            ],
           ),
-        ],
+        ),
+        Container(
+          height: 168,
+          width: double.infinity,
+          decoration: const BoxDecoration(
+            color: Color(0xFFDCF4F0),
+          ),
+          child: Image.asset(
+            AppAssets.smartKashHeader,
+            fit: BoxFit.cover,
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+class _ProfileAvatar extends StatelessWidget {
+  const _ProfileAvatar({
+    required this.avatarUrl,
+    required this.fallbackText,
+  });
+
+  final String avatarUrl;
+  final String fallbackText;
+
+  @override
+  Widget build(BuildContext context) {
+    final initial = fallbackText.trim().isEmpty
+        ? 'S'
+        : fallbackText.trim().characters.first.toUpperCase();
+    return CircleAvatar(
+      radius: 32,
+      backgroundColor: Colors.white,
+      child: CircleAvatar(
+        radius: 29,
+        backgroundColor: const Color(0xFFE9F8F4),
+        backgroundImage: avatarUrl.isEmpty ? null : NetworkImage(avatarUrl),
+        onBackgroundImageError: avatarUrl.isEmpty ? null : (_, __) {},
+        child: avatarUrl.isEmpty
+            ? Text(
+                initial,
+                style: const TextStyle(
+                  color: Color(0xFF008F7A),
+                  fontSize: 24,
+                  fontWeight: FontWeight.w900,
+                ),
+              )
+            : null,
       ),
     );
   }
 }
 
-class _BalancePanel extends StatelessWidget {
-  const _BalancePanel({required this.walletAsync});
+class _BalanceTapChip extends StatelessWidget {
+  const _BalanceTapChip({
+    required this.walletAsync,
+    required this.showBalance,
+    required this.onTap,
+  });
 
   final AsyncValue<WalletSummary> walletAsync;
+  final bool showBalance;
+  final VoidCallback onTap;
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.fromLTRB(18, 16, 18, 16),
-      decoration: BoxDecoration(
-        color: Colors.white.withValues(alpha: 0.15),
-        borderRadius: BorderRadius.circular(18),
-      ),
-      child: walletAsync.when(
-        data: (wallet) => Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            const Text(
-              'Available Balance',
-              style: TextStyle(
-                color: Colors.white70,
-                fontSize: 13,
-                fontWeight: FontWeight.w600,
-              ),
+    final label = walletAsync.when(
+      data: (wallet) =>
+          showBalance ? wallet.balanceFormatted : 'Tap for Balance',
+      loading: () => 'Loading balance',
+      error: (_, __) => 'Balance unavailable',
+    );
+
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(8),
+      child: Container(
+        constraints: const BoxConstraints(maxWidth: 230),
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 9),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(8),
+          boxShadow: const [
+            BoxShadow(
+              color: Color(0x24000000),
+              blurRadius: 14,
+              offset: Offset(0, 5),
             ),
-            const SizedBox(height: 6),
-            Text(
-              wallet.balanceFormatted,
-              style: const TextStyle(
+          ],
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Container(
+              width: 27,
+              height: 27,
+              decoration: BoxDecoration(
+                color: const Color(0xFF008F7A),
+                borderRadius: BorderRadius.circular(7),
+              ),
+              child: Icon(
+                showBalance
+                    ? Icons.visibility_off_outlined
+                    : Icons.account_balance_wallet,
                 color: Colors.white,
-                fontSize: 32,
-                fontWeight: FontWeight.w900,
-                letterSpacing: -0.5,
+                size: 17,
+              ),
+            ),
+            const SizedBox(width: 9),
+            Flexible(
+              child: Text(
+                label,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: const TextStyle(
+                  color: Color(0xFF263238),
+                  fontSize: 15,
+                  fontWeight: FontWeight.w900,
+                ),
               ),
             ),
           ],
-        ),
-        loading: () => Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            const Text(
-              'Available Balance',
-              style: TextStyle(
-                color: Colors.white70,
-                fontSize: 13,
-                fontWeight: FontWeight.w600,
-              ),
-            ),
-            const SizedBox(height: 10),
-            const SizedBox(
-              width: 160,
-              height: 24,
-              child: LinearProgressIndicator(
-                backgroundColor: Colors.white24,
-                valueColor: AlwaysStoppedAnimation<Color>(Colors.white54),
-              ),
-            ),
-          ],
-        ),
-        error: (error, stack) => const Text(
-          'Balance unavailable',
-          style: TextStyle(
-            color: Colors.white70,
-            fontSize: 20,
-            fontWeight: FontWeight.w700,
-          ),
         ),
       ),
     );
@@ -387,7 +358,7 @@ class _PrimaryActionPanel extends StatelessWidget {
   static const _actions = [
     _ActionItem(Icons.send_to_mobile, 'Send Money', Color(0xFF0E9F6E),
         routeName: SendMoneyScreen.routeName),
-    _ActionItem(Icons.phone_android, 'Recharge', Color(0xFF1D7ED6),
+    _ActionItem(Icons.phone_android, 'Mobile Recharge', Color(0xFF1D7ED6),
         routeName: MobileRechargeScreen.routeName),
     _ActionItem(Icons.payments_outlined, 'Cash Out', Color(0xFF00A8A8)),
     _ActionItem(Icons.shopping_bag_outlined, 'Payment', Color(0xFFE08B2D),
@@ -507,13 +478,13 @@ class _ActionTile extends StatelessWidget {
           const SizedBox(height: 9),
           Text(
             action.label,
-            maxLines: 1,
+            maxLines: 2,
             overflow: TextOverflow.ellipsis,
             textAlign: TextAlign.center,
             style: const TextStyle(
               color: Color(0xFF263238),
               fontWeight: FontWeight.w600,
-              fontSize: 13,
+              fontSize: 12,
             ),
           ),
         ],
@@ -596,7 +567,7 @@ class _PromoSection extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return const Padding(
-      padding: EdgeInsets.symmetric(horizontal: 18),
+      padding: EdgeInsets.fromLTRB(18, 18, 18, 0),
       child: Column(
         children: [
           _PromoBanner(),
