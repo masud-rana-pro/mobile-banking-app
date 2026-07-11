@@ -585,20 +585,68 @@ class _NotificationOffersTab extends StatelessWidget {
 
   static const _items = [
     _NotificationItem(
-      title: 'Instant Add Money is active',
+      title: 'Add Money',
       body:
-          'Top up your SmartKash wallet from demo bank, card, or manual source without admin approval.',
-      time: 'Today',
+          'Instant top-up alerts appear after demo bank, card, or manual Add Money succeeds.',
+      time: 'Wallet credit',
       color: Color(0xFF008F7A),
       icon: Icons.bolt_outlined,
     ),
     _NotificationItem(
-      title: 'Transaction history moved here',
+      title: 'Send Money',
+      body:
+          'Transfer success alerts and receipt history appear for mobile number and QR receiver selection.',
+      time: 'Wallet transfer',
+      color: Color(0xFF0E9F6E),
+      icon: Icons.send_to_mobile,
+    ),
+    _NotificationItem(
+      title: 'Merchant Payment',
+      body:
+          'Merchant payment completion appears in transaction history for customer and merchant accounts.',
+      time: 'Payment',
+      color: Color(0xFFE08B2D),
+      icon: Icons.shopping_bag_outlined,
+    ),
+    _NotificationItem(
+      title: 'Statement',
+      body:
+          'Statement view is powered by the same transaction records shown in this Inbox history.',
+      time: 'Records',
+      color: Color(0xFF2446A6),
+      icon: Icons.article_outlined,
+    ),
+    _NotificationItem(
+      title: 'Transactions',
       body:
           'Use Inbox > Transactions to search TrxID, open receipts, copy IDs, and review money movement.',
-      time: 'Today',
+      time: 'History',
       color: Color(0xFF2446A6),
       icon: Icons.receipt_long_outlined,
+    ),
+    _NotificationItem(
+      title: 'Savings',
+      body:
+          'Savings deposit records appear after wallet-debit deposits into a goal are completed.',
+      time: 'Goal deposit',
+      color: Color(0xFF9C3A8D),
+      icon: Icons.savings_outlined,
+    ),
+    _NotificationItem(
+      title: 'Loan',
+      body:
+          'Loan request submissions now create pending history records; approval remains status-only in this MVP.',
+      time: 'Request status',
+      color: Color(0xFF795548),
+      icon: Icons.account_balance_outlined,
+    ),
+    _NotificationItem(
+      title: 'Mobile Recharge',
+      body:
+          'Demo recharge success creates wallet debit history and a receipt without real provider integration.',
+      time: 'Recharge',
+      color: Color(0xFF1D7ED6),
+      icon: Icons.phone_android,
     ),
     _NotificationItem(
       title: 'Local FCM note',
