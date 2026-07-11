@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../data/send_money_repository.dart';
 import '../domain/send_money_receiver.dart';
 import '../providers/send_money_providers.dart';
 
@@ -263,7 +262,7 @@ class _SendMoneyScreenState extends ConsumerState<SendMoneyScreen> {
         const SizedBox(height: 24),
         TextField(
           controller: _amountController,
-          keyboardType: TextInputType.numberWithOptions(decimal: true),
+          keyboardType: const TextInputType.numberWithOptions(decimal: true),
           decoration: const InputDecoration(
             labelText: 'Amount (BDT)',
             prefixText: '৳ ',

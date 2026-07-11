@@ -5,8 +5,10 @@ import 'package:go_router/go_router.dart';
 import '../../../core/constants/app_assets.dart';
 import '../../add_money/presentation/add_money_screen.dart';
 import '../../auth/providers/auth_providers.dart';
+import '../../cash_out/presentation/cash_out_screen.dart';
 import '../../loan/presentation/loan_screen.dart';
 import '../../notification/presentation/notification_inbox_screen.dart';
+import '../../pay_bill/presentation/pay_bill_screen.dart';
 import '../../payment/presentation/merchant_payment_screen.dart';
 import '../../profile/presentation/account_screen.dart';
 import '../../qr/presentation/qr_screen.dart';
@@ -64,11 +66,11 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                     ref.read(authControllerProvider.notifier).signOut(),
               ),
             ),
-            SliverToBoxAdapter(
-              child: const _PrimaryActionPanel(),
+            const SliverToBoxAdapter(
+              child: _PrimaryActionPanel(),
             ),
-            SliverToBoxAdapter(
-              child: const _PromoSection(),
+            const SliverToBoxAdapter(
+              child: _PromoSection(),
             ),
             const SliverToBoxAdapter(child: _QuickFeaturesSection()),
             const SliverToBoxAdapter(child: SizedBox(height: 96)),
@@ -320,38 +322,6 @@ class _HeaderIconButton extends StatelessWidget {
   }
 }
 
-class _HeaderBadge extends StatelessWidget {
-  const _HeaderBadge({required this.color});
-
-  final Color color;
-
-  @override
-  Widget build(BuildContext context) {
-    return SizedBox(
-      width: 86,
-      height: 86,
-      child: Stack(
-        alignment: Alignment.center,
-        children: [
-          Positioned(
-            bottom: 4,
-            child: Icon(Icons.shield, color: color, size: 58),
-          ),
-          Positioned(
-            top: 12,
-            right: 2,
-            child: Icon(
-              Icons.check_circle,
-              color: Colors.amber.shade300,
-              size: 28,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
 class _PrimaryActionPanel extends StatelessWidget {
   const _PrimaryActionPanel();
 
@@ -360,12 +330,14 @@ class _PrimaryActionPanel extends StatelessWidget {
         routeName: SendMoneyScreen.routeName),
     _ActionItem(Icons.phone_android, 'Mobile Recharge', Color(0xFF1D7ED6),
         routeName: MobileRechargeScreen.routeName),
-    _ActionItem(Icons.payments_outlined, 'Cash Out', Color(0xFF00A8A8)),
+    _ActionItem(Icons.payments_outlined, 'Cash Out', Color(0xFF00A8A8),
+        routeName: CashOutScreen.routeName),
     _ActionItem(Icons.shopping_bag_outlined, 'Payment', Color(0xFFE08B2D),
         routeName: MerchantPaymentScreen.routeName),
     _ActionItem(Icons.add_card_outlined, 'Add Money', Color(0xFF7A4CC2),
         routeName: AddMoneyScreen.routeName),
-    _ActionItem(Icons.bolt_outlined, 'Pay Bill', Color(0xFF00695C)),
+    _ActionItem(Icons.bolt_outlined, 'Pay Bill', Color(0xFF00695C),
+        routeName: PayBillScreen.routeName),
     _ActionItem(Icons.savings_outlined, 'Savings', Color(0xFF9C3A8D),
         routeName: SavingsScreen.routeName),
     _ActionItem(Icons.account_balance, 'Loan', Color(0xFF795548),
@@ -414,7 +386,7 @@ class _PrimaryActionPanel extends StatelessWidget {
               context,
               title: 'More services',
               message:
-                  'Extra services will be added after the core SmartKash MVP flows are verified. Current active flows are Add Money, Send Money, Payment, Recharge, Savings, Loan, QR, Transactions, Account, and Inbox.',
+                  'Extra services will be added after the core SmartKash MVP flows are verified. Current active flows are Add Money, Send Money, Cash Out, Pay Bill, Payment, Recharge, Savings, Loan, QR, Transactions, Account, and Inbox.',
             ),
             iconAlignment: IconAlignment.end,
             icon: const Icon(Icons.keyboard_arrow_down),
@@ -453,10 +425,6 @@ class _ActionTile extends StatelessWidget {
           context,
           title: action.label,
           message: switch (action.label) {
-            'Cash Out' =>
-              'Cash Out needs agent/counter validation and settlement rules. It is intentionally kept out of this zero-budget MVP phase.',
-            'Pay Bill' =>
-              'Pay Bill needs a biller/provider catalog and bill reference validation. It is planned for a later focused step.',
             _ => '${action.label} is planned for a later SmartKash MVP step.',
           },
         );
@@ -670,12 +638,12 @@ class _QuickFeaturesSection extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.fromLTRB(18, 22, 18, 0),
+    return const Padding(
+      padding: EdgeInsets.fromLTRB(18, 22, 18, 0),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text(
+          Text(
             'Quick Features',
             style: TextStyle(
               color: Color(0xFF263238),
@@ -683,7 +651,7 @@ class _QuickFeaturesSection extends StatelessWidget {
               fontSize: 18,
             ),
           ),
-          const SizedBox(height: 14),
+          SizedBox(height: 14),
           Row(
             children: [
               Expanded(
@@ -693,7 +661,7 @@ class _QuickFeaturesSection extends StatelessWidget {
                   routeName: TransactionListScreen.routeName,
                 ),
               ),
-              const SizedBox(width: 10),
+              SizedBox(width: 10),
               Expanded(
                 child: _QuickChip(
                   icon: Icons.phone_android,
@@ -701,7 +669,7 @@ class _QuickFeaturesSection extends StatelessWidget {
                   routeName: MobileRechargeScreen.routeName,
                 ),
               ),
-              const SizedBox(width: 10),
+              SizedBox(width: 10),
               Expanded(
                 child: _QuickChip(
                   icon: Icons.send,
@@ -711,7 +679,7 @@ class _QuickFeaturesSection extends StatelessWidget {
               ),
             ],
           ),
-          const SizedBox(height: 16),
+          SizedBox(height: 16),
           Row(
             children: [
               Expanded(
@@ -722,7 +690,7 @@ class _QuickFeaturesSection extends StatelessWidget {
                       'Rewards need offer rules and campaign tracking. It is planned after the core wallet flows are stable.',
                 ),
               ),
-              const SizedBox(width: 12),
+              SizedBox(width: 12),
               Expanded(
                 child: _FeatureCard(
                   icon: Icons.percent,
@@ -731,7 +699,7 @@ class _QuickFeaturesSection extends StatelessWidget {
                       'Offers need campaign setup and eligibility rules. It is intentionally not part of this MVP phase.',
                 ),
               ),
-              const SizedBox(width: 12),
+              SizedBox(width: 12),
               Expanded(
                 child: _FeatureCard(
                   icon: Icons.emoji_events,
@@ -752,18 +720,16 @@ class _QuickChip extends StatelessWidget {
     required this.icon,
     required this.label,
     this.routeName,
-    this.notice,
   });
 
   final IconData icon;
   final String label;
   final String? routeName;
-  final String? notice;
 
   @override
   Widget build(BuildContext context) {
     return InkWell(
-      onTap: () => _handleQuickFeatureTap(context, label, routeName, notice),
+      onTap: () => _handleQuickFeatureTap(context, label, routeName, null),
       borderRadius: BorderRadius.circular(8),
       child: Container(
         height: 52,

@@ -625,6 +625,22 @@ class _NotificationOffersTab extends StatelessWidget {
       icon: Icons.receipt_long_outlined,
     ),
     _NotificationItem(
+      title: 'Cash Out',
+      body:
+          'Demo Cash Out now debits wallet, creates ledger entries, and appears in transaction receipts.',
+      time: 'Agent demo',
+      color: Color(0xFF00A8A8),
+      icon: Icons.payments_outlined,
+    ),
+    _NotificationItem(
+      title: 'Pay Bill',
+      body:
+          'Demo bill payments now debit wallet, create receipts, and appear in transaction history.',
+      time: 'Biller demo',
+      color: Color(0xFF00695C),
+      icon: Icons.bolt_outlined,
+    ),
+    _NotificationItem(
       title: 'Savings',
       body:
           'Savings deposit records appear after wallet-debit deposits into a goal are completed.',
