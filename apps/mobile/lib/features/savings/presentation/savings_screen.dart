@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/errors/api_exception.dart';
+import '../../transaction/providers/transaction_providers.dart';
 import '../../wallet/providers/wallet_providers.dart';
 import '../domain/savings_goal.dart';
 import '../providers/savings_providers.dart';
@@ -122,6 +123,7 @@ class _SavingsScreenState extends ConsumerState<SavingsScreen> {
       );
       ref.read(walletRefreshProvider)();
       ref.read(savingsRefreshProvider)();
+      ref.read(transactionRefreshProvider)();
       _depositAmountController.clear();
       _pinController.clear();
       _noteController.clear();

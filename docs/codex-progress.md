@@ -83,11 +83,12 @@
 - Step 67 Complete Inbox transaction coverage: added loan request transaction records so Loan also appears in Inbox transaction history, and expanded the Inbox Notifications tab to cover the planned core areas: Add Money, Send Money, Merchant Payment, Statement, Transactions, Savings, Loan, and Mobile Recharge.
 - Step 68 Home header visual polish: updated the Flutter Home header so the profile image uses the user's backend avatar when available, balance is hidden behind a tap-to-reveal chip, the top background image is displayed in a clear separate band without controls over it, and Home spacing labels are closer to the provided reference.
 - Step 69 Cash Out and Pay Bill working demo flows: added backend `POST /api/cash-out` and `POST /api/pay-bill` wallet-debit demo APIs with PIN verification, idempotency, locked wallet debit, transaction records, immutable debit ledger entries, optional FCM alerts, Flutter Cash Out and Pay Bill screens, Home navigation, Inbox transaction labels, and clean verification for backend compile/tests plus Flutter analyze/tests.
+- Step 70 Inbox-first transaction history polish: removed feature-screen bottom transaction lists from Add Money and Mobile Recharge, ensured all successful money-related Flutter flows invalidate the shared Inbox transaction provider, expanded the Home action grid height to avoid bottom overflow warnings, and improved Inbox transaction load errors with visible backend/API details for manual debugging.
 
 ## Last Commit
 
-- Last commit message: pending Step 69 commit.
-- Last commit hash: pending Step 69 commit.
+- Last commit message: pending Step 70 commit.
+- Last commit hash: pending Step 70 commit.
 
 ## Important Architecture Decisions
 
@@ -177,6 +178,7 @@
 - Step 67 ensures the planned Loan feature also contributes a `LOAN_REQUEST` transaction history record when a user submits a loan request. This record is status/history only and does not disburse money or create ledger entries.
 - Step 68 keeps Home UI reference-driven while preserving SmartKash branding: user controls live in a separate top band, the generated header image remains clear, and balance is revealed only after the user taps the balance chip.
 - Step 69 keeps Cash Out and Pay Bill as local learning MVP demo flows: they debit the SmartKash wallet and create ledger/transaction history, but they do not integrate real agent settlement, biller validation, provider callbacks, or external money movement.
+- Step 70 makes Inbox the single transaction-history surface in the Flutter app. Feature screens can show immediate success receipts/messages, but long transaction lists should live in Inbox > Transactions.
 - Money-changing operations require transactions, safe wallet locking, idempotency keys, and audit logs.
 - Codex uses a manual verification workflow by default: do focused changes, update learning/progress docs, run lightweight checks only, commit/push, and provide manual verification commands.
 

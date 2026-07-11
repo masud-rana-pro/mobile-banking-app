@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/errors/api_exception.dart';
+import '../../transaction/providers/transaction_providers.dart';
 import '../domain/loan_request_summary.dart';
 import '../providers/loan_providers.dart';
 
@@ -57,6 +58,7 @@ class _LoanScreenState extends ConsumerState<LoanScreen> {
       _amountController.clear();
       _purposeController.clear();
       ref.read(loanRefreshProvider)();
+      ref.read(transactionRefreshProvider)();
       _showMessage('Loan request submitted for admin review.');
     } catch (error) {
       _showMessage(_friendlyError(error, fallback: 'Could not submit loan.'));

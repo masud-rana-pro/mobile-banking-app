@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/errors/api_exception.dart';
+import '../../transaction/providers/transaction_providers.dart';
 import '../../wallet/providers/wallet_providers.dart';
 import '../domain/mobile_recharge_record.dart';
 import '../providers/recharge_providers.dart';
@@ -46,12 +47,6 @@ class _MobileRechargeScreenState extends ConsumerState<MobileRechargeScreen> {
   MobileRechargeRecord? _rechargeResult;
   String? _idempotencyKey;
   bool _isLoading = false;
-
-  @override
-  void initState() {
-    super.initState();
-    Future.microtask(() => ref.read(mobileRechargeRefreshProvider)());
-  }
 
   @override
   void dispose() {
@@ -110,6 +105,7 @@ class _MobileRechargeScreenState extends ConsumerState<MobileRechargeScreen> {
       );
       ref.read(walletRefreshProvider)();
       ref.read(mobileRechargeRefreshProvider)();
+      ref.read(transactionRefreshProvider)();
       setState(() {
         _rechargeResult = result;
         _currentStep = _RechargeStep.result;
@@ -150,8 +146,6 @@ class _MobileRechargeScreenState extends ConsumerState<MobileRechargeScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final historyAsync = ref.watch(mobileRechargeHistoryProvider);
-
     return Scaffold(
       appBar: AppBar(
         title: const Text('Mobile Recharge'),
@@ -163,17 +157,8 @@ class _MobileRechargeScreenState extends ConsumerState<MobileRechargeScreen> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             _buildBody(),
-            const SizedBox(height: 32),
-            const Text(
-              'Recent Recharges',
-              style: TextStyle(
-                fontSize: 20,
-                fontWeight: FontWeight.w800,
-                color: Color(0xFF263238),
-              ),
-            ),
-            const SizedBox(height: 12),
-            _buildHistory(historyAsync),
+            const SizedBox(height: 18),
+            const _InboxHistoryHint(),
           ],
         ),
       ),
@@ -349,82 +334,6 @@ class _MobileRechargeScreenState extends ConsumerState<MobileRechargeScreen> {
     );
   }
 
-  Widget _buildHistory(AsyncValue<List<MobileRechargeRecord>> historyAsync) {
-    return historyAsync.when(
-      data: (items) {
-        if (items.isEmpty) {
-          return const Padding(
-            padding: EdgeInsets.symmetric(vertical: 24),
-            child: Center(
-              child: Text(
-                'No recharge records yet',
-                style: TextStyle(color: Color(0xFF90A4AE)),
-              ),
-            ),
-          );
-        }
-
-        return ListView.separated(
-          shrinkWrap: true,
-          physics: const NeverScrollableScrollPhysics(),
-          itemCount: items.length,
-          separatorBuilder: (_, __) => const SizedBox(height: 10),
-          itemBuilder: (context, index) => _historyTile(items[index]),
-        );
-      },
-      loading: () => const Center(child: CircularProgressIndicator()),
-      error: (error, stack) => Text(
-        _friendlyError(error, fallback: 'Could not load recharge history.'),
-        style: const TextStyle(color: Color(0xFFC62828)),
-      ),
-    );
-  }
-
-  Widget _historyTile(MobileRechargeRecord item) {
-    return Container(
-      padding: const EdgeInsets.all(14),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(8),
-        border: Border.all(color: const Color(0xFFE9EDF2)),
-      ),
-      child: Row(
-        children: [
-          const CircleAvatar(
-            backgroundColor: Color(0xFFE3F2FD),
-            child: Icon(Icons.phone_android, color: Color(0xFF1D7ED6)),
-          ),
-          const SizedBox(width: 12),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  '${item.operator} - ${item.mobileNumber}',
-                  style: const TextStyle(fontWeight: FontWeight.w800),
-                ),
-                const SizedBox(height: 4),
-                Text(
-                  item.transactionReference ?? item.status,
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  style: const TextStyle(
-                    color: Color(0xFF607D8B),
-                    fontSize: 12,
-                  ),
-                ),
-              ],
-            ),
-          ),
-          Text(
-            'BDT ${item.amount.toStringAsFixed(2)}',
-            style: const TextStyle(fontWeight: FontWeight.w800),
-          ),
-        ],
-      ),
-    );
-  }
-
   Widget _resultCard(MobileRechargeRecord result) {
     return Container(
       width: double.infinity,
@@ -507,6 +416,38 @@ class _MobileRechargeScreenState extends ConsumerState<MobileRechargeScreen> {
               style: const TextStyle(
                 color: Color(0xFF263238),
                 fontWeight: FontWeight.w700,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _InboxHistoryHint extends StatelessWidget {
+  const _InboxHistoryHint();
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(8),
+        border: Border.all(color: const Color(0xFFE2E8F0)),
+      ),
+      child: const Row(
+        children: [
+          Icon(Icons.mail_outline, color: Color(0xFF008F7A)),
+          SizedBox(width: 12),
+          Expanded(
+            child: Text(
+              'All recharge history is saved in Inbox > Transactions. Open any item there to see receipt details.',
+              style: TextStyle(
+                color: Color(0xFF607D8B),
+                fontWeight: FontWeight.w700,
+                height: 1.35,
               ),
             ),
           ),

@@ -373,7 +373,7 @@ class _PrimaryActionPanel extends StatelessWidget {
             itemCount: _actions.length,
             gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
               crossAxisCount: 4,
-              mainAxisExtent: 96,
+              mainAxisExtent: 106,
             ),
             itemBuilder: (context, index) {
               final action = _actions[index];
