@@ -8,7 +8,8 @@ final transactionRepositoryProvider = Provider<TransactionRepository>(
   (ref) => TransactionRepository(apiClient: ref.watch(apiClientProvider)),
 );
 
-final transactionListProvider = FutureProvider<List<TransactionSummary>>(
+final transactionListProvider =
+    FutureProvider.autoDispose<List<TransactionSummary>>(
   (ref) {
     final repository = ref.watch(transactionRepositoryProvider);
     return repository.getMyTransactions();
@@ -16,7 +17,7 @@ final transactionListProvider = FutureProvider<List<TransactionSummary>>(
 );
 
 final transactionDetailProvider =
-    FutureProvider.family<TransactionSummary, int>(
+    FutureProvider.autoDispose.family<TransactionSummary, int>(
   (ref, id) {
     final repository = ref.watch(transactionRepositoryProvider);
     return repository.getTransactionDetail(id);
