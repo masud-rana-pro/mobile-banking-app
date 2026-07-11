@@ -76,15 +76,16 @@ public class CashOutServiceImpl implements CashOutService {
     public CashOutResponse cashOut(JwtPrincipal principal, CashOutRequest request) {
         User user = currentUser(principal);
         ensureActiveUser(user);
+        String agentNumber = normalizeAgentNumber(request.agentNumber());
 
         PinVerificationResponse pinVerification = authService.verifyPin(principal, new VerifyPinRequest(request.pin()));
         if (!pinVerification.verified()) {
-            return failedResponse("PIN verification failed.", request);
+            return failedResponse("PIN verification failed.", request, agentNumber);
         }
 
-        IdempotencyKey idempotencyKey = reserveOrValidateIdempotency(user, request);
+        IdempotencyKey idempotencyKey = reserveOrValidateIdempotency(user, request, agentNumber);
         if (idempotencyKey.getStatus() == IdempotencyStatus.COMPLETED) {
-            return completedResponse(idempotencyKey, request);
+            return completedResponse(idempotencyKey, request, agentNumber);
         }
 
         Wallet wallet = walletRepository.findByUserIdForUpdate(user.getId())
@@ -101,7 +102,7 @@ public class CashOutServiceImpl implements CashOutService {
                 TransactionStatus.SUCCESS,
                 request.amount(),
                 null,
-                description(request)
+                description(request, agentNumber)
         ));
         ledgerEntryRepository.save(new LedgerEntry(
                 wallet,
@@ -119,7 +120,7 @@ public class CashOutServiceImpl implements CashOutService {
                 user,
                 NotificationType.CASH_OUT,
                 "Cash Out completed",
-                "BDT " + request.amount() + " cash out through agent " + request.agentNumber() + " was completed.",
+                "BDT " + request.amount() + " cash out through agent " + agentNumber + " was completed.",
                 Map.of("transactionReference", transactionReference, "type", TransactionType.CASH_OUT.name())
         );
 
@@ -130,7 +131,7 @@ public class CashOutServiceImpl implements CashOutService {
                 transaction.getStatus(),
                 transaction.getAmount(),
                 balanceAfter,
-                request.agentNumber(),
+                agentNumber,
                 transaction.getCreatedAt()
         );
     }
@@ -158,8 +159,8 @@ public class CashOutServiceImpl implements CashOutService {
         }
     }
 
-    private IdempotencyKey reserveOrValidateIdempotency(User user, CashOutRequest request) {
-        String requestHash = requestHash(request);
+    private IdempotencyKey reserveOrValidateIdempotency(User user, CashOutRequest request, String agentNumber) {
+        String requestHash = requestHash(request, agentNumber);
         return idempotencyKeyService.findForUser(user.getId(), request.idempotencyKey())
                 .map(existing -> validateExistingIdempotency(existing, requestHash))
                 .orElseGet(() -> idempotencyKeyService.reserve(
@@ -184,7 +185,7 @@ public class CashOutServiceImpl implements CashOutService {
         return existing;
     }
 
-    private CashOutResponse completedResponse(IdempotencyKey idempotencyKey, CashOutRequest request) {
+    private CashOutResponse completedResponse(IdempotencyKey idempotencyKey, CashOutRequest request, String agentNumber) {
         return new CashOutResponse(
                 true,
                 "Cash Out request was already completed.",
@@ -192,13 +193,13 @@ public class CashOutServiceImpl implements CashOutService {
                 TransactionStatus.SUCCESS,
                 request.amount(),
                 completedBalanceAfter(idempotencyKey),
-                request.agentNumber(),
+                agentNumber,
                 null
         );
     }
 
-    private CashOutResponse failedResponse(String message, CashOutRequest request) {
-        return new CashOutResponse(false, message, null, TransactionStatus.FAILED, request.amount(), null, request.agentNumber(), null);
+    private CashOutResponse failedResponse(String message, CashOutRequest request, String agentNumber) {
+        return new CashOutResponse(false, message, null, TransactionStatus.FAILED, request.amount(), null, agentNumber, null);
     }
 
     private String uniqueTransactionReference(String prefix) {
@@ -209,16 +210,33 @@ public class CashOutServiceImpl implements CashOutService {
         return reference;
     }
 
-    private String description(CashOutRequest request) {
-        String base = "Cash Out through agent " + request.agentNumber();
+    private String description(CashOutRequest request, String agentNumber) {
+        String base = "Cash Out through agent " + agentNumber;
         if (request.note() == null || request.note().isBlank()) {
             return base;
         }
         return base + ". Note: " + request.note().trim();
     }
 
-    private String requestHash(CashOutRequest request) {
-        return sha256(request.agentNumber().trim() + ":" + request.amount() + ":" + nullToEmpty(request.note()));
+    private String requestHash(CashOutRequest request, String agentNumber) {
+        return sha256(agentNumber + ":" + request.amount() + ":" + nullToEmpty(request.note()));
+    }
+
+    private String normalizeAgentNumber(String agentNumber) {
+        String normalized = agentNumber.trim().replace(" ", "").replace("-", "");
+        if (normalized.startsWith("+880") && normalized.matches("^\\+8801[0-9]{9}$")) {
+            return normalized;
+        }
+        if (normalized.startsWith("880") && normalized.matches("^8801[0-9]{9}$")) {
+            return "+" + normalized;
+        }
+        if (normalized.startsWith("01") && normalized.matches("^01[0-9]{9}$")) {
+            return "+88" + normalized;
+        }
+        if (normalized.startsWith("1") && normalized.matches("^1[0-9]{9}$")) {
+            return "+880" + normalized;
+        }
+        throw new IllegalArgumentException("Agent number must be a valid Bangladesh mobile number.");
     }
 
     private String sha256(String value) {

@@ -44,8 +44,8 @@ class _MerchantPaymentScreenState extends ConsumerState<MerchantPaymentScreen> {
 
   Future<void> _resolveMerchant() async {
     final merchantNumber = _merchantNumberController.text.trim();
-    if (merchantNumber.length < 10) {
-      _showMessage('Enter a valid merchant number (at least 10 digits).');
+    if (merchantNumber.length < 3) {
+      _showMessage('Enter a valid merchant number or merchant ID.');
       return;
     }
 
@@ -188,7 +188,7 @@ class _MerchantPaymentScreenState extends ConsumerState<MerchantPaymentScreen> {
           keyboardType: TextInputType.phone,
           decoration: const InputDecoration(
             labelText: 'Merchant Number',
-            hintText: '01XXXXXXXXX / Merchant ID',
+            hintText: 'MERCH-001 / 01XXXXXXXXX',
             border: OutlineInputBorder(),
           ),
           style: const TextStyle(fontSize: 20, fontWeight: FontWeight.w600),
