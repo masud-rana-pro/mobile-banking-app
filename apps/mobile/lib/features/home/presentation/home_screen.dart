@@ -13,6 +13,7 @@ import '../../qr/presentation/qr_screen.dart';
 import '../../recharge/presentation/mobile_recharge_screen.dart';
 import '../../savings/presentation/savings_screen.dart';
 import '../../send_money/presentation/send_money_screen.dart';
+import '../../transaction/presentation/transaction_list_screen.dart';
 import '../../wallet/domain/wallet_summary.dart';
 import '../../wallet/providers/wallet_providers.dart';
 
@@ -698,12 +699,12 @@ class _QuickFeaturesSection extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return const Padding(
-      padding: EdgeInsets.fromLTRB(18, 22, 18, 0),
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(18, 22, 18, 0),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(
+          const Text(
             'Quick Features',
             style: TextStyle(
               color: Color(0xFF263238),
@@ -711,32 +712,62 @@ class _QuickFeaturesSection extends StatelessWidget {
               fontSize: 18,
             ),
           ),
-          SizedBox(height: 14),
+          const SizedBox(height: 14),
           Row(
             children: [
               Expanded(
-                  child: _QuickChip(icon: Icons.lightbulb, label: 'DESCO')),
-              SizedBox(width: 10),
+                child: _QuickChip(
+                  icon: Icons.receipt_long_outlined,
+                  label: 'History',
+                  routeName: TransactionListScreen.routeName,
+                ),
+              ),
+              const SizedBox(width: 10),
               Expanded(
-                  child:
-                      _QuickChip(icon: Icons.phone_android, label: 'Teletalk')),
-              SizedBox(width: 10),
-              Expanded(child: _QuickChip(icon: Icons.send, label: 'Transfer')),
+                child: _QuickChip(
+                  icon: Icons.phone_android,
+                  label: 'Teletalk',
+                  routeName: MobileRechargeScreen.routeName,
+                ),
+              ),
+              const SizedBox(width: 10),
+              Expanded(
+                child: _QuickChip(
+                  icon: Icons.send,
+                  label: 'Transfer',
+                  routeName: SendMoneyScreen.routeName,
+                ),
+              ),
             ],
           ),
-          SizedBox(height: 16),
+          const SizedBox(height: 16),
           Row(
             children: [
               Expanded(
-                  child: _FeatureCard(
-                      icon: Icons.card_giftcard, label: 'Rewards')),
-              SizedBox(width: 12),
+                child: _FeatureCard(
+                  icon: Icons.card_giftcard,
+                  label: 'Rewards',
+                  notice:
+                      'Rewards need offer rules and campaign tracking. It is planned after the core wallet flows are stable.',
+                ),
+              ),
+              const SizedBox(width: 12),
               Expanded(
-                  child: _FeatureCard(icon: Icons.percent, label: 'Offers')),
-              SizedBox(width: 12),
+                child: _FeatureCard(
+                  icon: Icons.percent,
+                  label: 'Offers',
+                  notice:
+                      'Offers need campaign setup and eligibility rules. It is intentionally not part of this MVP phase.',
+                ),
+              ),
+              const SizedBox(width: 12),
               Expanded(
-                  child:
-                      _FeatureCard(icon: Icons.emoji_events, label: 'Goals')),
+                child: _FeatureCard(
+                  icon: Icons.emoji_events,
+                  label: 'Goals',
+                  routeName: SavingsScreen.routeName,
+                ),
+              ),
             ],
           ),
         ],
@@ -746,69 +777,109 @@ class _QuickFeaturesSection extends StatelessWidget {
 }
 
 class _QuickChip extends StatelessWidget {
-  const _QuickChip({required this.icon, required this.label});
+  const _QuickChip({
+    required this.icon,
+    required this.label,
+    this.routeName,
+    this.notice,
+  });
 
   final IconData icon;
   final String label;
+  final String? routeName;
+  final String? notice;
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      height: 52,
-      padding: const EdgeInsets.symmetric(horizontal: 12),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(8),
-        border: Border.all(color: const Color(0xFFE6EAEE)),
-      ),
-      child: Row(
-        children: [
-          Icon(icon, color: const Color(0xFF008F7A), size: 22),
-          const SizedBox(width: 8),
-          Expanded(
-            child: Text(
-              label,
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-              style: const TextStyle(fontWeight: FontWeight.w700),
+    return InkWell(
+      onTap: () => _handleQuickFeatureTap(context, label, routeName, notice),
+      borderRadius: BorderRadius.circular(8),
+      child: Container(
+        height: 52,
+        padding: const EdgeInsets.symmetric(horizontal: 12),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(8),
+          border: Border.all(color: const Color(0xFFE6EAEE)),
+        ),
+        child: Row(
+          children: [
+            Icon(icon, color: const Color(0xFF008F7A), size: 22),
+            const SizedBox(width: 8),
+            Expanded(
+              child: Text(
+                label,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: const TextStyle(fontWeight: FontWeight.w700),
+              ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }
 }
 
 class _FeatureCard extends StatelessWidget {
-  const _FeatureCard({required this.icon, required this.label});
+  const _FeatureCard({
+    required this.icon,
+    required this.label,
+    this.routeName,
+    this.notice,
+  });
 
   final IconData icon;
   final String label;
+  final String? routeName;
+  final String? notice;
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      height: 92,
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(8),
-        border: Border.all(color: const Color(0xFFE9EDF2)),
-      ),
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Icon(icon, color: const Color(0xFFFFB020), size: 30),
-          const SizedBox(height: 8),
-          Text(
-            label,
-            maxLines: 1,
-            overflow: TextOverflow.ellipsis,
-            style: const TextStyle(fontWeight: FontWeight.w700),
-          ),
-        ],
+    return InkWell(
+      onTap: () => _handleQuickFeatureTap(context, label, routeName, notice),
+      borderRadius: BorderRadius.circular(8),
+      child: Container(
+        height: 92,
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(8),
+          border: Border.all(color: const Color(0xFFE9EDF2)),
+        ),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(icon, color: const Color(0xFFFFB020), size: 30),
+            const SizedBox(height: 8),
+            Text(
+              label,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: const TextStyle(fontWeight: FontWeight.w700),
+            ),
+          ],
+        ),
       ),
     );
   }
+}
+
+void _handleQuickFeatureTap(
+  BuildContext context,
+  String label,
+  String? routeName,
+  String? notice,
+) {
+  if (routeName != null) {
+    context.pushNamed(routeName);
+    return;
+  }
+
+  _showMvpFeatureNotice(
+    context,
+    title: label,
+    message: notice ?? '$label is planned for a later SmartKash MVP step.',
+  );
 }
 
 class _SmartKashBottomNav extends StatelessWidget {
