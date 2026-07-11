@@ -1,0 +1,31 @@
+class CashOutResult {
+  const CashOutResult({
+    required this.success,
+    required this.message,
+    this.transactionReference,
+    required this.status,
+    required this.amount,
+    this.balanceAfter,
+    required this.agentNumber,
+  });
+
+  final bool success;
+  final String message;
+  final String? transactionReference;
+  final String status;
+  final double amount;
+  final double? balanceAfter;
+  final String agentNumber;
+
+  factory CashOutResult.fromJson(Map<String, dynamic> json) {
+    return CashOutResult(
+      success: json['success'] as bool? ?? false,
+      message: json['message'] as String? ?? '',
+      transactionReference: json['transactionReference'] as String?,
+      status: json['status'] as String? ?? 'FAILED',
+      amount: (json['amount'] as num?)?.toDouble() ?? 0,
+      balanceAfter: (json['balanceAfter'] as num?)?.toDouble(),
+      agentNumber: json['agentNumber'] as String? ?? '',
+    );
+  }
+}

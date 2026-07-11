@@ -369,7 +369,7 @@ class _SavingsScreenState extends ConsumerState<SavingsScreen> {
           ),
           const SizedBox(height: 18),
           DropdownButtonFormField<int>(
-            value: selectedValue,
+            initialValue: selectedValue,
             decoration: const InputDecoration(
               labelText: 'Savings Goal',
               border: OutlineInputBorder(),

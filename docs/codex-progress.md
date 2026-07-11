@@ -82,11 +82,12 @@
 - Step 66 Instant Add Money and Inbox Transactions: changed Add Money from admin approval/pending flow to instant customer top-up with idempotency, wallet credit, transaction record, immutable credit ledger entry, refreshed Flutter Add Money UI, and redesigned Inbox with Transactions/Notifications tabs plus receipt bottom sheet.
 - Step 67 Complete Inbox transaction coverage: added loan request transaction records so Loan also appears in Inbox transaction history, and expanded the Inbox Notifications tab to cover the planned core areas: Add Money, Send Money, Merchant Payment, Statement, Transactions, Savings, Loan, and Mobile Recharge.
 - Step 68 Home header visual polish: updated the Flutter Home header so the profile image uses the user's backend avatar when available, balance is hidden behind a tap-to-reveal chip, the top background image is displayed in a clear separate band without controls over it, and Home spacing labels are closer to the provided reference.
+- Step 69 Cash Out and Pay Bill working demo flows: added backend `POST /api/cash-out` and `POST /api/pay-bill` wallet-debit demo APIs with PIN verification, idempotency, locked wallet debit, transaction records, immutable debit ledger entries, optional FCM alerts, Flutter Cash Out and Pay Bill screens, Home navigation, Inbox transaction labels, and clean verification for backend compile/tests plus Flutter analyze/tests.
 
 ## Last Commit
 
-- Last commit message: `step-68: polish home header layout`
-- Last commit hash: pending until Step 68 commit finalization.
+- Last commit message: pending Step 69 commit.
+- Last commit hash: pending Step 69 commit.
 
 ## Important Architecture Decisions
 
@@ -175,6 +176,7 @@
 - Step 66 places transaction history inside the Flutter Inbox tab, using a `Transactions` tab with search and a receipt bottom sheet, while `Notifications` remains a lightweight alert/offer view until persisted notification history is added.
 - Step 67 ensures the planned Loan feature also contributes a `LOAN_REQUEST` transaction history record when a user submits a loan request. This record is status/history only and does not disburse money or create ledger entries.
 - Step 68 keeps Home UI reference-driven while preserving SmartKash branding: user controls live in a separate top band, the generated header image remains clear, and balance is revealed only after the user taps the balance chip.
+- Step 69 keeps Cash Out and Pay Bill as local learning MVP demo flows: they debit the SmartKash wallet and create ledger/transaction history, but they do not integrate real agent settlement, biller validation, provider callbacks, or external money movement.
 - Money-changing operations require transactions, safe wallet locking, idempotency keys, and audit logs.
 - Codex uses a manual verification workflow by default: do focused changes, update learning/progress docs, run lightweight checks only, commit/push, and provide manual verification commands.
 
@@ -260,7 +262,7 @@
 - Step 60 adds profile completion/account UI only; it does not add paid image upload storage, KYC/NID verification, or real identity verification.
 - Step 61 adds local backend profile image storage only; it does not add paid cloud storage, image cropping, camera capture, admin image moderation, CDN delivery, or production-grade object storage.
 - Step 62 adds Inbox UI only; it does not add notification history tables, unread counts, push permission prompts, local notification rendering, or admin notification management.
-- Step 63 adds UI placeholder notices only; it does not implement Cash Out, Pay Bill, provider integration, agent settlement, biller catalog, or new backend APIs.
+- Step 63 added UI placeholder notices only; Step 69 later replaced Cash Out and Pay Bill placeholders with wallet-debit demo APIs and Flutter screens.
 - Step 64 updates navigation only; it does not add new backend APIs, campaign/reward engines, offer eligibility rules, or additional money-changing flows.
 - Step 65 inserts local demo records only; it does not change production schema, add migrations, bypass Firebase auth, or create real money movement.
 - Step 66 does not integrate real bank APIs, payment gateways, provider callbacks, or real money movement. Add Money remains a local learning MVP top-up.
@@ -273,7 +275,7 @@
 
 ## Next Recommended Step
 
-- Step 66: run final end-to-end demo cleanup and fix any manual verification issues reported from the Flutter/backend flow.
+- Manually run the app with backend running and verify Home -> Cash Out, Home -> Pay Bill, and Inbox -> Transactions receipts using a funded test user and PIN.
 
 ## Standard Step Completion Format
 

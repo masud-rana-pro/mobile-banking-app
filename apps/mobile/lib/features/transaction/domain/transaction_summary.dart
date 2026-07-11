@@ -48,6 +48,10 @@ class TransactionSummary {
         return 'Received Money';
       case 'MERCHANT_PAYMENT':
         return 'Payment';
+      case 'CASH_OUT':
+        return 'Cash Out';
+      case 'PAY_BILL':
+        return 'Pay Bill';
       case 'SAVINGS_DEPOSIT':
         return 'Savings';
       case 'MOBILE_RECHARGE':
@@ -97,6 +101,10 @@ class TransactionSummary {
         return Icons.call_received;
       case 'MERCHANT_PAYMENT':
         return Icons.shopping_bag_outlined;
+      case 'CASH_OUT':
+        return Icons.payments_outlined;
+      case 'PAY_BILL':
+        return Icons.bolt_outlined;
       case 'SAVINGS_DEPOSIT':
         return Icons.savings_outlined;
       case 'MOBILE_RECHARGE':
@@ -117,6 +125,10 @@ class TransactionSummary {
         return const Color(0xFF008F7A);
       case 'MERCHANT_PAYMENT':
         return const Color(0xFFE08B2D);
+      case 'CASH_OUT':
+        return const Color(0xFF00A8A8);
+      case 'PAY_BILL':
+        return const Color(0xFF00695C);
       case 'SAVINGS_DEPOSIT':
         return const Color(0xFF9C3A8D);
       case 'MOBILE_RECHARGE':

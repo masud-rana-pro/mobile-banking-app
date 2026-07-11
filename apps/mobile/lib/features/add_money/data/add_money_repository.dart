@@ -33,7 +33,7 @@ class AddMoneyRepository {
       '/api/add-money/requests',
     );
 
-    final list = response.data as List<dynamic>? ?? [];
+    final list = response.data ?? [];
     return list
         .map((item) => AddMoneySummary.fromJson(item as Map<String, dynamic>))
         .toList();

@@ -12,7 +12,7 @@ class TransactionRepository {
       '/api/transactions',
     );
 
-    final list = response.data as List<dynamic>? ?? [];
+    final list = response.data ?? [];
     return list
         .map(
             (item) => TransactionSummary.fromJson(item as Map<String, dynamic>))

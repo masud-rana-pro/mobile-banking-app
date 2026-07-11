@@ -5,10 +5,12 @@ import 'package:go_router/go_router.dart';
 import '../../features/add_money/presentation/add_money_screen.dart';
 import '../../features/auth/presentation/login_screen.dart';
 import '../../features/auth/presentation/pin_setup_screen.dart';
+import '../../features/cash_out/presentation/cash_out_screen.dart';
 import '../../features/auth/providers/auth_providers.dart';
 import '../../features/home/presentation/home_screen.dart';
 import '../../features/loan/presentation/loan_screen.dart';
 import '../../features/notification/presentation/notification_inbox_screen.dart';
+import '../../features/pay_bill/presentation/pay_bill_screen.dart';
 import '../../features/profile/presentation/account_screen.dart';
 import '../../features/profile/presentation/profile_completion_screen.dart';
 import '../../features/qr/presentation/qr_screen.dart';
@@ -123,6 +125,16 @@ final appRouterProvider = Provider<GoRouter>(
           path: MerchantPaymentScreen.routePath,
           name: MerchantPaymentScreen.routeName,
           builder: (context, state) => const MerchantPaymentScreen(),
+        ),
+        GoRoute(
+          path: CashOutScreen.routePath,
+          name: CashOutScreen.routeName,
+          builder: (context, state) => const CashOutScreen(),
+        ),
+        GoRoute(
+          path: PayBillScreen.routePath,
+          name: PayBillScreen.routeName,
+          builder: (context, state) => const PayBillScreen(),
         ),
         GoRoute(
           path: MobileRechargeScreen.routePath,
