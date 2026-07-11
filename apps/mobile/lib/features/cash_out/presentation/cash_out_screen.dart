@@ -42,8 +42,8 @@ class _CashOutScreenState extends ConsumerState<CashOutScreen> {
   void _continueToPin() {
     final agent = _agentController.text.trim();
     final amount = double.tryParse(_amountController.text.trim());
-    if (!RegExp(r'^[0-9]{10,15}$').hasMatch(agent)) {
-      _showMessage('Enter a valid agent number with 10 to 15 digits.');
+    if (!_isValidBangladeshMobileNumber(agent)) {
+      _showMessage('Enter a valid Bangladesh agent number.');
       return;
     }
     if (amount == null || amount < 1) {
@@ -110,6 +110,11 @@ class _CashOutScreenState extends ConsumerState<CashOutScreen> {
       return '${error.message}$details';
     }
     return 'Cash Out failed.';
+  }
+
+  bool _isValidBangladeshMobileNumber(String value) {
+    final normalized = value.trim().replaceAll(' ', '').replaceAll('-', '');
+    return RegExp(r'^(\+8801|8801|01|1)[0-9]{9}$').hasMatch(normalized);
   }
 
   void _showMessage(String message) {

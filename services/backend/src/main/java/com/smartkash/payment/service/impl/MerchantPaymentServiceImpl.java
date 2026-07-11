@@ -41,6 +41,7 @@ import java.security.NoSuchAlgorithmException;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.HexFormat;
+import java.util.Locale;
 import java.util.Map;
 import java.util.UUID;
 
@@ -228,7 +229,7 @@ public class MerchantPaymentServiceImpl implements MerchantPaymentService {
         if (merchantNumber == null || merchantNumber.isBlank()) {
             throw new IllegalArgumentException("Merchant number is required.");
         }
-        return merchantNumber.trim();
+        return merchantNumber.trim().replace(" ", "").toUpperCase(Locale.ROOT);
     }
 
     private IdempotencyKey reserveOrValidateIdempotency(User customer, String key, String requestHash) {
@@ -337,7 +338,7 @@ public class MerchantPaymentServiceImpl implements MerchantPaymentService {
     }
 
     private String requestHash(MerchantPaymentRequest request) {
-        return sha256(request.merchantNumber().trim() + ":" + request.amount() + ":" + nullToEmpty(request.note()));
+        return sha256(normalizeMerchantNumber(request.merchantNumber()) + ":" + request.amount() + ":" + nullToEmpty(request.note()));
     }
 
     private String sha256(String value) {

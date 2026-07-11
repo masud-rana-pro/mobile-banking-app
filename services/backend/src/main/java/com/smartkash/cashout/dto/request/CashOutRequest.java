@@ -4,14 +4,13 @@ import jakarta.validation.constraints.DecimalMin;
 import jakarta.validation.constraints.Digits;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
-import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Size;
 
 import java.math.BigDecimal;
 
 public record CashOutRequest(
         @NotBlank(message = "Agent number is required.")
-        @Pattern(regexp = "^[0-9]{10,15}$", message = "Agent number must contain 10 to 15 digits.")
+        @Size(max = 20, message = "Agent number must be 20 characters or fewer.")
         String agentNumber,
 
         @NotNull(message = "Amount is required.")
