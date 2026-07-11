@@ -90,16 +90,16 @@ class ApiClient {
     if (error.type == DioExceptionType.connectionTimeout ||
         error.type == DioExceptionType.receiveTimeout ||
         error.type == DioExceptionType.sendTimeout) {
-      return const ApiException(
+      return ApiException(
         message:
-            'Backend request timed out. Make sure Spring Boot is running on port 8080, then try Verify & Login again.',
+            'Backend request timed out for ${AppConfig.backendBaseUrl}. Make sure Spring Boot is running on port 8080, then try again.',
       );
     }
 
     if (error.type == DioExceptionType.connectionError) {
-      return const ApiException(
+      return ApiException(
         message:
-            'Cannot reach SmartKash backend. Start Spring Boot and use SMARTKASH_API_BASE_URL=http://10.0.2.2:8080 on Android emulator.',
+            'Cannot reach SmartKash backend at ${AppConfig.backendBaseUrl}. For Android emulator use http://10.0.2.2:8080. For a real phone use your PC LAN IP and allow port 8080 in firewall.',
       );
     }
 
