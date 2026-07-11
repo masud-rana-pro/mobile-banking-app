@@ -128,6 +128,12 @@ public class AddMoneyRequest {
         this.approvedAt = Instant.now();
     }
 
+    public void completeInstantly() {
+        this.status = AddMoneyStatus.APPROVED;
+        this.approvedBy = null;
+        this.approvedAt = Instant.now();
+    }
+
     public void reject(User adminUser) {
         this.status = AddMoneyStatus.REJECTED;
         this.approvedBy = adminUser;

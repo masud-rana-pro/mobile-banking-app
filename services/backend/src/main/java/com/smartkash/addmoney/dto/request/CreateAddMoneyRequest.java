@@ -2,6 +2,7 @@ package com.smartkash.addmoney.dto.request;
 
 import com.smartkash.addmoney.enums.AddMoneySourceType;
 import jakarta.validation.constraints.DecimalMin;
+import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 
@@ -14,6 +15,10 @@ public record CreateAddMoneyRequest(
 
         @NotNull(message = "Source type is required.")
         AddMoneySourceType sourceType,
+
+        @NotBlank(message = "Idempotency key is required.")
+        @Size(max = 120, message = "Idempotency key must be 120 characters or less.")
+        String idempotencyKey,
 
         @Size(max = 255, message = "Note must be 255 characters or less.")
         String note

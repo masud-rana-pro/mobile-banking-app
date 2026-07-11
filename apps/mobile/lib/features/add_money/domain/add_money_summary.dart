@@ -48,7 +48,7 @@ class AddMoneySummary {
   String get statusLabel {
     switch (status) {
       case 'APPROVED':
-        return 'Approved';
+        return 'Success';
       case 'REJECTED':
         return 'Rejected';
       default:
@@ -59,4 +59,10 @@ class AddMoneySummary {
   bool get isApproved => status == 'APPROVED';
   bool get isRejected => status == 'REJECTED';
   bool get isPending => status == 'PENDING';
+
+  String get shortDate {
+    final hour = createdAt.hour.toString().padLeft(2, '0');
+    final minute = createdAt.minute.toString().padLeft(2, '0');
+    return '$hour:$minute ${createdAt.day}/${createdAt.month}/${createdAt.year}';
+  }
 }

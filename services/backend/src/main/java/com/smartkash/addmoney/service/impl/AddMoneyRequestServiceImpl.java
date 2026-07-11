@@ -7,30 +7,72 @@ import com.smartkash.addmoney.mapper.AddMoneyRequestMapper;
 import com.smartkash.addmoney.repository.AddMoneyRequestRepository;
 import com.smartkash.addmoney.service.AddMoneyRequestService;
 import com.smartkash.common.exception.ResourceNotFoundException;
+import com.smartkash.idempotency.entity.IdempotencyKey;
+import com.smartkash.idempotency.enums.IdempotencyOperationType;
+import com.smartkash.idempotency.enums.IdempotencyStatus;
+import com.smartkash.idempotency.service.IdempotencyKeyService;
+import com.smartkash.ledger.entity.LedgerEntry;
+import com.smartkash.ledger.enums.LedgerEntryType;
+import com.smartkash.ledger.repository.LedgerEntryRepository;
+import com.smartkash.notification.enums.NotificationType;
+import com.smartkash.notification.service.TransactionAlertService;
 import com.smartkash.security.JwtPrincipal;
+import com.smartkash.transaction.entity.TransactionRecord;
+import com.smartkash.transaction.enums.TransactionStatus;
+import com.smartkash.transaction.enums.TransactionType;
+import com.smartkash.transaction.repository.TransactionRecordRepository;
 import com.smartkash.user.entity.User;
 import com.smartkash.user.enums.UserStatus;
 import com.smartkash.user.repository.UserRepository;
+import com.smartkash.wallet.entity.Wallet;
+import com.smartkash.wallet.enums.WalletStatus;
+import com.smartkash.wallet.repository.WalletRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.math.BigDecimal;
+import java.nio.charset.StandardCharsets;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
+import java.time.Instant;
+import java.time.temporal.ChronoUnit;
+import java.util.HexFormat;
 import java.util.List;
+import java.util.Map;
+import java.util.UUID;
 
 @Service
 public class AddMoneyRequestServiceImpl implements AddMoneyRequestService {
 
+    private static final int IDEMPOTENCY_EXPIRY_HOURS = 24;
+
     private final UserRepository userRepository;
     private final AddMoneyRequestRepository addMoneyRequestRepository;
     private final AddMoneyRequestMapper addMoneyRequestMapper;
+    private final WalletRepository walletRepository;
+    private final TransactionRecordRepository transactionRecordRepository;
+    private final LedgerEntryRepository ledgerEntryRepository;
+    private final IdempotencyKeyService idempotencyKeyService;
+    private final TransactionAlertService transactionAlertService;
 
     public AddMoneyRequestServiceImpl(
             UserRepository userRepository,
             AddMoneyRequestRepository addMoneyRequestRepository,
-            AddMoneyRequestMapper addMoneyRequestMapper
+            AddMoneyRequestMapper addMoneyRequestMapper,
+            WalletRepository walletRepository,
+            TransactionRecordRepository transactionRecordRepository,
+            LedgerEntryRepository ledgerEntryRepository,
+            IdempotencyKeyService idempotencyKeyService,
+            TransactionAlertService transactionAlertService
     ) {
         this.userRepository = userRepository;
         this.addMoneyRequestRepository = addMoneyRequestRepository;
         this.addMoneyRequestMapper = addMoneyRequestMapper;
+        this.walletRepository = walletRepository;
+        this.transactionRecordRepository = transactionRecordRepository;
+        this.ledgerEntryRepository = ledgerEntryRepository;
+        this.idempotencyKeyService = idempotencyKeyService;
+        this.transactionAlertService = transactionAlertService;
     }
 
     @Override
@@ -41,14 +83,59 @@ public class AddMoneyRequestServiceImpl implements AddMoneyRequestService {
     ) {
         User user = currentUser(principal);
         ensureActiveUser(user);
+
+        String requestHash = requestHash(request.amount(), request.sourceType().name(), request.note());
+        IdempotencyKey idempotencyKey = reserveOrValidateIdempotency(user, request.idempotencyKey(), requestHash);
+        if (idempotencyKey.getStatus() == IdempotencyStatus.COMPLETED) {
+            return completedAddMoneyResponse(idempotencyKey);
+        }
+
+        Wallet wallet = walletRepository.findByUserIdForUpdate(user.getId())
+                .orElseThrow(() -> new ResourceNotFoundException("Customer wallet was not found."));
+        ensureActiveWallet(wallet);
+
         AddMoneyRequest addMoneyRequest = new AddMoneyRequest(
                 user,
                 request.amount(),
                 request.sourceType(),
                 request.note()
         );
+        addMoneyRequest.completeInstantly();
+        AddMoneyRequest savedRequest = addMoneyRequestRepository.save(addMoneyRequest);
 
-        return addMoneyRequestMapper.toResponse(addMoneyRequestRepository.save(addMoneyRequest));
+        BigDecimal balanceAfter = wallet.credit(request.amount());
+        String transactionReference = uniqueTransactionReference();
+        TransactionRecord transaction = new TransactionRecord(
+                transactionReference,
+                user,
+                TransactionType.ADD_MONEY,
+                TransactionStatus.SUCCESS,
+                request.amount(),
+                null,
+                "Instant Add Money from " + request.sourceType().name()
+        );
+        transactionRecordRepository.save(transaction);
+        ledgerEntryRepository.save(new LedgerEntry(
+                wallet,
+                user,
+                transactionReference,
+                null,
+                LedgerEntryType.CREDIT,
+                request.amount(),
+                balanceAfter,
+                "Instant Add Money wallet credit"
+        ));
+
+        idempotencyKeyService.markCompleted(idempotencyKey, "ADD_MONEY:" + savedRequest.getId());
+        transactionAlertService.sendTransactionAlert(
+                user,
+                NotificationType.ADD_MONEY,
+                "Add Money successful",
+                "BDT " + savedRequest.getAmount() + " was added to your SmartKash wallet.",
+                Map.of("transactionReference", transactionReference, "type", TransactionType.ADD_MONEY.name())
+        );
+
+        return addMoneyRequestMapper.toResponse(savedRequest);
     }
 
     @Override
@@ -68,7 +155,75 @@ public class AddMoneyRequestServiceImpl implements AddMoneyRequestService {
 
     private void ensureActiveUser(User user) {
         if (user.getStatus() != UserStatus.ACTIVE) {
-            throw new IllegalArgumentException("Only active users can create Add Money requests.");
+            throw new IllegalArgumentException("Only active users can add money.");
         }
+    }
+
+    private void ensureActiveWallet(Wallet wallet) {
+        if (wallet.getStatus() != WalletStatus.ACTIVE) {
+            throw new IllegalArgumentException("Customer wallet is not active.");
+        }
+    }
+
+    private IdempotencyKey reserveOrValidateIdempotency(User user, String key, String requestHash) {
+        return idempotencyKeyService.findForUser(user.getId(), key)
+                .map(existing -> validateExistingIdempotency(existing, requestHash))
+                .orElseGet(() -> idempotencyKeyService.reserve(
+                        user,
+                        key,
+                        requestHash,
+                        IdempotencyOperationType.ADD_MONEY,
+                        Instant.now().plus(IDEMPOTENCY_EXPIRY_HOURS, ChronoUnit.HOURS)
+                ));
+    }
+
+    private IdempotencyKey validateExistingIdempotency(IdempotencyKey existing, String requestHash) {
+        if (!existing.getRequestHash().equals(requestHash)) {
+            throw new IllegalArgumentException("Idempotency key was already used for a different Add Money request.");
+        }
+        if (existing.getStatus() == IdempotencyStatus.PROCESSING) {
+            throw new IllegalArgumentException("The same Add Money request is already processing.");
+        }
+        if (existing.getStatus() == IdempotencyStatus.FAILED) {
+            throw new IllegalArgumentException("The previous Add Money request failed. Use a new idempotency key.");
+        }
+        return existing;
+    }
+
+    private AddMoneyRequestResponse completedAddMoneyResponse(IdempotencyKey idempotencyKey) {
+        String responseBody = idempotencyKey.getResponseBody();
+        if (responseBody == null || !responseBody.startsWith("ADD_MONEY:")) {
+            throw new IllegalArgumentException("Stored Add Money idempotency response is invalid.");
+        }
+        Long requestId = Long.parseLong(responseBody.substring("ADD_MONEY:".length()));
+        AddMoneyRequest addMoneyRequest = addMoneyRequestRepository.findById(requestId)
+                .orElseThrow(() -> new ResourceNotFoundException("Completed Add Money record was not found."));
+        return addMoneyRequestMapper.toResponse(addMoneyRequest);
+    }
+
+    private String uniqueTransactionReference() {
+        String reference;
+        do {
+            reference = "AM-" + UUID.randomUUID().toString().replace("-", "").substring(0, 24).toUpperCase();
+        } while (transactionRecordRepository.existsByTransactionReference(reference));
+        return reference;
+    }
+
+    private String requestHash(BigDecimal amount, String sourceType, String note) {
+        return sha256(amount.toPlainString() + ":" + sourceType + ":" + nullToEmpty(note));
+    }
+
+    private String sha256(String value) {
+        try {
+            MessageDigest digest = MessageDigest.getInstance("SHA-256");
+            byte[] hash = digest.digest(value.getBytes(StandardCharsets.UTF_8));
+            return HexFormat.of().formatHex(hash);
+        } catch (NoSuchAlgorithmException exception) {
+            throw new IllegalStateException("SHA-256 algorithm is not available.", exception);
+        }
+    }
+
+    private String nullToEmpty(String value) {
+        return value == null ? "" : value;
     }
 }

@@ -1,3 +1,5 @@
+import 'package:flutter/material.dart';
+
 class TransactionSummary {
   const TransactionSummary({
     required this.id,
@@ -43,13 +45,13 @@ class TransactionSummary {
       case 'SEND_MONEY':
         return 'Send Money';
       case 'RECEIVE_MONEY':
-        return 'Received';
+        return 'Received Money';
       case 'MERCHANT_PAYMENT':
         return 'Payment';
       case 'SAVINGS_DEPOSIT':
         return 'Savings';
       case 'MOBILE_RECHARGE':
-        return 'Recharge';
+        return 'Mobile Recharge';
       case 'LOAN_REQUEST':
         return 'Loan';
       default:
@@ -80,10 +82,57 @@ class TransactionSummary {
 
   String get amountFormatted {
     final prefix = isCredit ? '+' : '-';
-    return '$prefix৳ ${amount.toStringAsFixed(2)}';
+    return '$prefix Tk ${amount.toStringAsFixed(2)}';
   }
 
   String get amountColorHex => isCredit ? '0xFF0E9F6E' : '0xFFB42318';
+
+  IconData get icon {
+    switch (type) {
+      case 'ADD_MONEY':
+        return Icons.add_card_outlined;
+      case 'SEND_MONEY':
+        return Icons.send_to_mobile;
+      case 'RECEIVE_MONEY':
+        return Icons.call_received;
+      case 'MERCHANT_PAYMENT':
+        return Icons.shopping_bag_outlined;
+      case 'SAVINGS_DEPOSIT':
+        return Icons.savings_outlined;
+      case 'MOBILE_RECHARGE':
+        return Icons.phone_android;
+      case 'LOAN_REQUEST':
+        return Icons.account_balance_outlined;
+      default:
+        return Icons.receipt_long_outlined;
+    }
+  }
+
+  Color get iconColor {
+    switch (type) {
+      case 'ADD_MONEY':
+        return const Color(0xFF7A4CC2);
+      case 'SEND_MONEY':
+      case 'RECEIVE_MONEY':
+        return const Color(0xFF008F7A);
+      case 'MERCHANT_PAYMENT':
+        return const Color(0xFFE08B2D);
+      case 'SAVINGS_DEPOSIT':
+        return const Color(0xFF9C3A8D);
+      case 'MOBILE_RECHARGE':
+        return const Color(0xFF1D7ED6);
+      case 'LOAN_REQUEST':
+        return const Color(0xFF795548);
+      default:
+        return const Color(0xFF607D8B);
+    }
+  }
+
+  String get displayDate {
+    final hour = createdAt.hour.toString().padLeft(2, '0');
+    final minute = createdAt.minute.toString().padLeft(2, '0');
+    return '$hour:$minute ${createdAt.day}/${createdAt.month}/${createdAt.year}';
+  }
 
   String get formattedDate {
     final now = DateTime.now();
