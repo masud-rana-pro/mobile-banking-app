@@ -71,7 +71,6 @@ class _AddMoneyScreenState extends ConsumerState<AddMoneyScreen> {
   @override
   void initState() {
     super.initState();
-    Future.microtask(() => ref.read(addMoneyRefreshProvider)());
   }
 
   @override
@@ -134,8 +133,6 @@ class _AddMoneyScreenState extends ConsumerState<AddMoneyScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final requestsAsync = ref.watch(addMoneyRequestsProvider);
-
     return Scaffold(
       backgroundColor: const Color(0xFFF4F7FB),
       appBar: AppBar(
@@ -225,17 +222,8 @@ class _AddMoneyScreenState extends ConsumerState<AddMoneyScreen> {
               const SizedBox(height: 16),
               _SuccessCard(result: _lastResult!),
             ],
-            const SizedBox(height: 28),
-            const Text(
-              'Recent Add Money',
-              style: TextStyle(
-                color: Color(0xFF263238),
-                fontSize: 20,
-                fontWeight: FontWeight.w900,
-              ),
-            ),
-            const SizedBox(height: 12),
-            _RecentAddMoneyList(requestsAsync: requestsAsync),
+            const SizedBox(height: 18),
+            const _InboxHistoryHint(),
           ],
         ),
       ),
@@ -482,121 +470,33 @@ class _SuccessCard extends StatelessWidget {
   }
 }
 
-class _RecentAddMoneyList extends StatelessWidget {
-  const _RecentAddMoneyList({required this.requestsAsync});
-
-  final AsyncValue<List<AddMoneySummary>> requestsAsync;
-
-  @override
-  Widget build(BuildContext context) {
-    return requestsAsync.when(
-      data: (requests) {
-        if (requests.isEmpty) {
-          return const _EmptyAddMoney();
-        }
-
-        return Container(
-          decoration: BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.circular(8),
-            border: Border.all(color: const Color(0xFFE2E8F0)),
-          ),
-          child: ListView.separated(
-            shrinkWrap: true,
-            physics: const NeverScrollableScrollPhysics(),
-            itemCount: requests.length,
-            separatorBuilder: (_, __) => const Divider(height: 1),
-            itemBuilder: (context, index) {
-              return _AddMoneyTile(request: requests[index]);
-            },
-          ),
-        );
-      },
-      loading: () => const Padding(
-        padding: EdgeInsets.all(22),
-        child: Center(child: CircularProgressIndicator()),
-      ),
-      error: (error, stack) => Padding(
-        padding: const EdgeInsets.all(16),
-        child: Text(
-          'Could not load Add Money history: $error',
-          style: const TextStyle(color: Color(0xFFB42318)),
-        ),
-      ),
-    );
-  }
-}
-
-class _EmptyAddMoney extends StatelessWidget {
-  const _EmptyAddMoney();
+class _InboxHistoryHint extends StatelessWidget {
+  const _InboxHistoryHint();
 
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.all(22),
+      padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(8),
         border: Border.all(color: const Color(0xFFE2E8F0)),
       ),
-      child: const Column(
+      child: const Row(
         children: [
-          Icon(Icons.account_balance_wallet_outlined,
-              size: 44, color: Color(0xFFB0BEC5)),
-          SizedBox(height: 10),
-          Text(
-            'No Add Money records yet',
-            style: TextStyle(
-              color: Color(0xFF607D8B),
-              fontWeight: FontWeight.w800,
+          Icon(Icons.mail_outline, color: Color(0xFF008F7A)),
+          SizedBox(width: 12),
+          Expanded(
+            child: Text(
+              'All Add Money history is saved in Inbox > Transactions. Open any item there to see receipt details.',
+              style: TextStyle(
+                color: Color(0xFF607D8B),
+                fontWeight: FontWeight.w700,
+                height: 1.35,
+              ),
             ),
           ),
         ],
-      ),
-    );
-  }
-}
-
-class _AddMoneyTile extends StatelessWidget {
-  const _AddMoneyTile({required this.request});
-
-  final AddMoneySummary request;
-
-  @override
-  Widget build(BuildContext context) {
-    return ListTile(
-      contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
-      leading: Container(
-        width: 44,
-        height: 44,
-        decoration: const BoxDecoration(
-          color: Color(0xFFE9F8F4),
-          shape: BoxShape.circle,
-        ),
-        child: const Icon(Icons.add_card_outlined, color: Color(0xFF008F7A)),
-      ),
-      title: Text(
-        '+ Tk ${request.amount.toStringAsFixed(2)}',
-        style: const TextStyle(
-          color: Color(0xFF008F7A),
-          fontWeight: FontWeight.w900,
-        ),
-      ),
-      subtitle: Text('${request.sourceLabel} - ${request.shortDate}'),
-      trailing: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 5),
-        decoration: BoxDecoration(
-          color: const Color(0xFFE8F5E9),
-          borderRadius: BorderRadius.circular(999),
-        ),
-        child: const Text(
-          'Success',
-          style: TextStyle(
-            color: Color(0xFF2E7D32),
-            fontSize: 12,
-            fontWeight: FontWeight.w900,
-          ),
-        ),
       ),
     );
   }

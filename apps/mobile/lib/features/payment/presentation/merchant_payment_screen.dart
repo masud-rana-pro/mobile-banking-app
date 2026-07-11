@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/errors/api_exception.dart';
+import '../../transaction/providers/transaction_providers.dart';
 import '../../wallet/providers/wallet_providers.dart';
 import '../domain/merchant_payment_result.dart';
 import '../domain/merchant_payment_target.dart';
@@ -98,6 +99,7 @@ class _MerchantPaymentScreenState extends ConsumerState<MerchantPaymentScreen> {
         note: _noteController.text.trim(),
       );
       ref.read(walletRefreshProvider)();
+      ref.read(transactionRefreshProvider)();
       setState(() {
         _paymentResult = result;
         _currentStep = _PaymentStep.result;

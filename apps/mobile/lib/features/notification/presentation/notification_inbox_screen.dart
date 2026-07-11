@@ -252,6 +252,7 @@ class _TransactionInboxTab extends ConsumerWidget {
             loading: () => const Center(child: CircularProgressIndicator()),
             error: (error, stack) => _ErrorState(
               message: 'Could not load transaction history.',
+              detail: error.toString(),
               onRetry: () => ref.invalidate(transactionListProvider),
             ),
           ),
@@ -788,10 +789,12 @@ class _EmptyTransactions extends StatelessWidget {
 class _ErrorState extends StatelessWidget {
   const _ErrorState({
     required this.message,
+    required this.detail,
     required this.onRetry,
   });
 
   final String message;
+  final String detail;
   final VoidCallback onRetry;
 
   @override
@@ -804,11 +807,29 @@ class _ErrorState extends StatelessWidget {
           const SizedBox(height: 12),
           Text(
             message,
+            textAlign: TextAlign.center,
             style: const TextStyle(
               color: Color(0xFF607D8B),
               fontWeight: FontWeight.w800,
             ),
           ),
+          if (detail.isNotEmpty) ...[
+            const SizedBox(height: 8),
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 28),
+              child: Text(
+                detail,
+                textAlign: TextAlign.center,
+                maxLines: 4,
+                overflow: TextOverflow.ellipsis,
+                style: const TextStyle(
+                  color: Color(0xFF90A4AE),
+                  fontSize: 12,
+                  height: 1.3,
+                ),
+              ),
+            ),
+          ],
           const SizedBox(height: 12),
           TextButton(onPressed: onRetry, child: const Text('Try Again')),
         ],

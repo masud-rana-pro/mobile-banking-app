@@ -14,8 +14,8 @@ class TransactionRepository {
 
     final list = response.data ?? [];
     return list
-        .map(
-            (item) => TransactionSummary.fromJson(item as Map<String, dynamic>))
+        .whereType<Map<String, dynamic>>()
+        .map(TransactionSummary.fromJson)
         .toList();
   }
 

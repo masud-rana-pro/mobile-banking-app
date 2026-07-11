@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../transaction/providers/transaction_providers.dart';
+import '../../wallet/providers/wallet_providers.dart';
 import '../domain/send_money_receiver.dart';
 import '../providers/send_money_providers.dart';
 
@@ -82,6 +84,8 @@ class _SendMoneyScreenState extends ConsumerState<SendMoneyScreen> {
         pin: pin,
         note: _noteController.text.trim(),
       );
+      ref.read(walletRefreshProvider)();
+      ref.read(transactionRefreshProvider)();
       setState(() {
         _sendResult = result;
         _currentStep = _SendStep.result;
