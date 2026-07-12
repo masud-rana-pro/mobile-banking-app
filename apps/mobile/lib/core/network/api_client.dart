@@ -77,8 +77,80 @@ class ApiClient {
     try {
       return await request();
     } on DioException catch (error) {
+      final fallbackResponse = await _tryFallbackBaseUrls<T>(error);
+      if (fallbackResponse != null) {
+        return fallbackResponse;
+      }
       throw _toApiException(error);
     }
+  }
+
+  Future<Response<T>?> _tryFallbackBaseUrls<T>(DioException error) async {
+    if (error.type != DioExceptionType.connectionError) {
+      return null;
+    }
+
+    final requestOptions = error.requestOptions;
+    final currentBaseUrl = _normalizeBaseUrl(_dio.options.baseUrl);
+    final fallbackBaseUrls = [
+      AppConfig.backendBaseUrl,
+      ...AppConfig.backendFallbackBaseUrls,
+    ]
+        .map(_normalizeBaseUrl)
+        .where((url) => url.isNotEmpty)
+        .toSet()
+        .where((url) => url != currentBaseUrl)
+        .toList();
+
+    DioException? lastError;
+    for (final baseUrl in fallbackBaseUrls) {
+      final fallbackDio = Dio(
+        BaseOptions(
+          baseUrl: baseUrl,
+          connectTimeout: AppConfig.apiConnectTimeout,
+          receiveTimeout: AppConfig.apiReceiveTimeout,
+          headers: const {'Accept': 'application/json'},
+        ),
+      );
+
+      final headers = Map<String, dynamic>.from(requestOptions.headers);
+      if (requestOptions.path != '/api/auth/firebase-login') {
+        final token = await _tokenStorage.readAccessToken();
+        if (token != null && token.isNotEmpty) {
+          final tokenType = await _tokenStorage.readTokenType();
+          headers['Authorization'] = '$tokenType $token';
+        }
+      }
+
+      try {
+        final response = await fallbackDio.request<T>(
+          requestOptions.path,
+          data: requestOptions.data,
+          queryParameters: requestOptions.queryParameters,
+          options: Options(
+            method: requestOptions.method,
+            headers: headers,
+            contentType: requestOptions.contentType,
+            responseType: requestOptions.responseType,
+            followRedirects: requestOptions.followRedirects,
+            validateStatus: requestOptions.validateStatus,
+          ),
+        );
+        _dio.options.baseUrl = baseUrl;
+        return response;
+      } on DioException catch (fallbackError) {
+        lastError = fallbackError;
+      }
+    }
+
+    if (lastError != null && lastError.response != null) {
+      throw _toApiException(lastError);
+    }
+    return null;
+  }
+
+  String _normalizeBaseUrl(String value) {
+    return value.trim().replaceFirst(RegExp(r'/$'), '');
   }
 
   ApiException _toApiException(DioException error) {
@@ -99,7 +171,7 @@ class ApiClient {
     if (error.type == DioExceptionType.connectionError) {
       return ApiException(
         message:
-            'Cannot reach SmartKash backend at ${AppConfig.backendBaseUrl}. For real phone or emulator development, run scripts/dev/run_mobile_real_phone.ps1 so adb reverse maps device port 8080 to your PC backend. If you use WiFi instead, pass --dart-define=SMARTKASH_API_BASE_URL=http://<PC-LAN-IP>:8080 and allow port 8080 in firewall.',
+            'Cannot reach SmartKash backend. Tried ${AppConfig.backendBaseUrl} and local fallback URLs. Start Spring Boot, keep USB debugging connected and run scripts/dev/run_mobile_real_phone.ps1, or run Flutter with --dart-define=SMARTKASH_API_BASE_URL=http://<PC-LAN-IP>:8080 for WiFi testing.',
       );
     }
 

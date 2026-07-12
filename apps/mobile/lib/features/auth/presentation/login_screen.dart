@@ -16,9 +16,12 @@ class LoginScreen extends ConsumerStatefulWidget {
   ConsumerState<LoginScreen> createState() => _LoginScreenState();
 }
 
+enum _LoginInputTarget { phone, otp }
+
 class _LoginScreenState extends ConsumerState<LoginScreen> {
   final TextEditingController _phoneController = TextEditingController();
   String _otpCode = '';
+  _LoginInputTarget _inputTarget = _LoginInputTarget.phone;
 
   bool get _canSendOtp => _phoneController.text.trim().length >= 10;
   bool get _canContinue =>
@@ -37,6 +40,16 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
   }
 
   void _onNumberTap(String value) {
+    if (_inputTarget == _LoginInputTarget.phone) {
+      final currentDigits =
+          _phoneController.text.replaceAll(RegExp(r'[^0-9]'), '');
+      if (currentDigits.length >= 11) {
+        return;
+      }
+      setState(() => _phoneController.text = currentDigits + value);
+      return;
+    }
+
     if (_otpCode.length >= 6) {
       return;
     }
@@ -45,6 +58,19 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
   }
 
   void _onBackspace() {
+    if (_inputTarget == _LoginInputTarget.phone) {
+      final currentDigits =
+          _phoneController.text.replaceAll(RegExp(r'[^0-9]'), '');
+      if (currentDigits.isEmpty) {
+        return;
+      }
+      setState(() {
+        _phoneController.text =
+            currentDigits.substring(0, currentDigits.length - 1);
+      });
+      return;
+    }
+
     if (_otpCode.isEmpty) {
       return;
     }
@@ -82,6 +108,9 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
         return;
       }
       await controller.sendLoginOtp(_normalizedPhoneNumber());
+      if (mounted) {
+        setState(() => _inputTarget = _LoginInputTarget.otp);
+      }
       return;
     }
 
@@ -94,7 +123,10 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
   }
 
   void _fillTestOtp() {
-    setState(() => _otpCode = '123456');
+    setState(() {
+      _inputTarget = _LoginInputTarget.otp;
+      _otpCode = '123456';
+    });
   }
 
   void _showMessage(String message) {
@@ -143,11 +175,27 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                     _PhoneField(
                       controller: _phoneController,
                       enabled: !authState.isLoading && !authState.isOtpSent,
+                      isActive: _inputTarget == _LoginInputTarget.phone,
+                      onTap: () {
+                        if (!authState.isLoading && !authState.isOtpSent) {
+                          setState(
+                            () => _inputTarget = _LoginInputTarget.phone,
+                          );
+                        }
+                      },
                     ),
                     const SizedBox(height: 28),
                     _OtpPreview(
                       otpCode: _otpCode,
                       enabled: authState.isOtpSent,
+                      isActive: _inputTarget == _LoginInputTarget.otp,
+                      onTap: () {
+                        if (canVerifyOtp) {
+                          setState(
+                            () => _inputTarget = _LoginInputTarget.otp,
+                          );
+                        }
+                      },
                     ),
                     const SizedBox(height: 22),
                     TextButton(
@@ -274,28 +322,74 @@ class _PhoneField extends StatelessWidget {
   const _PhoneField({
     required this.controller,
     required this.enabled,
+    required this.isActive,
+    required this.onTap,
   });
 
   final TextEditingController controller;
   final bool enabled;
+  final bool isActive;
+  final VoidCallback onTap;
 
   @override
   Widget build(BuildContext context) {
-    return TextField(
-      controller: controller,
-      enabled: enabled,
-      keyboardType: TextInputType.phone,
-      decoration: const InputDecoration(
-        labelText: 'Account Number',
-        prefixText: '+88  ',
-        hintText: '01XXXXXXXXX',
-        border: UnderlineInputBorder(),
-      ),
-      style: const TextStyle(
-        fontSize: 23,
-        color: Color(0xFF263238),
-        letterSpacing: 0.4,
-        fontWeight: FontWeight.w500,
+    final value = controller.text.trim();
+    return InkWell(
+      onTap: enabled ? onTap : null,
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 160),
+        padding: const EdgeInsets.only(bottom: 9),
+        decoration: BoxDecoration(
+          border: Border(
+            bottom: BorderSide(
+              color:
+                  isActive ? const Color(0xFF008F7A) : const Color(0xFF90A4AE),
+              width: isActive ? 2 : 1,
+            ),
+          ),
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              'Account Number',
+              style: TextStyle(
+                color: isActive
+                    ? const Color(0xFF008F7A)
+                    : const Color(0xFF607D8B),
+                fontSize: 14,
+                fontWeight: FontWeight.w700,
+              ),
+            ),
+            const SizedBox(height: 8),
+            Row(
+              children: [
+                const Text(
+                  '+88  ',
+                  style: TextStyle(
+                    fontSize: 23,
+                    color: Color(0xFF263238),
+                    letterSpacing: 0.4,
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+                Expanded(
+                  child: Text(
+                    value.isEmpty ? '01XXXXXXXXX' : value,
+                    style: TextStyle(
+                      fontSize: 23,
+                      color: value.isEmpty
+                          ? const Color(0xFFB0BEC5)
+                          : const Color(0xFF263238),
+                      letterSpacing: 0.4,
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -305,62 +399,75 @@ class _OtpPreview extends StatelessWidget {
   const _OtpPreview({
     required this.otpCode,
     required this.enabled,
+    required this.isActive,
+    required this.onTap,
   });
 
   final String otpCode;
   final bool enabled;
+  final bool isActive;
+  final VoidCallback onTap;
 
   @override
   Widget build(BuildContext context) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        const Text(
-          'Firebase Test OTP',
-          style: TextStyle(
-            color: Color(0xFF607D8B),
-            fontSize: 16,
-            fontWeight: FontWeight.w700,
+    return InkWell(
+      onTap: enabled ? onTap : null,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            'Firebase Test OTP',
+            style: TextStyle(
+              color:
+                  isActive ? const Color(0xFF008F7A) : const Color(0xFF607D8B),
+              fontSize: 16,
+              fontWeight: FontWeight.w700,
+            ),
           ),
-        ),
-        const SizedBox(height: 10),
-        Row(
-          children: [
-            Expanded(
-              child: Container(
-                height: 48,
-                alignment: Alignment.centerLeft,
-                decoration: const BoxDecoration(
-                  border: Border(
-                    bottom: BorderSide(color: Color(0xFFE0E6EB)),
+          const SizedBox(height: 10),
+          Row(
+            children: [
+              Expanded(
+                child: Container(
+                  height: 48,
+                  alignment: Alignment.centerLeft,
+                  decoration: BoxDecoration(
+                    border: Border(
+                      bottom: BorderSide(
+                        color: isActive
+                            ? const Color(0xFF008F7A)
+                            : const Color(0xFFE0E6EB),
+                        width: isActive ? 2 : 1,
+                      ),
+                    ),
                   ),
-                ),
-                child: Text(
-                  otpCode.isEmpty
-                      ? enabled
-                          ? 'Enter test OTP'
-                          : 'Send OTP first'
-                      : List.filled(otpCode.length, '*').join(),
-                  style: TextStyle(
-                    color: otpCode.isEmpty
-                        ? const Color(0xFFB0BEC5)
-                        : const Color(0xFF263238),
-                    fontSize: 22,
-                    fontWeight: FontWeight.w600,
-                    letterSpacing: 2,
+                  child: Text(
+                    otpCode.isEmpty
+                        ? enabled
+                            ? 'Enter test OTP'
+                            : 'Send OTP first'
+                        : List.filled(otpCode.length, '*').join(),
+                    style: TextStyle(
+                      color: otpCode.isEmpty
+                          ? const Color(0xFFB0BEC5)
+                          : const Color(0xFF263238),
+                      fontSize: 22,
+                      fontWeight: FontWeight.w600,
+                      letterSpacing: 2,
+                    ),
                   ),
                 ),
               ),
-            ),
-            const SizedBox(width: 18),
-            const Icon(
-              Icons.verified_user_outlined,
-              color: Color(0xFF008F7A),
-              size: 42,
-            ),
-          ],
-        ),
-      ],
+              const SizedBox(width: 18),
+              const Icon(
+                Icons.verified_user_outlined,
+                color: Color(0xFF008F7A),
+                size: 42,
+              ),
+            ],
+          ),
+        ],
+      ),
     );
   }
 }
