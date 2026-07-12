@@ -100,6 +100,13 @@ cd D:\github\my-kash
 
 The script runs `adb reverse tcp:8080 tcp:8080` and starts Flutter with `SMARTKASH_API_BASE_URL=http://127.0.0.1:8080`, so the Android app can reach the PC backend through USB debugging.
 
+From Windows CMD, use the wrapper:
+
+```bat
+cd /d D:\github\my-kash
+scripts\dev\run_mobile_real_phone.cmd
+```
+
 If you intentionally test over WiFi instead of USB, run Flutter with:
 
 ```powershell
