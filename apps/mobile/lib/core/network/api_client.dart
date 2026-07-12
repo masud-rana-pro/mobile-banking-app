@@ -99,7 +99,7 @@ class ApiClient {
     if (error.type == DioExceptionType.connectionError) {
       return ApiException(
         message:
-            'Cannot reach SmartKash backend at ${AppConfig.backendBaseUrl}. For Android emulator use http://10.0.2.2:8080. For a real phone use your PC LAN IP and allow port 8080 in firewall.',
+            'Cannot reach SmartKash backend at ${AppConfig.backendBaseUrl}. For real phone or emulator development, run scripts/dev/run_mobile_real_phone.ps1 so adb reverse maps device port 8080 to your PC backend. If you use WiFi instead, pass --dart-define=SMARTKASH_API_BASE_URL=http://<PC-LAN-IP>:8080 and allow port 8080 in firewall.',
       );
     }
 
