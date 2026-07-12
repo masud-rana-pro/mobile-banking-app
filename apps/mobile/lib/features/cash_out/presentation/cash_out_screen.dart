@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 
 import '../../../core/errors/api_exception.dart';
+import '../../notification/presentation/notification_inbox_screen.dart';
 import '../../transaction/providers/transaction_providers.dart';
 import '../../wallet/providers/wallet_providers.dart';
 import '../domain/cash_out_result.dart';
@@ -238,6 +240,10 @@ class _CashOutScreenState extends ConsumerState<CashOutScreen> {
       ],
       buttonLabel: 'Cash Out Again',
       onPressed: _reset,
+      secondaryButtonLabel: 'View Inbox',
+      onSecondaryPressed: () => context.pushNamed(
+        NotificationInboxScreen.routeName,
+      ),
     );
   }
 
@@ -323,6 +329,8 @@ class _ResultView extends StatelessWidget {
     required this.rows,
     required this.buttonLabel,
     required this.onPressed,
+    this.secondaryButtonLabel,
+    this.onSecondaryPressed,
   });
 
   final bool success;
@@ -331,6 +339,8 @@ class _ResultView extends StatelessWidget {
   final List<_ReceiptRow> rows;
   final String buttonLabel;
   final VoidCallback onPressed;
+  final String? secondaryButtonLabel;
+  final VoidCallback? onSecondaryPressed;
 
   @override
   Widget build(BuildContext context) {
@@ -386,18 +396,38 @@ class _ResultView extends StatelessWidget {
           ),
         ),
         const SizedBox(height: 24),
-        SizedBox(
-          width: double.infinity,
-          height: 52,
-          child: ElevatedButton(
-            onPressed: onPressed,
-            style: ElevatedButton.styleFrom(
-              backgroundColor: const Color(0xFF008F7A),
-              foregroundColor: Colors.white,
+        Row(
+          children: [
+            if (secondaryButtonLabel != null && onSecondaryPressed != null) ...[
+              Expanded(
+                child: OutlinedButton(
+                  onPressed: onSecondaryPressed,
+                  style: OutlinedButton.styleFrom(
+                    foregroundColor: const Color(0xFF008F7A),
+                    side: const BorderSide(color: Color(0xFF008F7A)),
+                    minimumSize: const Size.fromHeight(52),
+                  ),
+                  child: Text(
+                    secondaryButtonLabel!,
+                    style: const TextStyle(fontWeight: FontWeight.w900),
+                  ),
+                ),
+              ),
+              const SizedBox(width: 12),
+            ],
+            Expanded(
+              child: ElevatedButton(
+                onPressed: onPressed,
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: const Color(0xFF008F7A),
+                  foregroundColor: Colors.white,
+                  minimumSize: const Size.fromHeight(52),
+                ),
+                child: Text(buttonLabel,
+                    style: const TextStyle(fontWeight: FontWeight.w900)),
+              ),
             ),
-            child: Text(buttonLabel,
-                style: const TextStyle(fontWeight: FontWeight.w900)),
-          ),
+          ],
         ),
       ],
     );

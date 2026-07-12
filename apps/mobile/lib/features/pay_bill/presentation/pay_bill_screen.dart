@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 
 import '../../../core/errors/api_exception.dart';
+import '../../notification/presentation/notification_inbox_screen.dart';
 import '../../transaction/providers/transaction_providers.dart';
 import '../../wallet/providers/wallet_providers.dart';
 import '../domain/pay_bill_result.dart';
@@ -284,7 +286,30 @@ class _PayBillScreenState extends ConsumerState<PayBillScreen> {
         const SizedBox(height: 22),
         _receiptCard(result),
         const SizedBox(height: 24),
-        _primaryButton(label: 'Pay Another Bill', onPressed: _reset),
+        Row(
+          children: [
+            Expanded(
+              child: OutlinedButton(
+                onPressed: () => context.pushNamed(
+                  NotificationInboxScreen.routeName,
+                ),
+                style: OutlinedButton.styleFrom(
+                  foregroundColor: const Color(0xFF008F7A),
+                  side: const BorderSide(color: Color(0xFF008F7A)),
+                  minimumSize: const Size.fromHeight(52),
+                ),
+                child: const Text(
+                  'View Inbox',
+                  style: TextStyle(fontWeight: FontWeight.w900),
+                ),
+              ),
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: _primaryButton(label: 'Pay Another', onPressed: _reset),
+            ),
+          ],
+        ),
       ],
     );
   }

@@ -8,9 +8,12 @@ final transactionRepositoryProvider = Provider<TransactionRepository>(
   (ref) => TransactionRepository(apiClient: ref.watch(apiClientProvider)),
 );
 
+final _transactionRefreshCounterProvider = StateProvider<int>((ref) => 0);
+
 final transactionListProvider =
     FutureProvider.autoDispose<List<TransactionSummary>>(
   (ref) {
+    ref.watch(_transactionRefreshCounterProvider);
     final repository = ref.watch(transactionRepositoryProvider);
     return repository.getMyTransactions();
   },
@@ -26,6 +29,9 @@ final transactionDetailProvider =
 
 final transactionRefreshProvider = Provider<void Function()>(
   (ref) {
-    return () => ref.invalidate(transactionListProvider);
+    return () {
+      ref.read(_transactionRefreshCounterProvider.notifier).state++;
+      ref.invalidate(transactionListProvider);
+    };
   },
 );
