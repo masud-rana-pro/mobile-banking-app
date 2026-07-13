@@ -6,6 +6,7 @@ import 'package:mobile_scanner/mobile_scanner.dart';
 import 'package:qr_flutter/qr_flutter.dart';
 
 import '../../auth/providers/auth_providers.dart';
+import '../../cash_out/presentation/cash_out_screen.dart';
 import '../../payment/presentation/merchant_payment_screen.dart';
 import '../../send_money/presentation/send_money_screen.dart';
 import '../domain/qr_payload.dart';
@@ -41,7 +42,7 @@ class _QrScreenState extends ConsumerState<QrScreen> {
     final payload = QrPayload.parse(rawPayload);
     if (payload == null) {
       _showMessage(
-        'Invalid SmartKash QR. Use SMARTKASH_USER or SMARTKASH_MERCHANT QR.',
+        'Invalid SmartKash QR. Use SMARTKASH_USER, SMARTKASH_MERCHANT, or SMARTKASH_AGENT QR.',
       );
       return;
     }
@@ -54,9 +55,17 @@ class _QrScreenState extends ConsumerState<QrScreen> {
       return;
     }
 
+    if (payload.type == QrPayloadType.merchant) {
+      context.goNamed(
+        MerchantPaymentScreen.routeName,
+        queryParameters: {'merchantNumber': payload.value},
+      );
+      return;
+    }
+
     context.goNamed(
-      MerchantPaymentScreen.routeName,
-      queryParameters: {'merchantNumber': payload.value},
+      CashOutScreen.routeName,
+      queryParameters: {'agentNumber': payload.value},
     );
   }
 
@@ -199,6 +208,13 @@ class _ScanQrTab extends StatelessWidget {
           title: 'Merchant Payment QR',
           message:
               'Scan a SMARTKASH_MERCHANT QR to open Payment with merchant selected.',
+        ),
+        const SizedBox(height: 12),
+        const _InfoCard(
+          icon: Icons.payments_outlined,
+          title: 'Cash Out Agent QR',
+          message:
+              'Scan a SMARTKASH_AGENT QR to open Cash Out with agent selected.',
         ),
         const SizedBox(height: 18),
         _QrPasteField(onSubmit: onSubmit),
@@ -435,7 +451,8 @@ class _QrPasteFieldState extends State<_QrPasteField> {
           controller: _controller,
           maxLines: 3,
           decoration: const InputDecoration(
-            hintText: 'SMARTKASH_USER:+880... or SMARTKASH_MERCHANT:...',
+            hintText:
+                'SMARTKASH_USER:+880..., SMARTKASH_MERCHANT:..., or SMARTKASH_AGENT:...',
             border: OutlineInputBorder(),
           ),
           style: const TextStyle(fontSize: 14),

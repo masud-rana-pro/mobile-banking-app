@@ -143,7 +143,9 @@ final appRouterProvider = Provider<GoRouter>(
             GoRoute(
               path: CashOutScreen.routePath,
               name: CashOutScreen.routeName,
-              builder: (context, state) => const CashOutScreen(),
+              builder: (context, state) => CashOutScreen(
+                initialAgentNumber: state.uri.queryParameters['agentNumber'],
+              ),
             ),
             GoRoute(
               path: PayBillScreen.routePath,

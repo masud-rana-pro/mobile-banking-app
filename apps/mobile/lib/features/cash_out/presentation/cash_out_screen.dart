@@ -5,16 +5,22 @@ import 'package:go_router/go_router.dart';
 import '../../../core/errors/api_exception.dart';
 import '../../../shared/widgets/feature_flow_widgets.dart';
 import '../../notification/presentation/notification_inbox_screen.dart';
+import '../../qr/presentation/qr_screen.dart';
 import '../../transaction/providers/transaction_providers.dart';
 import '../../wallet/providers/wallet_providers.dart';
 import '../domain/cash_out_result.dart';
 import '../providers/cash_out_providers.dart';
 
 class CashOutScreen extends ConsumerStatefulWidget {
-  const CashOutScreen({super.key});
+  const CashOutScreen({
+    this.initialAgentNumber,
+    super.key,
+  });
 
   static const routeName = 'cash-out';
   static const routePath = '/cash-out';
+
+  final String? initialAgentNumber;
 
   @override
   ConsumerState<CashOutScreen> createState() => _CashOutScreenState();
@@ -32,6 +38,15 @@ class _CashOutScreenState extends ConsumerState<CashOutScreen> {
   CashOutResult? _result;
   String? _idempotencyKey;
   bool _isLoading = false;
+
+  @override
+  void initState() {
+    super.initState();
+    final agentNumber = widget.initialAgentNumber?.trim();
+    if (agentNumber != null && agentNumber.isNotEmpty) {
+      _agentController.text = agentNumber;
+    }
+  }
 
   @override
   void dispose() {
@@ -159,6 +174,19 @@ class _CashOutScreenState extends ConsumerState<CashOutScreen> {
             hintText: '01XXXXXXXXX',
             border: OutlineInputBorder(),
           ),
+        ),
+        const SizedBox(height: 12),
+        OutlinedButton.icon(
+          onPressed: _isLoading
+              ? null
+              : () {
+                  context.goNamed(
+                    QrScreen.routeName,
+                    queryParameters: {'tab': 'scan'},
+                  );
+                },
+          icon: const Icon(Icons.qr_code_scanner),
+          label: const Text('Scan agent QR'),
         ),
         const SizedBox(height: 16),
         TextField(
