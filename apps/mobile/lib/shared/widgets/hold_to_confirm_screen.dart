@@ -86,89 +86,122 @@ class _HoldToConfirmScreenState extends State<HoldToConfirmScreen> {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
 
-    return Container(
-      color: Colors.white,
-      child: Column(
-        children: [
-          Expanded(
-            child: ListView(
-              padding: const EdgeInsets.fromLTRB(24, 34, 24, 24),
-              children: [
-                Row(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Expanded(
-                      child: RichText(
-                        text: TextSpan(
-                          style: theme.textTheme.headlineSmall?.copyWith(
-                            color: const Color(0xFFD81B60),
-                            fontWeight: FontWeight.w500,
-                          ),
+    return ColoredBox(
+      color: const Color(0x99003B46),
+      child: SafeArea(
+        top: false,
+        child: Align(
+          alignment: Alignment.bottomCenter,
+          child: FractionallySizedBox(
+            heightFactor: 0.92,
+            child: Material(
+              color: Colors.white,
+              elevation: 18,
+              shadowColor: Colors.black.withValues(alpha: 0.24),
+              borderRadius:
+                  const BorderRadius.vertical(top: Radius.circular(28)),
+              clipBehavior: Clip.antiAlias,
+              child: Column(
+                children: [
+                  Container(
+                    width: 52,
+                    height: 5,
+                    margin: const EdgeInsets.only(top: 10, bottom: 2),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFFD7EEE8),
+                      borderRadius: BorderRadius.circular(999),
+                    ),
+                  ),
+                  Expanded(
+                    child: ListView(
+                      padding: const EdgeInsets.fromLTRB(24, 20, 24, 20),
+                      children: [
+                        Row(
+                          crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            const TextSpan(text: 'Confirm to '),
-                            TextSpan(
-                              text: widget.actionName,
-                              style:
-                                  const TextStyle(fontWeight: FontWeight.w900),
+                            Expanded(
+                              child: RichText(
+                                text: TextSpan(
+                                  style:
+                                      theme.textTheme.headlineSmall?.copyWith(
+                                    color: const Color(0xFF008F7A),
+                                    fontWeight: FontWeight.w500,
+                                  ),
+                                  children: [
+                                    const TextSpan(text: 'Confirm to '),
+                                    TextSpan(
+                                      text: widget.actionName,
+                                      style: const TextStyle(
+                                        fontWeight: FontWeight.w900,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ),
+                            IconButton.filledTonal(
+                              onPressed:
+                                  widget.isLoading ? null : widget.onCancel,
+                              icon: const Icon(Icons.close_rounded),
+                              color: const Color(0xFF00695C),
+                              style: IconButton.styleFrom(
+                                backgroundColor: const Color(0xFFE9F8F4),
+                                disabledBackgroundColor:
+                                    const Color(0xFFF1F5F9),
+                              ),
                             ),
                           ],
                         ),
-                      ),
-                    ),
-                    IconButton(
-                      onPressed: widget.isLoading ? null : widget.onCancel,
-                      icon: const Icon(Icons.close_rounded),
-                      color: const Color(0xFFC2185B),
-                      iconSize: 34,
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 58),
-                Row(
-                  children: [
-                    _Avatar(
-                      imageUrl: widget.avatarUrl,
-                      icon: widget.avatarIcon,
-                    ),
-                    const SizedBox(width: 18),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            widget.accountName,
-                            style: const TextStyle(
-                              fontSize: 20,
-                              fontWeight: FontWeight.w700,
-                              color: Color(0xFF263238),
+                        const SizedBox(height: 34),
+                        Row(
+                          children: [
+                            _Avatar(
+                              imageUrl: widget.avatarUrl,
+                              icon: widget.avatarIcon,
                             ),
-                          ),
-                          const SizedBox(height: 4),
-                          Text(
-                            widget.accountNumber,
-                            style: const TextStyle(
-                              fontSize: 18,
-                              color: Color(0xFF455A64),
+                            const SizedBox(width: 18),
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    widget.accountName,
+                                    style: const TextStyle(
+                                      fontSize: 20,
+                                      fontWeight: FontWeight.w700,
+                                      color: Color(0xFF263238),
+                                    ),
+                                  ),
+                                  const SizedBox(height: 4),
+                                  Text(
+                                    widget.accountNumber,
+                                    style: const TextStyle(
+                                      fontSize: 18,
+                                      color: Color(0xFF455A64),
+                                    ),
+                                  ),
+                                ],
+                              ),
                             ),
-                          ),
-                        ],
-                      ),
+                          ],
+                        ),
+                        const SizedBox(height: 34),
+                        _DetailsGrid(details: widget.details),
+                      ],
                     ),
-                  ],
-                ),
-                const SizedBox(height: 54),
-                _DetailsGrid(details: widget.details),
-              ],
+                  ),
+                  _HoldFooter(
+                    actionName: widget.actionName,
+                    progress: _progress,
+                    isLoading: widget.isLoading,
+                    onLongPressStart: _startHold,
+                    onLongPressEnd: _cancelHold,
+                  ),
+                ],
+              ),
             ),
           ),
-          _HoldFooter(
-            actionName: widget.actionName,
-            progress: _progress,
-            isLoading: widget.isLoading,
-            onLongPressStart: _startHold,
-            onLongPressEnd: _cancelHold,
-          ),
-        ],
+        ),
       ),
     );
   }
@@ -313,7 +346,7 @@ class _HoldFooter extends StatelessWidget {
       onLongPressEnd: (_) => onLongPressEnd(),
       onLongPressCancel: onLongPressEnd,
       child: SizedBox(
-        height: 154,
+        height: 132,
         width: double.infinity,
         child: Stack(
           alignment: Alignment.bottomCenter,
@@ -324,15 +357,15 @@ class _HoldFooter extends StatelessWidget {
               ),
             ),
             Positioned(
-              top: 38,
+              top: 28,
               child: Icon(
-                Icons.near_me_rounded,
+                Icons.verified_rounded,
                 color: Colors.white.withValues(alpha: 0.95),
-                size: 44,
+                size: 40,
               ),
             ),
             Positioned(
-              bottom: 28,
+              bottom: 24,
               left: 20,
               right: 20,
               child: Center(
@@ -350,8 +383,8 @@ class _HoldFooter extends StatelessWidget {
                         textAlign: TextAlign.center,
                         style: const TextStyle(
                           color: Colors.white,
-                          fontSize: 24,
-                          fontWeight: FontWeight.w500,
+                          fontSize: 20,
+                          fontWeight: FontWeight.w800,
                         ),
                       ),
               ),
@@ -371,10 +404,10 @@ class _FooterArcPainter extends CustomPainter {
   @override
   void paint(Canvas canvas, Size size) {
     final basePaint = Paint()
-      ..color = const Color(0xFFE41473)
+      ..color = const Color(0xFF008F7A)
       ..style = PaintingStyle.fill;
     final progressPaint = Paint()
-      ..color = const Color(0xFFC51162)
+      ..color = const Color(0xFF00695C)
       ..style = PaintingStyle.fill;
 
     final path = Path()
