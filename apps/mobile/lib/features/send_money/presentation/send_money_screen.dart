@@ -10,10 +10,15 @@ import '../domain/send_money_receiver.dart';
 import '../providers/send_money_providers.dart';
 
 class SendMoneyScreen extends ConsumerStatefulWidget {
-  const SendMoneyScreen({super.key});
+  const SendMoneyScreen({
+    this.initialQrPayload,
+    super.key,
+  });
 
   static const routeName = 'send-money';
   static const routePath = '/send-money';
+
+  final String? initialQrPayload;
 
   @override
   ConsumerState<SendMoneyScreen> createState() => _SendMoneyScreenState();
@@ -30,6 +35,15 @@ class _SendMoneyScreenState extends ConsumerState<SendMoneyScreen> {
   SendMoneyReceiver? _resolvedReceiver;
   SendMoneyResult? _sendResult;
   bool _isLoading = false;
+
+  @override
+  void initState() {
+    super.initState();
+    final qrPayload = widget.initialQrPayload?.trim();
+    if (qrPayload != null && qrPayload.isNotEmpty) {
+      Future.microtask(() => _resolveReceiverFromQr(qrPayload));
+    }
+  }
 
   @override
   void dispose() {
@@ -60,6 +74,24 @@ class _SendMoneyScreenState extends ConsumerState<SendMoneyScreen> {
     } catch (error) {
       setState(() => _isLoading = false);
       _showMessage('Receiver not found: $error');
+    }
+  }
+
+  Future<void> _resolveReceiverFromQr(String qrPayload) async {
+    setState(() => _isLoading = true);
+
+    try {
+      final repo = ref.read(sendMoneyRepositoryProvider);
+      final receiver = await repo.resolveReceiverByQr(qrPayload);
+      setState(() {
+        _phoneController.text = receiver.mobileNumber;
+        _resolvedReceiver = receiver;
+        _currentStep = _SendStep.amount;
+        _isLoading = false;
+      });
+    } catch (error) {
+      setState(() => _isLoading = false);
+      _showMessage('QR receiver not found: $error');
     }
   }
 

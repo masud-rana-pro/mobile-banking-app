@@ -18,6 +18,15 @@ class SendMoneyRepository {
     return SendMoneyReceiver.fromJson(response.data ?? const {});
   }
 
+  Future<SendMoneyReceiver> resolveReceiverByQr(String qrPayload) async {
+    final response = await _apiClient.post<Map<String, dynamic>>(
+      '/api/send-money/resolve-receiver',
+      data: {'qrPayload': qrPayload},
+    );
+
+    return SendMoneyReceiver.fromJson(response.data ?? const {});
+  }
+
   Future<SendMoneyResult> sendMoney({
     required String mobileNumber,
     required double amount,

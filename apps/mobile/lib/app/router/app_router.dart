@@ -121,7 +121,9 @@ final appRouterProvider = Provider<GoRouter>(
             GoRoute(
               path: SendMoneyScreen.routePath,
               name: SendMoneyScreen.routeName,
-              builder: (context, state) => const SendMoneyScreen(),
+              builder: (context, state) => SendMoneyScreen(
+                initialQrPayload: state.uri.queryParameters['qrPayload'],
+              ),
             ),
             GoRoute(
               path: QrScreen.routePath,
@@ -131,7 +133,10 @@ final appRouterProvider = Provider<GoRouter>(
             GoRoute(
               path: MerchantPaymentScreen.routePath,
               name: MerchantPaymentScreen.routeName,
-              builder: (context, state) => const MerchantPaymentScreen(),
+              builder: (context, state) => MerchantPaymentScreen(
+                initialMerchantNumber:
+                    state.uri.queryParameters['merchantNumber'],
+              ),
             ),
             GoRoute(
               path: CashOutScreen.routePath,

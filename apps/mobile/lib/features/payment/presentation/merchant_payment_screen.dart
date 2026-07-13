@@ -12,10 +12,15 @@ import '../domain/merchant_payment_target.dart';
 import '../providers/payment_providers.dart';
 
 class MerchantPaymentScreen extends ConsumerStatefulWidget {
-  const MerchantPaymentScreen({super.key});
+  const MerchantPaymentScreen({
+    this.initialMerchantNumber,
+    super.key,
+  });
 
   static const routeName = 'merchant-payment';
   static const routePath = '/merchant-payment';
+
+  final String? initialMerchantNumber;
 
   @override
   ConsumerState<MerchantPaymentScreen> createState() =>
@@ -35,6 +40,16 @@ class _MerchantPaymentScreenState extends ConsumerState<MerchantPaymentScreen> {
   MerchantPaymentResult? _paymentResult;
   String? _idempotencyKey;
   bool _isLoading = false;
+
+  @override
+  void initState() {
+    super.initState();
+    final merchantNumber = widget.initialMerchantNumber?.trim();
+    if (merchantNumber != null && merchantNumber.isNotEmpty) {
+      _merchantNumberController.text = merchantNumber;
+      Future.microtask(_resolveMerchant);
+    }
+  }
 
   @override
   void dispose() {
