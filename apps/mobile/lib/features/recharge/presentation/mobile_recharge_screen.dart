@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/errors/api_exception.dart';
+import '../../../shared/widgets/feature_flow_widgets.dart';
 import '../../../shared/widgets/hold_to_confirm_screen.dart';
 import '../../transaction/providers/transaction_providers.dart';
 import '../../wallet/providers/wallet_providers.dart';
@@ -191,6 +192,12 @@ class _MobileRechargeScreenState extends ConsumerState<MobileRechargeScreen> {
   }
 
   Widget _buildDetailsStep() {
+    final balanceText = ref.watch(walletSummaryProvider).maybeWhen(
+          data: (wallet) => '৳${wallet.balance.toStringAsFixed(2)}',
+          orElse: () => null,
+        );
+    final mobileNumber = _mobileController.text.trim();
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -227,6 +234,7 @@ class _MobileRechargeScreenState extends ConsumerState<MobileRechargeScreen> {
         TextField(
           controller: _mobileController,
           keyboardType: TextInputType.phone,
+          onChanged: (_) => setState(() {}),
           decoration: const InputDecoration(
             labelText: 'Mobile Number',
             hintText: '01XXXXXXXXX',
@@ -234,15 +242,31 @@ class _MobileRechargeScreenState extends ConsumerState<MobileRechargeScreen> {
           ),
         ),
         const SizedBox(height: 16),
-        TextField(
-          controller: _amountController,
-          keyboardType: const TextInputType.numberWithOptions(decimal: true),
-          decoration: const InputDecoration(
-            labelText: 'Amount (BDT)',
-            prefixText: 'BDT ',
-            border: OutlineInputBorder(),
+        AmountRecipientCard(
+          label: 'Recipient',
+          title: mobileNumber.isEmpty ? 'Recharge Number' : mobileNumber,
+          subtitle: _selectedOperator,
+          fallbackIcon: Icons.phone_android,
+          trailing: CircleAvatar(
+            radius: 24,
+            backgroundColor: const Color(0xFFE9F8F4),
+            child: Text(
+              _selectedOperator.substring(0, 1),
+              style: const TextStyle(
+                color: Color(0xFF008F7A),
+                fontWeight: FontWeight.w900,
+              ),
+            ),
           ),
-          style: const TextStyle(fontSize: 22, fontWeight: FontWeight.w700),
+        ),
+        const SizedBox(height: 8),
+        AmountEntryPanel(
+          controller: _amountController,
+          tabs: const ['Amount', 'Internet', 'Voice', 'Bundle', 'Rate Cutter'],
+          presets: const [19, 100, 239],
+          availableBalanceText: balanceText,
+          proceedLabel: 'Proceed',
+          onProceed: _continueToPin,
         ),
         const SizedBox(height: 16),
         TextField(
@@ -252,11 +276,6 @@ class _MobileRechargeScreenState extends ConsumerState<MobileRechargeScreen> {
             labelText: 'Note (optional)',
             border: OutlineInputBorder(),
           ),
-        ),
-        const SizedBox(height: 20),
-        _primaryButton(
-          label: 'Next: Enter PIN',
-          onPressed: _continueToPin,
         ),
       ],
     );

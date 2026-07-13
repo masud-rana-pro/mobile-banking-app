@@ -136,14 +136,17 @@ class _LoanScreenState extends ConsumerState<LoanScreen> {
             style: TextStyle(color: Color(0xFF607D8B)),
           ),
           const SizedBox(height: 18),
-          TextField(
+          AmountEntryPanel(
             controller: _amountController,
-            keyboardType: const TextInputType.numberWithOptions(decimal: true),
-            decoration: const InputDecoration(
-              labelText: 'Loan Amount (BDT)',
-              prefixText: 'BDT ',
-              border: OutlineInputBorder(),
-            ),
+            tabs: const ['Amount', 'Purpose', 'Status'],
+            presets: const [1000, 5000, 10000],
+            availableBalanceText: 'Loan request only',
+            sourceLabel: 'MVP Request',
+            secondarySourceLabel: 'Disbursement later',
+            showPromo: false,
+            showProceed: false,
+            proceedLabel: 'Proceed',
+            onProceed: null,
           ),
           const SizedBox(height: 14),
           TextField(

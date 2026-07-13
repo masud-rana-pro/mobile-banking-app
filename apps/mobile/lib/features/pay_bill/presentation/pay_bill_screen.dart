@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../core/errors/api_exception.dart';
+import '../../../shared/widgets/feature_flow_widgets.dart';
 import '../../../shared/widgets/hold_to_confirm_screen.dart';
 import '../../notification/presentation/notification_inbox_screen.dart';
 import '../../transaction/providers/transaction_providers.dart';
@@ -172,6 +173,11 @@ class _PayBillScreenState extends ConsumerState<PayBillScreen> {
   }
 
   Widget _detailsStep() {
+    final balanceText = ref.watch(walletSummaryProvider).maybeWhen(
+          data: (wallet) => '৳${wallet.balance.toStringAsFixed(2)}',
+          orElse: () => null,
+        );
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -209,16 +215,14 @@ class _PayBillScreenState extends ConsumerState<PayBillScreen> {
             border: OutlineInputBorder(),
           ),
         ),
-        const SizedBox(height: 16),
-        TextField(
+        const SizedBox(height: 18),
+        AmountEntryPanel(
           controller: _amountController,
-          keyboardType: const TextInputType.numberWithOptions(decimal: true),
-          decoration: const InputDecoration(
-            labelText: 'Amount (BDT)',
-            prefixText: 'BDT ',
-            border: OutlineInputBorder(),
-          ),
-          style: const TextStyle(fontSize: 22, fontWeight: FontWeight.w700),
+          tabs: const ['Amount', 'Biller', 'Coupon'],
+          presets: const [500, 1000, 1500],
+          availableBalanceText: balanceText,
+          proceedLabel: 'Proceed',
+          onProceed: _continueToPin,
         ),
         const SizedBox(height: 16),
         TextField(
@@ -229,8 +233,6 @@ class _PayBillScreenState extends ConsumerState<PayBillScreen> {
             border: OutlineInputBorder(),
           ),
         ),
-        const SizedBox(height: 20),
-        _primaryButton(label: 'Next: Enter PIN', onPressed: _continueToPin),
       ],
     );
   }

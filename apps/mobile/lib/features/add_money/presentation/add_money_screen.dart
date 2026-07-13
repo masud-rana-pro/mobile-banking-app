@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/errors/api_exception.dart';
+import '../../../shared/widgets/feature_flow_widgets.dart';
 import '../../transaction/providers/transaction_providers.dart';
 import '../../wallet/providers/wallet_providers.dart';
 import '../domain/add_money_summary.dart';
@@ -133,6 +134,11 @@ class _AddMoneyScreenState extends ConsumerState<AddMoneyScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final balanceText = ref.watch(walletSummaryProvider).maybeWhen(
+          data: (wallet) => '৳${wallet.balance.toStringAsFixed(2)}',
+          orElse: () => null,
+        );
+
     return Scaffold(
       backgroundColor: const Color(0xFFF4F7FB),
       appBar: AppBar(
@@ -149,12 +155,16 @@ class _AddMoneyScreenState extends ConsumerState<AddMoneyScreen> {
           children: [
             const _InstantTopUpHeader(),
             const SizedBox(height: 18),
-            _AmountCard(
+            AmountEntryPanel(
               controller: _amountController,
-              quickAmounts: _quickAmounts,
-              onQuickAmountTap: (amount) {
-                _amountController.text = amount.toString();
-              },
+              tabs: const ['Amount', 'Source', 'Reference'],
+              presets: _quickAmounts,
+              availableBalanceText: balanceText,
+              sourceLabel: 'Top Up Source',
+              secondarySourceLabel: 'Later',
+              proceedLabel: 'Proceed',
+              showProceed: false,
+              onProceed: null,
             ),
             const SizedBox(height: 14),
             _SourceSelector(
@@ -273,67 +283,6 @@ class _InstantTopUpHeader extends StatelessWidget {
                 ),
               ],
             ),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class _AmountCard extends StatelessWidget {
-  const _AmountCard({
-    required this.controller,
-    required this.quickAmounts,
-    required this.onQuickAmountTap,
-  });
-
-  final TextEditingController controller;
-  final List<int> quickAmounts;
-  final ValueChanged<int> onQuickAmountTap;
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(8),
-        border: Border.all(color: const Color(0xFFE2E8F0)),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          TextField(
-            controller: controller,
-            keyboardType: const TextInputType.numberWithOptions(decimal: true),
-            decoration: const InputDecoration(
-              labelText: 'Amount',
-              prefixText: 'Tk ',
-              border: UnderlineInputBorder(),
-            ),
-            style: const TextStyle(
-              color: Color(0xFF263238),
-              fontSize: 30,
-              fontWeight: FontWeight.w900,
-            ),
-          ),
-          const SizedBox(height: 14),
-          Wrap(
-            spacing: 8,
-            runSpacing: 8,
-            children: [
-              for (final amount in quickAmounts)
-                ActionChip(
-                  label: Text('Tk $amount'),
-                  onPressed: () => onQuickAmountTap(amount),
-                  backgroundColor: const Color(0xFFE9F8F4),
-                  labelStyle: const TextStyle(
-                    color: Color(0xFF008F7A),
-                    fontWeight: FontWeight.w800,
-                  ),
-                  side: const BorderSide(color: Color(0xFFBFE8DD)),
-                ),
-            ],
           ),
         ],
       ),

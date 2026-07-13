@@ -232,6 +232,452 @@ class StatusPill extends StatelessWidget {
   }
 }
 
+class AmountRecipientCard extends StatelessWidget {
+  const AmountRecipientCard({
+    super.key,
+    required this.label,
+    required this.title,
+    required this.subtitle,
+    this.imageUrl,
+    this.fallbackIcon = Icons.person,
+    this.trailing,
+  });
+
+  final String label;
+  final String title;
+  final String subtitle;
+  final String? imageUrl;
+  final IconData fallbackIcon;
+  final Widget? trailing;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.fromLTRB(18, 16, 18, 18),
+      color: Colors.white,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            label,
+            style: const TextStyle(
+              color: Color(0xFF607D8B),
+              fontSize: 14,
+              fontWeight: FontWeight.w700,
+            ),
+          ),
+          const SizedBox(height: 14),
+          Row(
+            children: [
+              ProfileImageAvatar(
+                imageUrl: imageUrl,
+                fallbackIcon: fallbackIcon,
+                radius: 28,
+                backgroundColor: const Color(0xFFF3F7F8),
+                iconColor: const Color(0xFF008F7A),
+              ),
+              const SizedBox(width: 16),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      title,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: const TextStyle(
+                        color: Color(0xFF263238),
+                        fontSize: 18,
+                        fontWeight: FontWeight.w800,
+                      ),
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      subtitle,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: const TextStyle(
+                        color: Color(0xFF455A64),
+                        fontSize: 16,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              if (trailing != null) ...[
+                const SizedBox(width: 12),
+                trailing!,
+              ],
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class AmountEntryPanel extends StatefulWidget {
+  const AmountEntryPanel({
+    super.key,
+    required this.controller,
+    required this.proceedLabel,
+    required this.onProceed,
+    this.loading = false,
+    this.tabs = const ['Amount'],
+    this.presets = const [100, 500, 1000],
+    this.availableBalanceText,
+    this.sourceLabel = 'SmartKash',
+    this.secondarySourceLabel = 'Pay Later',
+    this.showPromo = true,
+    this.showProceed = true,
+  });
+
+  final TextEditingController controller;
+  final String proceedLabel;
+  final VoidCallback? onProceed;
+  final bool loading;
+  final List<String> tabs;
+  final List<num> presets;
+  final String? availableBalanceText;
+  final String sourceLabel;
+  final String secondarySourceLabel;
+  final bool showPromo;
+  final bool showProceed;
+
+  @override
+  State<AmountEntryPanel> createState() => _AmountEntryPanelState();
+}
+
+class _AmountEntryPanelState extends State<AmountEntryPanel> {
+  static const _accent = Color(0xFF008F7A);
+  static const _muted = Color(0xFF607D8B);
+  int _selectedTab = 0;
+
+  @override
+  void initState() {
+    super.initState();
+    widget.controller.addListener(_refresh);
+  }
+
+  @override
+  void didUpdateWidget(covariant AmountEntryPanel oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.controller != widget.controller) {
+      oldWidget.controller.removeListener(_refresh);
+      widget.controller.addListener(_refresh);
+    }
+  }
+
+  @override
+  void dispose() {
+    widget.controller.removeListener(_refresh);
+    super.dispose();
+  }
+
+  void _refresh() {
+    if (mounted) {
+      setState(() {});
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final amountText = widget.controller.text.trim();
+    final hasAmount = amountText.isNotEmpty;
+    final canProceed = widget.onProceed != null && hasAmount && !widget.loading;
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        _tabs(),
+        Container(
+          width: double.infinity,
+          color: Colors.white,
+          padding: const EdgeInsets.fromLTRB(22, 26, 22, 30),
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: [
+              SizedBox(
+                width: 82,
+                child: Column(
+                  children: [
+                    for (final amount in widget.presets.take(4)) ...[
+                      _presetChip(amount),
+                      const SizedBox(height: 14),
+                    ],
+                  ],
+                ),
+              ),
+              const SizedBox(width: 16),
+              Expanded(
+                child: Column(
+                  children: [
+                    TextField(
+                      controller: widget.controller,
+                      keyboardType:
+                          const TextInputType.numberWithOptions(decimal: true),
+                      textAlign: TextAlign.center,
+                      decoration: InputDecoration(
+                        hintText: '৳0',
+                        hintStyle: TextStyle(
+                          color: Colors.grey.shade300,
+                          fontSize: 44,
+                          fontWeight: FontWeight.w300,
+                        ),
+                        border: InputBorder.none,
+                        isCollapsed: true,
+                      ),
+                      style: const TextStyle(
+                        color: Color(0xFF263238),
+                        fontSize: 44,
+                        fontWeight: FontWeight.w800,
+                      ),
+                    ),
+                    const SizedBox(height: 26),
+                    Text.rich(
+                      TextSpan(
+                        text: 'Available Balance: ',
+                        style: const TextStyle(
+                          color: Color(0xFF455A64),
+                          fontSize: 16,
+                          fontWeight: FontWeight.w600,
+                        ),
+                        children: [
+                          TextSpan(
+                            text: widget.availableBalanceText ?? 'Unavailable',
+                            style: const TextStyle(
+                              color: Color(0xFF263238),
+                              fontWeight: FontWeight.w900,
+                            ),
+                          ),
+                        ],
+                      ),
+                      textAlign: TextAlign.center,
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+        ),
+        const SizedBox(height: 8),
+        Container(
+          width: double.infinity,
+          color: Colors.white,
+          padding: const EdgeInsets.fromLTRB(22, 20, 22, 22),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const Row(
+                children: [
+                  Expanded(
+                    child: Text(
+                      'Select Source',
+                      style: TextStyle(
+                        color: Color(0xFF607D8B),
+                        fontSize: 15,
+                        fontWeight: FontWeight.w700,
+                      ),
+                    ),
+                  ),
+                  Text(
+                    'See All',
+                    style: TextStyle(
+                      color: Color(0xFF008F7A),
+                      fontSize: 15,
+                      fontWeight: FontWeight.w800,
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 14),
+              Wrap(
+                spacing: 12,
+                runSpacing: 10,
+                children: [
+                  _sourceChip(widget.sourceLabel, selected: true),
+                  _sourceChip(widget.secondarySourceLabel, selected: false),
+                ],
+              ),
+              if (widget.showPromo) ...[
+                const SizedBox(height: 22),
+                const Row(
+                  children: [
+                    Icon(
+                      Icons.local_offer,
+                      color: Color(0xFF008F7A),
+                      size: 22,
+                    ),
+                    SizedBox(width: 10),
+                    Text(
+                      'Coupon / Promo Code',
+                      style: TextStyle(
+                        color: Color(0xFF008F7A),
+                        decoration: TextDecoration.underline,
+                        decorationColor: Color(0xFF008F7A),
+                        fontSize: 16,
+                        fontWeight: FontWeight.w700,
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ],
+          ),
+        ),
+        if (widget.showProceed) ...[
+          const SizedBox(height: 16),
+          SizedBox(
+            width: double.infinity,
+            height: 58,
+            child: ElevatedButton(
+              onPressed: canProceed ? widget.onProceed : null,
+              style: ElevatedButton.styleFrom(
+                backgroundColor: _accent,
+                disabledBackgroundColor: const Color(0xFF9E9E9E),
+                foregroundColor: Colors.white,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                elevation: 0,
+              ),
+              child: widget.loading
+                  ? const SizedBox(
+                      width: 24,
+                      height: 24,
+                      child: CircularProgressIndicator(
+                        color: Colors.white,
+                        strokeWidth: 2.5,
+                      ),
+                    )
+                  : Row(
+                      children: [
+                        Text(
+                          widget.proceedLabel,
+                          style: const TextStyle(
+                            fontSize: 18,
+                            fontWeight: FontWeight.w900,
+                          ),
+                        ),
+                        const Spacer(),
+                        const Icon(Icons.arrow_forward, size: 32),
+                      ],
+                    ),
+            ),
+          ),
+        ],
+      ],
+    );
+  }
+
+  Widget _tabs() {
+    return Container(
+      width: double.infinity,
+      color: Colors.white,
+      child: SingleChildScrollView(
+        scrollDirection: Axis.horizontal,
+        child: Row(
+          children: [
+            for (var index = 0; index < widget.tabs.length; index++)
+              InkWell(
+                onTap: () => setState(() => _selectedTab = index),
+                child: Container(
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 22, vertical: 16),
+                  decoration: BoxDecoration(
+                    border: Border(
+                      bottom: BorderSide(
+                        color: _selectedTab == index
+                            ? _accent
+                            : Colors.transparent,
+                        width: 3,
+                      ),
+                    ),
+                  ),
+                  child: Text(
+                    widget.tabs[index],
+                    style: TextStyle(
+                      color: _selectedTab == index ? _accent : _muted,
+                      fontSize: 16,
+                      fontWeight: FontWeight.w800,
+                    ),
+                  ),
+                ),
+              ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _presetChip(num amount) {
+    final label =
+        amount % 1 == 0 ? amount.toInt().toString() : amount.toStringAsFixed(2);
+
+    return InkWell(
+      borderRadius: BorderRadius.circular(28),
+      onTap: () {
+        widget.controller.text = label;
+        widget.controller.selection = TextSelection.collapsed(
+          offset: widget.controller.text.length,
+        );
+      },
+      child: Container(
+        width: double.infinity,
+        padding: const EdgeInsets.symmetric(vertical: 11),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(28),
+          border: Border.all(color: const Color(0xFFE0E6EA)),
+        ),
+        alignment: Alignment.center,
+        child: Text(
+          '৳$label',
+          style: const TextStyle(
+            color: Color(0xFF455A64),
+            fontSize: 15,
+            fontWeight: FontWeight.w800,
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _sourceChip(String label, {required bool selected}) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 11),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(8),
+        border: Border.all(
+          color: selected ? _accent : const Color(0xFFE0E6EA),
+          width: selected ? 1.4 : 1,
+        ),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Text(
+            label,
+            style: TextStyle(
+              color: selected ? _accent : _muted,
+              fontWeight: FontWeight.w800,
+            ),
+          ),
+          const SizedBox(width: 8),
+          Icon(
+            selected ? Icons.check_circle : Icons.schedule,
+            color: selected ? _accent : _muted,
+            size: 18,
+          ),
+        ],
+      ),
+    );
+  }
+}
+
 class ReceiptSummaryCard extends StatelessWidget {
   const ReceiptSummaryCard({
     super.key,

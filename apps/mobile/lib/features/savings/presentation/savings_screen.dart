@@ -419,6 +419,10 @@ class _SavingsScreenState extends ConsumerState<SavingsScreen> {
         activeGoals.any((goal) => goal.id == _selectedGoal?.id)
             ? _selectedGoal!.id
             : null;
+    final balanceText = ref.watch(walletSummaryProvider).maybeWhen(
+          data: (wallet) => '৳${wallet.balance.toStringAsFixed(2)}',
+          orElse: () => null,
+        );
 
     return FeatureSectionCard(
       child: Column(
@@ -463,14 +467,15 @@ class _SavingsScreenState extends ConsumerState<SavingsScreen> {
             },
           ),
           const SizedBox(height: 14),
-          TextField(
+          AmountEntryPanel(
             controller: _depositAmountController,
-            keyboardType: const TextInputType.numberWithOptions(decimal: true),
-            decoration: const InputDecoration(
-              labelText: 'Deposit Amount (BDT)',
-              prefixText: 'BDT ',
-              border: OutlineInputBorder(),
-            ),
+            tabs: const ['Amount', 'Goal', 'Reward'],
+            presets: const [100, 500, 1000],
+            availableBalanceText: balanceText,
+            sourceLabel: 'Wallet',
+            proceedLabel: 'Proceed',
+            showProceed: false,
+            onProceed: null,
           ),
           const SizedBox(height: 14),
           TextField(

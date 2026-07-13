@@ -173,6 +173,11 @@ class _CashOutScreenState extends ConsumerState<CashOutScreen> {
   }
 
   Widget _detailsStep() {
+    final balanceText = ref.watch(walletSummaryProvider).maybeWhen(
+          data: (wallet) => '৳${wallet.balance.toStringAsFixed(2)}',
+          orElse: () => null,
+        );
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -205,16 +210,14 @@ class _CashOutScreenState extends ConsumerState<CashOutScreen> {
           icon: const Icon(Icons.qr_code_scanner),
           label: const Text('Scan agent QR'),
         ),
-        const SizedBox(height: 16),
-        TextField(
+        const SizedBox(height: 18),
+        AmountEntryPanel(
           controller: _amountController,
-          keyboardType: const TextInputType.numberWithOptions(decimal: true),
-          decoration: const InputDecoration(
-            labelText: 'Amount (BDT)',
-            prefixText: 'BDT ',
-            border: OutlineInputBorder(),
-          ),
-          style: const TextStyle(fontSize: 22, fontWeight: FontWeight.w700),
+          tabs: const ['Amount', 'Agent', 'Reference'],
+          presets: const [500, 1000, 2000],
+          availableBalanceText: balanceText,
+          proceedLabel: 'Proceed',
+          onProceed: _continueToPin,
         ),
         const SizedBox(height: 16),
         TextField(
@@ -224,11 +227,6 @@ class _CashOutScreenState extends ConsumerState<CashOutScreen> {
             labelText: 'Reference (optional)',
             border: OutlineInputBorder(),
           ),
-        ),
-        const SizedBox(height: 20),
-        PrimaryActionButton(
-          label: 'Next: Enter PIN',
-          onPressed: _continueToPin,
         ),
       ],
     );

@@ -249,35 +249,35 @@ class _MerchantPaymentScreenState extends ConsumerState<MerchantPaymentScreen> {
 
   Widget _buildAmountStep() {
     final target = _merchantTarget;
+    final balanceText = ref.watch(walletSummaryProvider).maybeWhen(
+          data: (wallet) => '৳${wallet.balance.toStringAsFixed(2)}',
+          orElse: () => null,
+        );
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        _merchantCard(target),
-        const SizedBox(height: 24),
-        TextField(
+        AmountRecipientCard(
+          label: 'Merchant',
+          title: target?.businessName ?? 'Merchant',
+          subtitle: target == null
+              ? 'Merchant number'
+              : '${target.merchantNumber} - ${target.businessType}',
+          imageUrl: target?.avatarUrl,
+          fallbackIcon: Icons.storefront_outlined,
+          trailing: StatusPill(
+            label: target?.status ?? 'Active',
+            color: const Color(0xFF2E7D32),
+          ),
+        ),
+        const SizedBox(height: 8),
+        AmountEntryPanel(
           controller: _amountController,
-          keyboardType: const TextInputType.numberWithOptions(decimal: true),
-          decoration: const InputDecoration(
-            labelText: 'Amount (BDT)',
-            prefixText: 'BDT ',
-            border: OutlineInputBorder(),
-          ),
-          style: const TextStyle(fontSize: 22, fontWeight: FontWeight.w700),
-        ),
-        const SizedBox(height: 16),
-        TextField(
-          controller: _noteController,
-          maxLength: 120,
-          decoration: const InputDecoration(
-            labelText: 'Note (optional)',
-            border: OutlineInputBorder(),
-          ),
-        ),
-        const SizedBox(height: 20),
-        PrimaryActionButton(
-          label: 'Next: Enter PIN',
-          onPressed: () {
+          tabs: const ['Amount', 'Merchant', 'Coupon'],
+          presets: const [100, 500, 1000],
+          availableBalanceText: balanceText,
+          proceedLabel: 'Proceed',
+          onProceed: () {
             final amount = double.tryParse(_amountController.text.trim());
             if (amount == null || amount < 1) {
               _showMessage('Enter a valid amount.');
@@ -289,6 +289,15 @@ class _MerchantPaymentScreenState extends ConsumerState<MerchantPaymentScreen> {
               _currentStep = _PaymentStep.pin;
             });
           },
+        ),
+        const SizedBox(height: 16),
+        TextField(
+          controller: _noteController,
+          maxLength: 120,
+          decoration: const InputDecoration(
+            labelText: 'Note (optional)',
+            border: OutlineInputBorder(),
+          ),
         ),
         TextButton(
           onPressed: () => setState(() {
@@ -464,47 +473,4 @@ class _MerchantPaymentScreenState extends ConsumerState<MerchantPaymentScreen> {
     );
   }
 
-  Widget _merchantCard(MerchantPaymentTarget? target) {
-    return FeatureSectionCard(
-      child: Row(
-        children: [
-          ProfileImageAvatar(
-            imageUrl: target?.avatarUrl,
-            fallbackIcon: Icons.store,
-            radius: 24,
-            backgroundColor: const Color(0xFFE9F8F4),
-            iconColor: const Color(0xFF008F7A),
-          ),
-          const SizedBox(width: 14),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  target?.businessName ?? 'N/A',
-                  style: const TextStyle(
-                    fontWeight: FontWeight.w700,
-                    fontSize: 16,
-                  ),
-                ),
-                Text(
-                  target == null
-                      ? 'N/A'
-                      : '${target.merchantNumber} - ${target.businessType}',
-                  style: const TextStyle(
-                    color: Color(0xFF607D8B),
-                    fontSize: 14,
-                  ),
-                ),
-              ],
-            ),
-          ),
-          StatusPill(
-            label: target?.status ?? 'Active',
-            color: const Color(0xFF2E7D32),
-          ),
-        ],
-      ),
-    );
-  }
 }
