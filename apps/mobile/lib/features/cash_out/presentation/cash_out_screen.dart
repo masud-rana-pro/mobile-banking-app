@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 
 import '../../../core/errors/api_exception.dart';
 import '../../../shared/widgets/feature_flow_widgets.dart';
+import '../../../shared/widgets/hold_to_confirm_screen.dart';
 import '../../notification/presentation/notification_inbox_screen.dart';
 import '../../qr/presentation/qr_screen.dart';
 import '../../transaction/providers/transaction_providers.dart';
@@ -26,7 +27,7 @@ class CashOutScreen extends ConsumerStatefulWidget {
   ConsumerState<CashOutScreen> createState() => _CashOutScreenState();
 }
 
-enum _CashOutStep { details, pin, result }
+enum _CashOutStep { details, pin, confirm, result }
 
 class _CashOutScreenState extends ConsumerState<CashOutScreen> {
   final _agentController = TextEditingController();
@@ -110,6 +111,14 @@ class _CashOutScreenState extends ConsumerState<CashOutScreen> {
     }
   }
 
+  void _continueToConfirm() {
+    if (_pinController.text.trim().length != 5) {
+      _showMessage('Enter your 5-digit PIN.');
+      return;
+    }
+    setState(() => _step = _CashOutStep.confirm);
+  }
+
   void _reset() {
     setState(() {
       _step = _CashOutStep.details;
@@ -142,17 +151,25 @@ class _CashOutScreenState extends ConsumerState<CashOutScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final isConfirmStep = _step == _CashOutStep.confirm;
     return Scaffold(
       appBar: AppBar(title: const Text('Cash Out'), centerTitle: true),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(20),
-        child: switch (_step) {
-          _CashOutStep.details => _detailsStep(),
-          _CashOutStep.pin => _pinStep(),
-          _CashOutStep.result => _resultStep(),
-        },
-      ),
+      body: isConfirmStep
+          ? _buildBody()
+          : SingleChildScrollView(
+              padding: const EdgeInsets.all(20),
+              child: _buildBody(),
+            ),
     );
+  }
+
+  Widget _buildBody() {
+    return switch (_step) {
+      _CashOutStep.details => _detailsStep(),
+      _CashOutStep.pin => _pinStep(),
+      _CashOutStep.confirm => _confirmStep(),
+      _CashOutStep.result => _resultStep(),
+    };
   }
 
   Widget _detailsStep() {
@@ -243,14 +260,38 @@ class _CashOutScreenState extends ConsumerState<CashOutScreen> {
         ),
         const SizedBox(height: 18),
         PrimaryActionButton(
-          label: 'Cash Out Now',
-          onPressed: _isLoading ? null : _submit,
+          label: 'Review Cash Out',
+          onPressed: _isLoading ? null : _continueToConfirm,
           loading: _isLoading,
         ),
         TextButton(
           onPressed: () => setState(() => _step = _CashOutStep.details),
           child: const Text('Change Details'),
         ),
+      ],
+    );
+  }
+
+  Widget _confirmStep() {
+    final amount =
+        double.tryParse(_amountController.text.trim())?.toStringAsFixed(2) ??
+            '0.00';
+    final agentNumber = _agentController.text.trim();
+
+    return HoldToConfirmScreen(
+      actionName: 'Cash Out',
+      accountName: 'SmartKash Agent',
+      accountNumber: agentNumber,
+      avatarIcon: Icons.payments_outlined,
+      isLoading: _isLoading,
+      onCancel: () => setState(() => _step = _CashOutStep.pin),
+      onConfirmed: _submit,
+      details: [
+        HoldToConfirmDetail(
+            label: 'Total', value: 'Tk $amount', mutedValue: '+ No charge'),
+        const HoldToConfirmDetail(label: 'Type', value: 'Agent Cash Out'),
+        HoldToConfirmDetail(label: 'Agent', value: agentNumber),
+        const HoldToConfirmDetail(label: 'Reference', value: 'SmartKash'),
       ],
     );
   }

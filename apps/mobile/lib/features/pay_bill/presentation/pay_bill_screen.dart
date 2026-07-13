@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../core/errors/api_exception.dart';
+import '../../../shared/widgets/hold_to_confirm_screen.dart';
 import '../../notification/presentation/notification_inbox_screen.dart';
 import '../../transaction/providers/transaction_providers.dart';
 import '../../wallet/providers/wallet_providers.dart';
@@ -19,7 +20,7 @@ class PayBillScreen extends ConsumerStatefulWidget {
   ConsumerState<PayBillScreen> createState() => _PayBillScreenState();
 }
 
-enum _PayBillStep { details, pin, result }
+enum _PayBillStep { details, pin, confirm, result }
 
 class _BillerOption {
   const _BillerOption(this.code, this.label, this.icon, this.color);
@@ -113,6 +114,14 @@ class _PayBillScreenState extends ConsumerState<PayBillScreen> {
     }
   }
 
+  void _continueToConfirm() {
+    if (_pinController.text.trim().length != 5) {
+      _showMessage('Enter your 5-digit PIN.');
+      return;
+    }
+    setState(() => _step = _PayBillStep.confirm);
+  }
+
   void _reset() {
     setState(() {
       _step = _PayBillStep.details;
@@ -141,17 +150,25 @@ class _PayBillScreenState extends ConsumerState<PayBillScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final isConfirmStep = _step == _PayBillStep.confirm;
     return Scaffold(
       appBar: AppBar(title: const Text('Pay Bill'), centerTitle: true),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(20),
-        child: switch (_step) {
-          _PayBillStep.details => _detailsStep(),
-          _PayBillStep.pin => _pinStep(),
-          _PayBillStep.result => _resultStep(),
-        },
-      ),
+      body: isConfirmStep
+          ? _buildBody()
+          : SingleChildScrollView(
+              padding: const EdgeInsets.all(20),
+              child: _buildBody(),
+            ),
     );
+  }
+
+  Widget _buildBody() {
+    return switch (_step) {
+      _PayBillStep.details => _detailsStep(),
+      _PayBillStep.pin => _pinStep(),
+      _PayBillStep.confirm => _confirmStep(),
+      _PayBillStep.result => _resultStep(),
+    };
   }
 
   Widget _detailsStep() {
@@ -244,14 +261,40 @@ class _PayBillScreenState extends ConsumerState<PayBillScreen> {
         ),
         const SizedBox(height: 18),
         _primaryButton(
-          label: 'Pay Bill Now',
-          onPressed: _isLoading ? null : _submit,
+          label: 'Review Pay Bill',
+          onPressed: _isLoading ? null : _continueToConfirm,
           loading: _isLoading,
         ),
         TextButton(
           onPressed: () => setState(() => _step = _PayBillStep.details),
           child: const Text('Change Details'),
         ),
+      ],
+    );
+  }
+
+  Widget _confirmStep() {
+    final amount =
+        double.tryParse(_amountController.text.trim())?.toStringAsFixed(2) ??
+            '0.00';
+    final biller =
+        _billers.firstWhere((item) => item.code == _selectedBiller).label;
+    final account = _accountController.text.trim();
+
+    return HoldToConfirmScreen(
+      actionName: 'Pay Bill',
+      accountName: biller,
+      accountNumber: account,
+      avatarIcon: Icons.receipt_long_outlined,
+      isLoading: _isLoading,
+      onCancel: () => setState(() => _step = _PayBillStep.pin),
+      onConfirmed: _submit,
+      details: [
+        HoldToConfirmDetail(
+            label: 'Total', value: 'Tk $amount', mutedValue: '+ No charge'),
+        HoldToConfirmDetail(label: 'Biller', value: biller),
+        HoldToConfirmDetail(label: 'Account', value: account),
+        const HoldToConfirmDetail(label: 'Reference', value: 'SmartKash'),
       ],
     );
   }
