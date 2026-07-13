@@ -27,7 +27,7 @@ class CashOutScreen extends ConsumerStatefulWidget {
   ConsumerState<CashOutScreen> createState() => _CashOutScreenState();
 }
 
-enum _CashOutStep { details, pin, confirm, result }
+enum _CashOutStep { agent, amount, pin, confirm, result }
 
 class _CashOutScreenState extends ConsumerState<CashOutScreen> {
   final _agentController = TextEditingController();
@@ -35,7 +35,7 @@ class _CashOutScreenState extends ConsumerState<CashOutScreen> {
   final _pinController = TextEditingController();
   final _noteController = TextEditingController();
 
-  _CashOutStep _step = _CashOutStep.details;
+  _CashOutStep _step = _CashOutStep.agent;
   CashOutResult? _result;
   String? _idempotencyKey;
   bool _isLoading = false;
@@ -46,6 +46,7 @@ class _CashOutScreenState extends ConsumerState<CashOutScreen> {
     final agentNumber = widget.initialAgentNumber?.trim();
     if (agentNumber != null && agentNumber.isNotEmpty) {
       _agentController.text = agentNumber;
+      _step = _CashOutStep.amount;
     }
   }
 
@@ -58,13 +59,17 @@ class _CashOutScreenState extends ConsumerState<CashOutScreen> {
     super.dispose();
   }
 
-  void _continueToPin() {
+  void _continueToAmount() {
     final agent = _agentController.text.trim();
-    final amount = double.tryParse(_amountController.text.trim());
     if (!_isValidBangladeshMobileNumber(agent)) {
       _showMessage('Enter a valid Bangladesh agent number.');
       return;
     }
+    setState(() => _step = _CashOutStep.amount);
+  }
+
+  void _continueToPin() {
+    final amount = double.tryParse(_amountController.text.trim());
     if (amount == null || amount < 1) {
       _showMessage('Enter a valid amount.');
       return;
@@ -121,7 +126,7 @@ class _CashOutScreenState extends ConsumerState<CashOutScreen> {
 
   void _reset() {
     setState(() {
-      _step = _CashOutStep.details;
+      _step = _CashOutStep.agent;
       _result = null;
       _idempotencyKey = null;
       _agentController.clear();
@@ -165,19 +170,15 @@ class _CashOutScreenState extends ConsumerState<CashOutScreen> {
 
   Widget _buildBody() {
     return switch (_step) {
-      _CashOutStep.details => _detailsStep(),
+      _CashOutStep.agent => _agentStep(),
+      _CashOutStep.amount => _amountStep(),
       _CashOutStep.pin => _pinStep(),
       _CashOutStep.confirm => _confirmStep(),
       _CashOutStep.result => _resultStep(),
     };
   }
 
-  Widget _detailsStep() {
-    final balanceText = ref.watch(walletSummaryProvider).maybeWhen(
-          data: (wallet) => '৳${wallet.balance.toStringAsFixed(2)}',
-          orElse: () => null,
-        );
-
+  Widget _agentStep() {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -185,7 +186,7 @@ class _CashOutScreenState extends ConsumerState<CashOutScreen> {
           icon: Icons.payments_outlined,
           title: 'Agent Cash Out',
           subtitle:
-              'Demo Cash Out debits your SmartKash wallet and creates receipt history. No real agent settlement is used.',
+              'Enter or scan a demo agent first. Amount and PIN confirmation come in the next steps.',
         ),
         const SizedBox(height: 22),
         TextField(
@@ -210,6 +211,32 @@ class _CashOutScreenState extends ConsumerState<CashOutScreen> {
           icon: const Icon(Icons.qr_code_scanner),
           label: const Text('Scan agent QR'),
         ),
+        const SizedBox(height: 22),
+        PrimaryActionButton(
+          label: 'Next: Enter Amount',
+          loading: _isLoading,
+          onPressed: _isLoading ? null : _continueToAmount,
+        ),
+      ],
+    );
+  }
+
+  Widget _amountStep() {
+    final balanceText = ref.watch(walletSummaryProvider).maybeWhen(
+          data: (wallet) => '৳${wallet.balance.toStringAsFixed(2)}',
+          orElse: () => null,
+        );
+    final agentNumber = _agentController.text.trim();
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        AmountRecipientCard(
+          label: 'Agent',
+          title: 'SmartKash Agent',
+          subtitle: agentNumber,
+          fallbackIcon: Icons.payments_outlined,
+        ),
         const SizedBox(height: 18),
         AmountEntryPanel(
           controller: _amountController,
@@ -227,6 +254,13 @@ class _CashOutScreenState extends ConsumerState<CashOutScreen> {
             labelText: 'Reference (optional)',
             border: OutlineInputBorder(),
           ),
+        ),
+        TextButton.icon(
+          onPressed: _isLoading
+              ? null
+              : () => setState(() => _step = _CashOutStep.agent),
+          icon: const Icon(Icons.edit_outlined),
+          label: const Text('Change Agent'),
         ),
       ],
     );
@@ -250,7 +284,7 @@ class _CashOutScreenState extends ConsumerState<CashOutScreen> {
           secondaryTypeLabel: 'QR',
           loading: _isLoading,
           onConfirm: _continueToConfirm,
-          onBackToAmount: () => setState(() => _step = _CashOutStep.details),
+          onBackToAmount: () => setState(() => _step = _CashOutStep.amount),
           recipient: AmountRecipientCard(
             label: 'Agent',
             title: 'SmartKash Agent',

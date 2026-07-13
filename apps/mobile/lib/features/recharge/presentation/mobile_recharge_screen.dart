@@ -22,7 +22,7 @@ class MobileRechargeScreen extends ConsumerStatefulWidget {
       _MobileRechargeScreenState();
 }
 
-enum _RechargeStep { details, pin, confirm, result }
+enum _RechargeStep { recipient, amount, pin, confirm, result }
 
 class _OperatorOption {
   const _OperatorOption(this.value, this.label, this.color);
@@ -46,7 +46,7 @@ class _MobileRechargeScreenState extends ConsumerState<MobileRechargeScreen> {
   final _pinController = TextEditingController();
   final _noteController = TextEditingController();
 
-  _RechargeStep _currentStep = _RechargeStep.details;
+  _RechargeStep _currentStep = _RechargeStep.recipient;
   String _selectedOperator = _operators.first.value;
   MobileRechargeRecord? _rechargeResult;
   String? _idempotencyKey;
@@ -61,14 +61,18 @@ class _MobileRechargeScreenState extends ConsumerState<MobileRechargeScreen> {
     super.dispose();
   }
 
-  void _continueToPin() {
+  void _continueToAmount() {
     final mobile = _mobileController.text.trim();
-    final amount = double.tryParse(_amountController.text.trim());
 
     if (!RegExp(r'^[0-9]{10,15}$').hasMatch(mobile)) {
       _showMessage('Enter a valid mobile number with 10 to 15 digits.');
       return;
     }
+    setState(() => _currentStep = _RechargeStep.amount);
+  }
+
+  void _continueToPin() {
+    final amount = double.tryParse(_amountController.text.trim());
 
     if (amount == null || amount < 1) {
       _showMessage('Enter a valid amount (minimum BDT 1.00).');
@@ -131,7 +135,7 @@ class _MobileRechargeScreenState extends ConsumerState<MobileRechargeScreen> {
 
   void _reset() {
     setState(() {
-      _currentStep = _RechargeStep.details;
+      _currentStep = _RechargeStep.recipient;
       _rechargeResult = null;
       _idempotencyKey = null;
       _mobileController.clear();
@@ -182,8 +186,10 @@ class _MobileRechargeScreenState extends ConsumerState<MobileRechargeScreen> {
 
   Widget _buildBody() {
     switch (_currentStep) {
-      case _RechargeStep.details:
-        return _buildDetailsStep();
+      case _RechargeStep.recipient:
+        return _buildRecipientStep();
+      case _RechargeStep.amount:
+        return _buildAmountStep();
       case _RechargeStep.pin:
         return _buildPinStep();
       case _RechargeStep.confirm:
@@ -193,13 +199,7 @@ class _MobileRechargeScreenState extends ConsumerState<MobileRechargeScreen> {
     }
   }
 
-  Widget _buildDetailsStep() {
-    final balanceText = ref.watch(walletSummaryProvider).maybeWhen(
-          data: (wallet) => '৳${wallet.balance.toStringAsFixed(2)}',
-          orElse: () => null,
-        );
-    final mobileNumber = _mobileController.text.trim();
-
+  Widget _buildRecipientStep() {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -243,11 +243,32 @@ class _MobileRechargeScreenState extends ConsumerState<MobileRechargeScreen> {
             border: OutlineInputBorder(),
           ),
         ),
-        const SizedBox(height: 16),
+        const SizedBox(height: 22),
+        PrimaryActionButton(
+          label: 'Next: Enter Amount',
+          loading: _isLoading,
+          onPressed: _isLoading ? null : _continueToAmount,
+        ),
+      ],
+    );
+  }
+
+  Widget _buildAmountStep() {
+    final balanceText = ref.watch(walletSummaryProvider).maybeWhen(
+          data: (wallet) => '৳${wallet.balance.toStringAsFixed(2)}',
+          orElse: () => null,
+        );
+    final mobileNumber = _mobileController.text.trim();
+    final operator =
+        _operators.firstWhere((item) => item.value == _selectedOperator).label;
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
         AmountRecipientCard(
           label: 'Recipient',
-          title: mobileNumber.isEmpty ? 'Recharge Number' : mobileNumber,
-          subtitle: _selectedOperator,
+          title: mobileNumber,
+          subtitle: operator,
           fallbackIcon: Icons.phone_android,
           trailing: CircleAvatar(
             radius: 24,
@@ -261,7 +282,7 @@ class _MobileRechargeScreenState extends ConsumerState<MobileRechargeScreen> {
             ),
           ),
         ),
-        const SizedBox(height: 8),
+        const SizedBox(height: 18),
         AmountEntryPanel(
           controller: _amountController,
           tabs: const ['Amount', 'Internet', 'Voice', 'Bundle', 'Rate Cutter'],
@@ -278,6 +299,13 @@ class _MobileRechargeScreenState extends ConsumerState<MobileRechargeScreen> {
             labelText: 'Note (optional)',
             border: OutlineInputBorder(),
           ),
+        ),
+        TextButton.icon(
+          onPressed: _isLoading
+              ? null
+              : () => setState(() => _currentStep = _RechargeStep.recipient),
+          icon: const Icon(Icons.edit_outlined),
+          label: const Text('Change Number'),
         ),
       ],
     );
@@ -304,7 +332,7 @@ class _MobileRechargeScreenState extends ConsumerState<MobileRechargeScreen> {
           loading: _isLoading,
           onConfirm: _continueToConfirm,
           onBackToAmount: () =>
-              setState(() => _currentStep = _RechargeStep.details),
+              setState(() => _currentStep = _RechargeStep.amount),
           recipient: AmountRecipientCard(
             label: 'Recipient',
             title: mobile,
