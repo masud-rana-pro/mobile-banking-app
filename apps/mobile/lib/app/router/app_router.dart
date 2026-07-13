@@ -128,7 +128,9 @@ final appRouterProvider = Provider<GoRouter>(
             GoRoute(
               path: QrScreen.routePath,
               name: QrScreen.routeName,
-              builder: (context, state) => const QrScreen(),
+              builder: (context, state) => QrScreen(
+                initialTab: state.uri.queryParameters['tab'] == 'scan' ? 1 : 0,
+              ),
             ),
             GoRoute(
               path: MerchantPaymentScreen.routePath,

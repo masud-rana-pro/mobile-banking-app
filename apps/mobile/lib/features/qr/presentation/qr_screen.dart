@@ -11,10 +11,15 @@ import '../../send_money/presentation/send_money_screen.dart';
 import '../domain/qr_payload.dart';
 
 class QrScreen extends ConsumerStatefulWidget {
-  const QrScreen({super.key});
+  const QrScreen({
+    this.initialTab = 0,
+    super.key,
+  });
 
   static const routeName = 'qr';
   static const routePath = '/qr';
+
+  final int initialTab;
 
   @override
   ConsumerState<QrScreen> createState() => _QrScreenState();
@@ -97,43 +102,135 @@ class _QrScreenState extends ConsumerState<QrScreen> {
         ? null
         : QrPayload.user(mobileNumber: myNumber).fullPayload;
 
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('Scan QR'),
-        centerTitle: true,
-        actions: [
-          IconButton(
-            tooltip: 'Toggle flash',
-            onPressed: _scannerController.toggleTorch,
-            icon: const Icon(Icons.flash_on_rounded),
+    return DefaultTabController(
+      length: 2,
+      initialIndex: widget.initialTab == 1 ? 1 : 0,
+      child: Scaffold(
+        appBar: AppBar(
+          title: const Text('QR'),
+          centerTitle: true,
+          actions: [
+            IconButton(
+              tooltip: 'Toggle flash',
+              onPressed: _scannerController.toggleTorch,
+              icon: const Icon(Icons.flash_on_rounded),
+            ),
+          ],
+          bottom: const TabBar(
+            labelColor: Color(0xFF008F7A),
+            indicatorColor: Color(0xFF008F7A),
+            tabs: [
+              Tab(icon: Icon(Icons.qr_code_2_rounded), text: 'My QR'),
+              Tab(icon: Icon(Icons.qr_code_scanner), text: 'Scan QR'),
+            ],
           ),
-        ],
+        ),
+        body: TabBarView(
+          children: [
+            _MyQrTab(payload: myPayload),
+            _ScanQrTab(
+              controller: _scannerController,
+              onDetect: _handleScan,
+              onSubmit: _handlePayload,
+            ),
+          ],
+        ),
       ),
-      body: ListView(
-        padding: const EdgeInsets.all(20),
+    );
+  }
+}
+
+class _MyQrTab extends StatelessWidget {
+  const _MyQrTab({required this.payload});
+
+  final String? payload;
+
+  @override
+  Widget build(BuildContext context) {
+    return ListView(
+      padding: const EdgeInsets.all(20),
+      children: [
+        if (payload == null)
+          const _EmptyQrCard()
+        else
+          _MyQrCard(payload: payload!),
+        const SizedBox(height: 18),
+        const _InfoCard(
+          icon: Icons.send_to_mobile_rounded,
+          title: 'Receive money with QR',
+          message:
+              'Share this QR with another SmartKash user. They can scan it and send money to your account.',
+        ),
+      ],
+    );
+  }
+}
+
+class _ScanQrTab extends StatelessWidget {
+  const _ScanQrTab({
+    required this.controller,
+    required this.onDetect,
+    required this.onSubmit,
+  });
+
+  final MobileScannerController controller;
+  final void Function(BarcodeCapture capture) onDetect;
+  final void Function(String payload) onSubmit;
+
+  @override
+  Widget build(BuildContext context) {
+    return ListView(
+      padding: const EdgeInsets.all(20),
+      children: [
+        _ScannerCard(
+          controller: controller,
+          onDetect: onDetect,
+        ),
+        const SizedBox(height: 18),
+        const _InfoCard(
+          icon: Icons.send_to_mobile_rounded,
+          title: 'Send Money QR',
+          message:
+              'Scan a SMARTKASH_USER QR to open Send Money with receiver selected.',
+        ),
+        const SizedBox(height: 12),
+        const _InfoCard(
+          icon: Icons.storefront_rounded,
+          title: 'Merchant Payment QR',
+          message:
+              'Scan a SMARTKASH_MERCHANT QR to open Payment with merchant selected.',
+        ),
+        const SizedBox(height: 18),
+        _QrPasteField(onSubmit: onSubmit),
+      ],
+    );
+  }
+}
+
+class _EmptyQrCard extends StatelessWidget {
+  const _EmptyQrCard();
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(18),
+      decoration: BoxDecoration(
+        color: const Color(0xFFFFF3E0),
+        borderRadius: BorderRadius.circular(16),
+      ),
+      child: const Column(
         children: [
-          _ScannerCard(
-            controller: _scannerController,
-            onDetect: _handleScan,
+          Icon(Icons.info_outline_rounded, color: Color(0xFFEF6C00), size: 42),
+          SizedBox(height: 10),
+          Text(
+            'Login first to generate your SmartKash QR.',
+            textAlign: TextAlign.center,
+            style: TextStyle(
+              fontWeight: FontWeight.w800,
+              color: Color(0xFF263238),
+            ),
           ),
-          const SizedBox(height: 18),
-          _InfoCard(
-            icon: Icons.send_to_mobile_rounded,
-            title: 'Send Money QR',
-            message:
-                'Scan a SMARTKASH_USER QR to open Send Money with receiver selected.',
-          ),
-          const SizedBox(height: 12),
-          _InfoCard(
-            icon: Icons.storefront_rounded,
-            title: 'Merchant Payment QR',
-            message:
-                'Scan a SMARTKASH_MERCHANT QR to open Payment with merchant selected.',
-          ),
-          const SizedBox(height: 18),
-          if (myPayload != null) _MyQrCard(payload: myPayload),
-          const SizedBox(height: 18),
-          _QrPasteField(onSubmit: _handlePayload),
         ],
       ),
     );
