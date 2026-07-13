@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../shared/widgets/feature_flow_widgets.dart';
+import '../../../shared/widgets/hold_to_confirm_screen.dart';
 import '../../notification/presentation/notification_inbox_screen.dart';
 import '../../qr/presentation/qr_screen.dart';
 import '../../transaction/providers/transaction_providers.dart';
@@ -25,7 +26,7 @@ class SendMoneyScreen extends ConsumerStatefulWidget {
   ConsumerState<SendMoneyScreen> createState() => _SendMoneyScreenState();
 }
 
-enum _SendStep { receiver, amount, pin, result }
+enum _SendStep { receiver, amount, pin, confirm, result }
 
 class _SendMoneyScreenState extends ConsumerState<SendMoneyScreen> {
   final _phoneController = TextEditingController();
@@ -133,6 +134,14 @@ class _SendMoneyScreenState extends ConsumerState<SendMoneyScreen> {
     }
   }
 
+  void _continueToConfirm() {
+    if (_pinController.text.trim().length != 5) {
+      _showMessage('Enter your 5-digit PIN.');
+      return;
+    }
+    setState(() => _currentStep = _SendStep.confirm);
+  }
+
   void _reset() {
     setState(() {
       _currentStep = _SendStep.receiver;
@@ -153,15 +162,18 @@ class _SendMoneyScreenState extends ConsumerState<SendMoneyScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final isConfirmStep = _currentStep == _SendStep.confirm;
     return Scaffold(
       appBar: AppBar(
         title: const Text('Send Money'),
         centerTitle: true,
       ),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(20),
-        child: _buildBody(),
-      ),
+      body: isConfirmStep
+          ? _buildBody()
+          : SingleChildScrollView(
+              padding: const EdgeInsets.all(20),
+              child: _buildBody(),
+            ),
     );
   }
 
@@ -173,6 +185,8 @@ class _SendMoneyScreenState extends ConsumerState<SendMoneyScreen> {
         return _buildAmountStep();
       case _SendStep.pin:
         return _buildPinStep();
+      case _SendStep.confirm:
+        return _buildConfirmStep();
       case _SendStep.result:
         return _buildResultStep();
     }
@@ -339,14 +353,39 @@ class _SendMoneyScreenState extends ConsumerState<SendMoneyScreen> {
         ),
         const SizedBox(height: 20),
         PrimaryActionButton(
-          label: 'Send Money',
+          label: 'Review Send Money',
           loading: _isLoading,
-          onPressed: _sendMoney,
+          onPressed: _continueToConfirm,
         ),
         TextButton(
           onPressed: () => setState(() => _currentStep = _SendStep.amount),
           child: const Text('Change Amount'),
         ),
+      ],
+    );
+  }
+
+  Widget _buildConfirmStep() {
+    final receiver = _resolvedReceiver!;
+    final amount =
+        double.tryParse(_amountController.text.trim())?.toStringAsFixed(2) ??
+            '0.00';
+
+    return HoldToConfirmScreen(
+      actionName: 'Send Money',
+      accountName: receiver.displayName ?? receiver.mobileNumber,
+      accountNumber: receiver.mobileNumber,
+      avatarUrl: receiver.avatarUrl,
+      avatarIcon: Icons.person_outline,
+      isLoading: _isLoading,
+      onCancel: () => setState(() => _currentStep = _SendStep.pin),
+      onConfirmed: _sendMoney,
+      details: [
+        HoldToConfirmDetail(
+            label: 'Total', value: 'Tk $amount', mutedValue: '+ No charge'),
+        const HoldToConfirmDetail(label: 'Type', value: 'Wallet Transfer'),
+        HoldToConfirmDetail(label: 'Receiver', value: receiver.mobileNumber),
+        const HoldToConfirmDetail(label: 'Reference', value: 'SmartKash'),
       ],
     );
   }

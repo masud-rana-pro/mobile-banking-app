@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/errors/api_exception.dart';
+import '../../../shared/widgets/hold_to_confirm_screen.dart';
 import '../../transaction/providers/transaction_providers.dart';
 import '../../wallet/providers/wallet_providers.dart';
 import '../domain/mobile_recharge_record.dart';
@@ -18,7 +19,7 @@ class MobileRechargeScreen extends ConsumerStatefulWidget {
       _MobileRechargeScreenState();
 }
 
-enum _RechargeStep { details, pin, result }
+enum _RechargeStep { details, pin, confirm, result }
 
 class _OperatorOption {
   const _OperatorOption(this.value, this.label, this.color);
@@ -117,6 +118,14 @@ class _MobileRechargeScreenState extends ConsumerState<MobileRechargeScreen> {
     }
   }
 
+  void _continueToConfirm() {
+    if (_pinController.text.trim().length != 5) {
+      _showMessage('Enter your 5-digit PIN.');
+      return;
+    }
+    setState(() => _currentStep = _RechargeStep.confirm);
+  }
+
   void _reset() {
     setState(() {
       _currentStep = _RechargeStep.details;
@@ -146,22 +155,25 @@ class _MobileRechargeScreenState extends ConsumerState<MobileRechargeScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final isConfirmStep = _currentStep == _RechargeStep.confirm;
     return Scaffold(
       appBar: AppBar(
         title: const Text('Mobile Recharge'),
         centerTitle: true,
       ),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(20),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            _buildBody(),
-            const SizedBox(height: 18),
-            const _InboxHistoryHint(),
-          ],
-        ),
-      ),
+      body: isConfirmStep
+          ? _buildBody()
+          : SingleChildScrollView(
+              padding: const EdgeInsets.all(20),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  _buildBody(),
+                  const SizedBox(height: 18),
+                  const _InboxHistoryHint(),
+                ],
+              ),
+            ),
     );
   }
 
@@ -171,6 +183,8 @@ class _MobileRechargeScreenState extends ConsumerState<MobileRechargeScreen> {
         return _buildDetailsStep();
       case _RechargeStep.pin:
         return _buildPinStep();
+      case _RechargeStep.confirm:
+        return _buildConfirmStep();
       case _RechargeStep.result:
         return _buildResultStep();
     }
@@ -279,14 +293,40 @@ class _MobileRechargeScreenState extends ConsumerState<MobileRechargeScreen> {
         ),
         const SizedBox(height: 20),
         _primaryButton(
-          label: 'Recharge Now',
-          onPressed: _isLoading ? null : _submitRecharge,
+          label: 'Review Recharge',
+          onPressed: _isLoading ? null : _continueToConfirm,
           loading: _isLoading,
         ),
         TextButton(
           onPressed: () => setState(() => _currentStep = _RechargeStep.details),
           child: const Text('Change Details'),
         ),
+      ],
+    );
+  }
+
+  Widget _buildConfirmStep() {
+    final amount =
+        double.tryParse(_amountController.text.trim())?.toStringAsFixed(2) ??
+            '0.00';
+    final mobile = _mobileController.text.trim();
+    final operator =
+        _operators.firstWhere((item) => item.value == _selectedOperator).label;
+
+    return HoldToConfirmScreen(
+      actionName: 'Mobile Recharge',
+      accountName: mobile,
+      accountNumber: operator,
+      avatarIcon: Icons.phone_android_outlined,
+      isLoading: _isLoading,
+      onCancel: () => setState(() => _currentStep = _RechargeStep.pin),
+      onConfirmed: _submitRecharge,
+      details: [
+        HoldToConfirmDetail(
+            label: 'Total', value: 'Tk $amount', mutedValue: '+ No charge'),
+        const HoldToConfirmDetail(label: 'Type', value: 'Prepaid'),
+        HoldToConfirmDetail(label: 'Mobile Operator', value: operator),
+        HoldToConfirmDetail(label: 'Number', value: mobile),
       ],
     );
   }

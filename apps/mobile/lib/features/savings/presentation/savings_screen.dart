@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/errors/api_exception.dart';
 import '../../../shared/widgets/feature_flow_widgets.dart';
+import '../../../shared/widgets/hold_to_confirm_screen.dart';
 import '../../transaction/providers/transaction_providers.dart';
 import '../../wallet/providers/wallet_providers.dart';
 import '../domain/savings_goal.dart';
@@ -30,6 +31,7 @@ class _SavingsScreenState extends ConsumerState<SavingsScreen> {
   String? _depositIdempotencyKey;
   bool _isCreating = false;
   bool _isDepositing = false;
+  bool _isDepositConfirming = false;
 
   @override
   void initState() {
@@ -129,6 +131,7 @@ class _SavingsScreenState extends ConsumerState<SavingsScreen> {
       _pinController.clear();
       _noteController.clear();
       _depositIdempotencyKey = null;
+      _isDepositConfirming = false;
       _showMessage(result.message.isEmpty
           ? 'Savings deposit completed.'
           : result.message);
@@ -137,6 +140,33 @@ class _SavingsScreenState extends ConsumerState<SavingsScreen> {
     } finally {
       setState(() => _isDepositing = false);
     }
+  }
+
+  void _continueDepositToConfirm() {
+    final goal = _selectedGoal;
+    final amount = double.tryParse(_depositAmountController.text.trim());
+    final pin = _pinController.text.trim();
+
+    if (goal == null) {
+      _showMessage('Select a savings goal first.');
+      return;
+    }
+
+    if (amount == null || amount < 1) {
+      _showMessage('Enter a deposit amount of at least BDT 1.00.');
+      return;
+    }
+
+    if (pin.length != 5) {
+      _showMessage('Enter your 5-digit PIN.');
+      return;
+    }
+
+    setState(() {
+      _depositIdempotencyKey ??=
+          ref.read(savingsRepositoryProvider).createIdempotencyKey();
+      _isDepositConfirming = true;
+    });
   }
 
   String _friendlyError(Object error, {required String fallback}) {
@@ -162,35 +192,61 @@ class _SavingsScreenState extends ConsumerState<SavingsScreen> {
         title: const Text('Savings'),
         centerTitle: true,
       ),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(20),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            const FeatureIntroCard(
-              icon: Icons.savings_outlined,
-              title: 'Goal Savings',
-              subtitle:
-                  'Create goals and deposit from your SmartKash wallet. Every deposit appears in Inbox transactions.',
-            ),
-            const SizedBox(height: 22),
-            _createGoalCard(),
-            const SizedBox(height: 28),
-            const Text(
-              'My Goals',
-              style: TextStyle(
-                fontSize: 20,
-                fontWeight: FontWeight.w800,
-                color: Color(0xFF263238),
+      body: _isDepositConfirming
+          ? _depositConfirmStep()
+          : SingleChildScrollView(
+              padding: const EdgeInsets.all(20),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const FeatureIntroCard(
+                    icon: Icons.savings_outlined,
+                    title: 'Goal Savings',
+                    subtitle:
+                        'Create goals and deposit from your SmartKash wallet. Every deposit appears in Inbox transactions.',
+                  ),
+                  const SizedBox(height: 22),
+                  _createGoalCard(),
+                  const SizedBox(height: 28),
+                  const Text(
+                    'My Goals',
+                    style: TextStyle(
+                      fontSize: 20,
+                      fontWeight: FontWeight.w800,
+                      color: Color(0xFF263238),
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+                  _goalsList(goalsAsync),
+                  const SizedBox(height: 28),
+                  _depositCard(goalsAsync),
+                ],
               ),
             ),
-            const SizedBox(height: 12),
-            _goalsList(goalsAsync),
-            const SizedBox(height: 28),
-            _depositCard(goalsAsync),
-          ],
-        ),
-      ),
+    );
+  }
+
+  Widget _depositConfirmStep() {
+    final goal = _selectedGoal!;
+    final amount = double.tryParse(_depositAmountController.text.trim())
+            ?.toStringAsFixed(2) ??
+        '0.00';
+
+    return HoldToConfirmScreen(
+      actionName: 'Savings Deposit',
+      accountName: goal.name,
+      accountNumber: 'Target Tk ${goal.targetAmount.toStringAsFixed(2)}',
+      avatarIcon: Icons.savings_outlined,
+      isLoading: _isDepositing,
+      onCancel: () => setState(() => _isDepositConfirming = false),
+      onConfirmed: _depositToGoal,
+      details: [
+        HoldToConfirmDetail(
+            label: 'Total', value: 'Tk $amount', mutedValue: '+ No charge'),
+        const HoldToConfirmDetail(label: 'Type', value: 'Goal Savings'),
+        HoldToConfirmDetail(label: 'Goal', value: goal.name),
+        const HoldToConfirmDetail(label: 'Reference', value: 'SmartKash'),
+      ],
     );
   }
 
@@ -438,10 +494,11 @@ class _SavingsScreenState extends ConsumerState<SavingsScreen> {
           ),
           const SizedBox(height: 18),
           PrimaryActionButton(
-            label: 'Deposit',
+            label: 'Review Deposit',
             loading: _isDepositing,
-            onPressed:
-                activeGoals.isEmpty || _isDepositing ? null : _depositToGoal,
+            onPressed: activeGoals.isEmpty || _isDepositing
+                ? null
+                : _continueDepositToConfirm,
           ),
         ],
       ),

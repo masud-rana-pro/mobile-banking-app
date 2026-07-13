@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 
 import '../../../core/errors/api_exception.dart';
 import '../../../shared/widgets/feature_flow_widgets.dart';
+import '../../../shared/widgets/hold_to_confirm_screen.dart';
 import '../../notification/presentation/notification_inbox_screen.dart';
 import '../../qr/presentation/qr_screen.dart';
 import '../../transaction/providers/transaction_providers.dart';
@@ -28,7 +29,7 @@ class MerchantPaymentScreen extends ConsumerStatefulWidget {
       _MerchantPaymentScreenState();
 }
 
-enum _PaymentStep { merchant, amount, pin, result }
+enum _PaymentStep { merchant, amount, pin, confirm, result }
 
 class _MerchantPaymentScreenState extends ConsumerState<MerchantPaymentScreen> {
   final _merchantNumberController = TextEditingController();
@@ -130,6 +131,14 @@ class _MerchantPaymentScreenState extends ConsumerState<MerchantPaymentScreen> {
     }
   }
 
+  void _continueToConfirm() {
+    if (_pinController.text.trim().length != 5) {
+      _showMessage('Enter your 5-digit PIN.');
+      return;
+    }
+    setState(() => _currentStep = _PaymentStep.confirm);
+  }
+
   void _reset() {
     setState(() {
       _currentStep = _PaymentStep.merchant;
@@ -159,15 +168,18 @@ class _MerchantPaymentScreenState extends ConsumerState<MerchantPaymentScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final isConfirmStep = _currentStep == _PaymentStep.confirm;
     return Scaffold(
       appBar: AppBar(
         title: const Text('Merchant Payment'),
         centerTitle: true,
       ),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(20),
-        child: _buildBody(),
-      ),
+      body: isConfirmStep
+          ? _buildBody()
+          : SingleChildScrollView(
+              padding: const EdgeInsets.all(20),
+              child: _buildBody(),
+            ),
     );
   }
 
@@ -179,6 +191,8 @@ class _MerchantPaymentScreenState extends ConsumerState<MerchantPaymentScreen> {
         return _buildAmountStep();
       case _PaymentStep.pin:
         return _buildPinStep();
+      case _PaymentStep.confirm:
+        return _buildConfirmStep();
       case _PaymentStep.result:
         return _buildResultStep();
     }
@@ -321,14 +335,39 @@ class _MerchantPaymentScreenState extends ConsumerState<MerchantPaymentScreen> {
         ),
         const SizedBox(height: 20),
         PrimaryActionButton(
-          label: 'Pay Merchant',
+          label: 'Review Payment',
           loading: _isLoading,
-          onPressed: _payMerchant,
+          onPressed: _continueToConfirm,
         ),
         TextButton(
           onPressed: () => setState(() => _currentStep = _PaymentStep.amount),
           child: const Text('Change Amount'),
         ),
+      ],
+    );
+  }
+
+  Widget _buildConfirmStep() {
+    final target = _merchantTarget!;
+    final amount =
+        double.tryParse(_amountController.text.trim())?.toStringAsFixed(2) ??
+            '0.00';
+
+    return HoldToConfirmScreen(
+      actionName: 'Payment',
+      accountName: target.businessName,
+      accountNumber: target.merchantNumber,
+      avatarUrl: target.avatarUrl,
+      avatarIcon: Icons.storefront_outlined,
+      isLoading: _isLoading,
+      onCancel: () => setState(() => _currentStep = _PaymentStep.pin),
+      onConfirmed: _payMerchant,
+      details: [
+        HoldToConfirmDetail(
+            label: 'Total', value: 'Tk $amount', mutedValue: '+ No charge'),
+        HoldToConfirmDetail(label: 'Merchant Type', value: target.businessType),
+        HoldToConfirmDetail(label: 'Merchant', value: target.merchantNumber),
+        const HoldToConfirmDetail(label: 'Reference', value: 'SmartKash'),
       ],
     );
   }
