@@ -184,14 +184,12 @@ class _SendMoneyScreenState extends ConsumerState<SendMoneyScreen> {
         FeatureSectionCard(
           child: Row(
             children: [
-              Container(
-                width: 48,
-                height: 48,
-                decoration: const BoxDecoration(
-                  color: Color(0xFF0E9F6E),
-                  shape: BoxShape.circle,
-                ),
-                child: const Icon(Icons.person, color: Colors.white, size: 28),
+              ProfileImageAvatar(
+                imageUrl: receiver.avatarUrl,
+                fallbackIcon: Icons.person,
+                radius: 24,
+                backgroundColor: const Color(0xFFE9F8F4),
+                iconColor: const Color(0xFF008F7A),
               ),
               const SizedBox(width: 14),
               Expanded(

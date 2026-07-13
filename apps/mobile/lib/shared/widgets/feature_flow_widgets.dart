@@ -66,6 +66,54 @@ class FeatureIntroCard extends StatelessWidget {
   }
 }
 
+class ProfileImageAvatar extends StatelessWidget {
+  const ProfileImageAvatar({
+    super.key,
+    required this.imageUrl,
+    required this.fallbackIcon,
+    this.radius = 24,
+    this.backgroundColor = const Color(0xFFE9F8F4),
+    this.iconColor = const Color(0xFF008F7A),
+  });
+
+  final String? imageUrl;
+  final IconData fallbackIcon;
+  final double radius;
+  final Color backgroundColor;
+  final Color iconColor;
+
+  @override
+  Widget build(BuildContext context) {
+    final safeUrl = imageUrl?.trim() ?? '';
+    if (safeUrl.isEmpty) {
+      return CircleAvatar(
+        radius: radius,
+        backgroundColor: backgroundColor,
+        child: Icon(fallbackIcon, color: iconColor, size: radius),
+      );
+    }
+
+    return CircleAvatar(
+      radius: radius,
+      backgroundColor: backgroundColor,
+      child: ClipOval(
+        child: Image.network(
+          safeUrl,
+          key: ValueKey(safeUrl),
+          width: radius * 2,
+          height: radius * 2,
+          fit: BoxFit.cover,
+          errorBuilder: (_, __, ___) => Icon(
+            fallbackIcon,
+            color: iconColor,
+            size: radius,
+          ),
+        ),
+      ),
+    );
+  }
+}
+
 class FeatureSectionCard extends StatelessWidget {
   const FeatureSectionCard({
     super.key,

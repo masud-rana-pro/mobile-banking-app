@@ -1,8 +1,11 @@
+import '../../../app/config/app_config.dart';
+
 class SendMoneyReceiver {
   const SendMoneyReceiver({
     required this.userId,
     required this.mobileNumber,
     this.displayName,
+    this.avatarUrl,
     required this.role,
     required this.userStatus,
     required this.walletStatus,
@@ -11,6 +14,7 @@ class SendMoneyReceiver {
   final int userId;
   final String mobileNumber;
   final String? displayName;
+  final String? avatarUrl;
   final String role;
   final String userStatus;
   final String walletStatus;
@@ -20,6 +24,7 @@ class SendMoneyReceiver {
       userId: json['userId'] as int? ?? 0,
       mobileNumber: json['mobileNumber'] as String? ?? '',
       displayName: json['displayName'] as String?,
+      avatarUrl: _absoluteAvatarUrl(json['avatarUrl'] as String?),
       role: json['role'] as String? ?? 'CUSTOMER',
       userStatus: json['userStatus'] as String? ?? 'ACTIVE',
       walletStatus: json['walletStatus'] as String? ?? 'ACTIVE',
@@ -27,6 +32,21 @@ class SendMoneyReceiver {
   }
 
   bool get isValid => userStatus == 'ACTIVE' && walletStatus == 'ACTIVE';
+
+  static String? _absoluteAvatarUrl(String? avatarUrl) {
+    if (avatarUrl == null || avatarUrl.trim().isEmpty) {
+      return null;
+    }
+
+    final trimmed = avatarUrl.trim();
+    if (trimmed.startsWith('http://') || trimmed.startsWith('https://')) {
+      return trimmed;
+    }
+
+    final baseUrl = AppConfig.backendBaseUrl.replaceFirst(RegExp(r'/$'), '');
+    final path = trimmed.startsWith('/') ? trimmed : '/$trimmed';
+    return '$baseUrl$path';
+  }
 }
 
 class SendMoneyResult {

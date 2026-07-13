@@ -14,6 +14,7 @@ public class SendMoneyReceiverMapper {
                 receiver.getId(),
                 receiver.getMobileNumber(),
                 displayName(receiver),
+                avatarUrl(receiver),
                 receiver.getRole(),
                 receiver.getStatus(),
                 receiverWallet.getStatus()
@@ -26,5 +27,18 @@ public class SendMoneyReceiverMapper {
             return null;
         }
         return profile.getFullName();
+    }
+
+    private String avatarUrl(User receiver) {
+        UserProfile profile = receiver.getProfile();
+        if (profile == null) {
+            return null;
+        }
+
+        if (profile.getAvatarImageId() != null && !profile.getAvatarImageId().isBlank()) {
+            return "/api/users/profile-images/" + profile.getAvatarImageId();
+        }
+
+        return profile.getAvatarUrl();
     }
 }

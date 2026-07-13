@@ -8,6 +8,7 @@ public record SendMoneyReceiverResponse(
         Long userId,
         String mobileNumber,
         String displayName,
+        String avatarUrl,
         UserRole role,
         UserStatus userStatus,
         WalletStatus walletStatus

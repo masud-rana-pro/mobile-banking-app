@@ -26,6 +26,7 @@ import com.smartkash.transaction.enums.TransactionStatus;
 import com.smartkash.transaction.enums.TransactionType;
 import com.smartkash.transaction.repository.TransactionRecordRepository;
 import com.smartkash.user.entity.User;
+import com.smartkash.user.entity.UserProfile;
 import com.smartkash.user.enums.UserStatus;
 import com.smartkash.user.repository.UserRepository;
 import com.smartkash.wallet.entity.Wallet;
@@ -101,6 +102,7 @@ public class MerchantPaymentServiceImpl implements MerchantPaymentService {
                 merchant.getMerchantNumber(),
                 merchant.getBusinessName(),
                 merchant.getBusinessType(),
+                avatarUrl(merchantUser),
                 merchant.getStatus()
         );
     }
@@ -307,6 +309,23 @@ public class MerchantPaymentServiceImpl implements MerchantPaymentService {
         if (customer.getId().equals(merchantUser.getId())) {
             throw new IllegalArgumentException("Customer cannot pay their own merchant account.");
         }
+    }
+
+    private String avatarUrl(User user) {
+        if (user == null) {
+            return null;
+        }
+
+        UserProfile profile = user.getProfile();
+        if (profile == null) {
+            return null;
+        }
+
+        if (profile.getAvatarImageId() != null && !profile.getAvatarImageId().isBlank()) {
+            return "/api/users/profile-images/" + profile.getAvatarImageId();
+        }
+
+        return profile.getAvatarUrl();
     }
 
     private void ensureActiveWallet(Wallet wallet, String message) {

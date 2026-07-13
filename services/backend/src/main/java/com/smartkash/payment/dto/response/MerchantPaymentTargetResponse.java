@@ -7,6 +7,7 @@ public record MerchantPaymentTargetResponse(
         String merchantNumber,
         String businessName,
         String businessType,
+        String avatarUrl,
         MerchantStatus status
 ) {
 }
