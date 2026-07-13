@@ -21,7 +21,7 @@ class PayBillScreen extends ConsumerStatefulWidget {
   ConsumerState<PayBillScreen> createState() => _PayBillScreenState();
 }
 
-enum _PayBillStep { details, pin, confirm, result }
+enum _PayBillStep { biller, amount, pin, confirm, result }
 
 class _BillerOption {
   const _BillerOption(this.code, this.label, this.icon, this.color);
@@ -46,7 +46,7 @@ class _PayBillScreenState extends ConsumerState<PayBillScreen> {
   final _pinController = TextEditingController();
   final _noteController = TextEditingController();
 
-  _PayBillStep _step = _PayBillStep.details;
+  _PayBillStep _step = _PayBillStep.biller;
   String _selectedBiller = _billers.first.code;
   PayBillResult? _result;
   String? _idempotencyKey;
@@ -61,13 +61,17 @@ class _PayBillScreenState extends ConsumerState<PayBillScreen> {
     super.dispose();
   }
 
-  void _continueToPin() {
+  void _continueToAmount() {
     final account = _accountController.text.trim();
-    final amount = double.tryParse(_amountController.text.trim());
     if (account.length < 3) {
       _showMessage('Enter a valid bill account number.');
       return;
     }
+    setState(() => _step = _PayBillStep.amount);
+  }
+
+  void _continueToPin() {
+    final amount = double.tryParse(_amountController.text.trim());
     if (amount == null || amount < 1) {
       _showMessage('Enter a valid amount.');
       return;
@@ -125,7 +129,7 @@ class _PayBillScreenState extends ConsumerState<PayBillScreen> {
 
   void _reset() {
     setState(() {
-      _step = _PayBillStep.details;
+      _step = _PayBillStep.biller;
       _selectedBiller = _billers.first.code;
       _result = null;
       _idempotencyKey = null;
@@ -165,19 +169,15 @@ class _PayBillScreenState extends ConsumerState<PayBillScreen> {
 
   Widget _buildBody() {
     return switch (_step) {
-      _PayBillStep.details => _detailsStep(),
+      _PayBillStep.biller => _billerStep(),
+      _PayBillStep.amount => _amountStep(),
       _PayBillStep.pin => _pinStep(),
       _PayBillStep.confirm => _confirmStep(),
       _PayBillStep.result => _resultStep(),
     };
   }
 
-  Widget _detailsStep() {
-    final balanceText = ref.watch(walletSummaryProvider).maybeWhen(
-          data: (wallet) => '৳${wallet.balance.toStringAsFixed(2)}',
-          orElse: () => null,
-        );
-
+  Widget _billerStep() {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -187,7 +187,7 @@ class _PayBillScreenState extends ConsumerState<PayBillScreen> {
         ),
         const SizedBox(height: 8),
         const Text(
-          'Demo Pay Bill debits your wallet and creates transaction history. No real biller API is used.',
+          'Choose the biller and enter the bill account first. Amount and PIN confirmation come next.',
           style: TextStyle(color: Color(0xFF607D8B), height: 1.35),
         ),
         const SizedBox(height: 18),
@@ -215,6 +215,34 @@ class _PayBillScreenState extends ConsumerState<PayBillScreen> {
             border: OutlineInputBorder(),
           ),
         ),
+        const SizedBox(height: 22),
+        PrimaryActionButton(
+          label: 'Next: Enter Amount',
+          loading: _isLoading,
+          onPressed: _isLoading ? null : _continueToAmount,
+        ),
+      ],
+    );
+  }
+
+  Widget _amountStep() {
+    final balanceText = ref.watch(walletSummaryProvider).maybeWhen(
+          data: (wallet) => '৳${wallet.balance.toStringAsFixed(2)}',
+          orElse: () => null,
+        );
+    final biller =
+        _billers.firstWhere((item) => item.code == _selectedBiller).label;
+    final account = _accountController.text.trim();
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        AmountRecipientCard(
+          label: 'Biller',
+          title: biller,
+          subtitle: account,
+          fallbackIcon: Icons.receipt_long_outlined,
+        ),
         const SizedBox(height: 18),
         AmountEntryPanel(
           controller: _amountController,
@@ -232,6 +260,13 @@ class _PayBillScreenState extends ConsumerState<PayBillScreen> {
             labelText: 'Reference (optional)',
             border: OutlineInputBorder(),
           ),
+        ),
+        TextButton.icon(
+          onPressed: _isLoading
+              ? null
+              : () => setState(() => _step = _PayBillStep.biller),
+          icon: const Icon(Icons.edit_outlined),
+          label: const Text('Change Biller'),
         ),
       ],
     );
@@ -257,7 +292,7 @@ class _PayBillScreenState extends ConsumerState<PayBillScreen> {
           secondaryTypeLabel: 'Saved',
           loading: _isLoading,
           onConfirm: _continueToConfirm,
-          onBackToAmount: () => setState(() => _step = _PayBillStep.details),
+          onBackToAmount: () => setState(() => _step = _PayBillStep.amount),
           recipient: AmountRecipientCard(
             label: 'Biller',
             title: biller,
