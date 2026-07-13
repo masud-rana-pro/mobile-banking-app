@@ -31,6 +31,7 @@ class _SavingsScreenState extends ConsumerState<SavingsScreen> {
   String? _depositIdempotencyKey;
   bool _isCreating = false;
   bool _isDepositing = false;
+  bool _isDepositPinStep = false;
   bool _isDepositConfirming = false;
 
   @override
@@ -131,6 +132,7 @@ class _SavingsScreenState extends ConsumerState<SavingsScreen> {
       _pinController.clear();
       _noteController.clear();
       _depositIdempotencyKey = null;
+      _isDepositPinStep = false;
       _isDepositConfirming = false;
       _showMessage(result.message.isEmpty
           ? 'Savings deposit completed.'
@@ -142,10 +144,9 @@ class _SavingsScreenState extends ConsumerState<SavingsScreen> {
     }
   }
 
-  void _continueDepositToConfirm() {
+  void _continueDepositToPin() {
     final goal = _selectedGoal;
     final amount = double.tryParse(_depositAmountController.text.trim());
-    final pin = _pinController.text.trim();
 
     if (goal == null) {
       _showMessage('Select a savings goal first.');
@@ -157,6 +158,12 @@ class _SavingsScreenState extends ConsumerState<SavingsScreen> {
       return;
     }
 
+    setState(() => _isDepositPinStep = true);
+  }
+
+  void _continueDepositToConfirm() {
+    final pin = _pinController.text.trim();
+
     if (pin.length != 5) {
       _showMessage('Enter your 5-digit PIN.');
       return;
@@ -165,6 +172,7 @@ class _SavingsScreenState extends ConsumerState<SavingsScreen> {
     setState(() {
       _depositIdempotencyKey ??=
           ref.read(savingsRepositoryProvider).createIdempotencyKey();
+      _isDepositPinStep = false;
       _isDepositConfirming = true;
     });
   }
@@ -194,35 +202,65 @@ class _SavingsScreenState extends ConsumerState<SavingsScreen> {
       ),
       body: _isDepositConfirming
           ? _depositConfirmStep()
-          : SingleChildScrollView(
-              padding: const EdgeInsets.all(20),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  const FeatureIntroCard(
-                    icon: Icons.savings_outlined,
-                    title: 'Goal Savings',
-                    subtitle:
-                        'Create goals and deposit from your SmartKash wallet. Every deposit appears in Inbox transactions.',
+          : _isDepositPinStep
+              ? _depositPinStep()
+              : SingleChildScrollView(
+                  padding: const EdgeInsets.all(20),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const FeatureIntroCard(
+                        icon: Icons.savings_outlined,
+                        title: 'Goal Savings',
+                        subtitle:
+                            'Create goals and deposit from your SmartKash wallet. Every deposit appears in Inbox transactions.',
+                      ),
+                      const SizedBox(height: 22),
+                      _createGoalCard(),
+                      const SizedBox(height: 28),
+                      const Text(
+                        'My Goals',
+                        style: TextStyle(
+                          fontSize: 20,
+                          fontWeight: FontWeight.w800,
+                          color: Color(0xFF263238),
+                        ),
+                      ),
+                      const SizedBox(height: 12),
+                      _goalsList(goalsAsync),
+                      const SizedBox(height: 28),
+                      _depositCard(goalsAsync),
+                    ],
                   ),
-                  const SizedBox(height: 22),
-                  _createGoalCard(),
-                  const SizedBox(height: 28),
-                  const Text(
-                    'My Goals',
-                    style: TextStyle(
-                      fontSize: 20,
-                      fontWeight: FontWeight.w800,
-                      color: Color(0xFF263238),
-                    ),
-                  ),
-                  const SizedBox(height: 12),
-                  _goalsList(goalsAsync),
-                  const SizedBox(height: 28),
-                  _depositCard(goalsAsync),
-                ],
-              ),
-            ),
+                ),
+    );
+  }
+
+  Widget _depositPinStep() {
+    final goal = _selectedGoal!;
+    final amount = double.tryParse(_depositAmountController.text.trim())
+            ?.toStringAsFixed(2) ??
+        '0.00';
+
+    return SingleChildScrollView(
+      padding: const EdgeInsets.fromLTRB(20, 18, 20, 30),
+      child: PinEntryPanel(
+        pinController: _pinController,
+        actionTitle: 'Savings Deposit',
+        amountText: '৳$amount',
+        totalText: '৳$amount',
+        typeLabel: 'Goal',
+        secondaryTypeLabel: 'Auto Save',
+        loading: _isDepositing,
+        onConfirm: _continueDepositToConfirm,
+        onBackToAmount: () => setState(() => _isDepositPinStep = false),
+        recipient: AmountRecipientCard(
+          label: 'Savings Goal',
+          title: goal.name,
+          subtitle: 'Target ৳${goal.targetAmount.toStringAsFixed(2)}',
+          fallbackIcon: Icons.savings_outlined,
+        ),
+      ),
     );
   }
 
@@ -463,6 +501,8 @@ class _SavingsScreenState extends ConsumerState<SavingsScreen> {
               setState(() {
                 _selectedGoal = goal;
                 _depositIdempotencyKey = null;
+                _isDepositPinStep = false;
+                _isDepositConfirming = false;
               });
             },
           ),
@@ -479,17 +519,6 @@ class _SavingsScreenState extends ConsumerState<SavingsScreen> {
           ),
           const SizedBox(height: 14),
           TextField(
-            controller: _pinController,
-            obscureText: true,
-            maxLength: 5,
-            keyboardType: TextInputType.number,
-            decoration: const InputDecoration(
-              labelText: '5-digit PIN',
-              border: OutlineInputBorder(),
-            ),
-          ),
-          const SizedBox(height: 14),
-          TextField(
             controller: _noteController,
             maxLength: 120,
             decoration: const InputDecoration(
@@ -499,11 +528,11 @@ class _SavingsScreenState extends ConsumerState<SavingsScreen> {
           ),
           const SizedBox(height: 18),
           PrimaryActionButton(
-            label: 'Review Deposit',
+            label: 'Next: Enter PIN',
             loading: _isDepositing,
             onPressed: activeGoals.isEmpty || _isDepositing
                 ? null
-                : _continueDepositToConfirm,
+                : _continueDepositToPin,
           ),
         ],
       ),
