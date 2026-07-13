@@ -288,145 +288,26 @@ class _CashOutScreenState extends ConsumerState<CashOutScreen> {
 
   Widget _resultStep() {
     final result = _result!;
-    return _ResultView(
+    return TransactionConfirmationScreen(
       success: result.success,
-      title: result.success ? 'Cash Out Successful!' : 'Cash Out Failed',
+      actionName: 'Cash Out',
       message: result.message,
-      rows: [
-        _ReceiptRow('Agent', result.agentNumber),
-        _ReceiptRow('Amount', 'BDT ${result.amount.toStringAsFixed(2)}'),
-        if (result.transactionReference != null)
-          _ReceiptRow('TrxID', result.transactionReference!),
-        if (result.balanceAfter != null)
-          _ReceiptRow(
-              'New Balance', 'BDT ${result.balanceAfter!.toStringAsFixed(2)}'),
-      ],
-      buttonLabel: 'Cash Out Again',
-      onPressed: _reset,
-      secondaryButtonLabel: 'View Inbox',
-      onSecondaryPressed: () => context.pushNamed(
-        NotificationInboxScreen.routeName,
-      ),
+      accountName: 'SmartKash Agent',
+      accountNumber: result.agentNumber,
+      avatarIcon: Icons.payments_outlined,
+      totalText: '৳${result.amount.toStringAsFixed(2)}',
+      transactionId: result.transactionReference,
+      newBalanceText: result.balanceAfter == null
+          ? null
+          : '৳${result.balanceAfter!.toStringAsFixed(2)}',
+      typeText: 'Cash Out',
+      extraLabel: 'Agent',
+      extraValue: result.agentNumber,
+      secondaryLabel: 'View Inbox',
+      onSecondaryAction: () =>
+          context.pushNamed(NotificationInboxScreen.routeName),
+      primaryLabel: 'Cash Out Again',
+      onPrimaryAction: _reset,
     );
   }
-}
-
-class _ResultView extends StatelessWidget {
-  const _ResultView({
-    required this.success,
-    required this.title,
-    required this.message,
-    required this.rows,
-    required this.buttonLabel,
-    required this.onPressed,
-    this.secondaryButtonLabel,
-    this.onSecondaryPressed,
-  });
-
-  final bool success;
-  final String title;
-  final String message;
-  final List<_ReceiptRow> rows;
-  final String buttonLabel;
-  final VoidCallback onPressed;
-  final String? secondaryButtonLabel;
-  final VoidCallback? onSecondaryPressed;
-
-  @override
-  Widget build(BuildContext context) {
-    final color = success ? const Color(0xFF2E7D32) : const Color(0xFFC62828);
-    return Column(
-      children: [
-        const SizedBox(height: 16),
-        Icon(success ? Icons.check_circle : Icons.cancel,
-            color: color, size: 78),
-        const SizedBox(height: 14),
-        Text(title,
-            style: TextStyle(
-                color: color, fontSize: 24, fontWeight: FontWeight.w900)),
-        const SizedBox(height: 8),
-        Text(message,
-            textAlign: TextAlign.center,
-            style: const TextStyle(color: Color(0xFF607D8B))),
-        const SizedBox(height: 22),
-        Container(
-          width: double.infinity,
-          padding: const EdgeInsets.all(16),
-          decoration: BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.circular(12),
-            border: Border.all(color: const Color(0xFFE9EDF2)),
-          ),
-          child: Column(
-            children: [
-              for (final row in rows)
-                Padding(
-                  padding: const EdgeInsets.symmetric(vertical: 7),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Text(row.label,
-                          style: const TextStyle(
-                              color: Color(0xFF607D8B),
-                              fontWeight: FontWeight.w700)),
-                      const SizedBox(width: 12),
-                      Flexible(
-                        child: Text(
-                          row.value,
-                          textAlign: TextAlign.end,
-                          style: const TextStyle(
-                              color: Color(0xFF263238),
-                              fontWeight: FontWeight.w900),
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-            ],
-          ),
-        ),
-        const SizedBox(height: 24),
-        Row(
-          children: [
-            if (secondaryButtonLabel != null && onSecondaryPressed != null) ...[
-              Expanded(
-                child: OutlinedButton(
-                  onPressed: onSecondaryPressed,
-                  style: OutlinedButton.styleFrom(
-                    foregroundColor: const Color(0xFF008F7A),
-                    side: const BorderSide(color: Color(0xFF008F7A)),
-                    minimumSize: const Size.fromHeight(52),
-                  ),
-                  child: Text(
-                    secondaryButtonLabel!,
-                    style: const TextStyle(fontWeight: FontWeight.w900),
-                  ),
-                ),
-              ),
-              const SizedBox(width: 12),
-            ],
-            Expanded(
-              child: ElevatedButton(
-                onPressed: onPressed,
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: const Color(0xFF008F7A),
-                  foregroundColor: Colors.white,
-                  minimumSize: const Size.fromHeight(52),
-                ),
-                child: Text(buttonLabel,
-                    style: const TextStyle(fontWeight: FontWeight.w900)),
-              ),
-            ),
-          ],
-        ),
-      ],
-    );
-  }
-}
-
-class _ReceiptRow {
-  const _ReceiptRow(this.label, this.value);
-
-  final String label;
-  final String value;
 }

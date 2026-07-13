@@ -370,93 +370,35 @@ class _MerchantPaymentScreenState extends ConsumerState<MerchantPaymentScreen> {
 
   Widget _buildResultStep() {
     final result = _paymentResult!;
-    final isSuccess = result.success;
+    final target = _merchantTarget;
+    final amount = result.amount ?? double.tryParse(_amountController.text);
 
-    return Column(
-      children: [
-        const SizedBox(height: 20),
-        Container(
-          width: 80,
-          height: 80,
-          decoration: BoxDecoration(
-            color:
-                isSuccess ? const Color(0xFFE8F5E9) : const Color(0xFFFFEBEE),
-            shape: BoxShape.circle,
-          ),
-          child: Icon(
-            isSuccess ? Icons.check_circle : Icons.cancel,
-            color:
-                isSuccess ? const Color(0xFF2E7D32) : const Color(0xFFC62828),
-            size: 48,
-          ),
-        ),
-        const SizedBox(height: 16),
-        Text(
-          isSuccess ? 'Payment Successful!' : 'Payment Failed',
-          style: TextStyle(
-            fontSize: 24,
-            fontWeight: FontWeight.w900,
-            color:
-                isSuccess ? const Color(0xFF2E7D32) : const Color(0xFFC62828),
-          ),
-        ),
-        const SizedBox(height: 8),
-        Text(
-          result.message,
-          textAlign: TextAlign.center,
-          style: const TextStyle(color: Color(0xFF607D8B), fontSize: 14),
-        ),
-        const SizedBox(height: 24),
-        ReceiptSummaryCard(
-          rows: [
-            if (result.amount != null)
-              ReceiptSummaryRow(
-                'Amount',
-                'Tk ${result.amount!.toStringAsFixed(2)}',
-              ),
-            if (result.merchantNumber != null)
-              ReceiptSummaryRow(
-                'To Merchant',
-                result.businessName ?? result.merchantNumber!,
-              ),
-            if (result.transactionReference != null)
-              ReceiptSummaryRow('TrxID', result.transactionReference!),
-            if (result.customerBalanceAfter != null)
-              ReceiptSummaryRow(
-                'New Balance',
-                'Tk ${result.customerBalanceAfter!.toStringAsFixed(2)}',
-              ),
-          ],
-        ),
-        const SizedBox(height: 24),
-        Row(
-          children: [
-            Expanded(
-              child: OutlinedButton(
-                onPressed: () =>
-                    context.pushNamed(NotificationInboxScreen.routeName),
-                style: OutlinedButton.styleFrom(
-                  foregroundColor: const Color(0xFF008F7A),
-                  side: const BorderSide(color: Color(0xFF008F7A)),
-                  minimumSize: const Size.fromHeight(54),
-                ),
-                child: const Text(
-                  'View Inbox',
-                  style: TextStyle(fontWeight: FontWeight.w900),
-                ),
-              ),
-            ),
-            const SizedBox(width: 12),
-            Expanded(
-              child: PrimaryActionButton(
-                label: 'Pay Again',
-                icon: Icons.refresh,
-                onPressed: _reset,
-              ),
-            ),
-          ],
-        ),
-      ],
+    return TransactionConfirmationScreen(
+      success: result.success,
+      actionName: 'Payment',
+      message: result.message,
+      accountName: result.businessName ??
+          target?.businessName ??
+          result.merchantNumber ??
+          'Merchant',
+      accountNumber: result.merchantNumber ?? target?.merchantNumber ?? '',
+      avatarUrl: target?.avatarUrl,
+      avatarIcon: Icons.storefront_outlined,
+      totalText: '৳${(amount ?? 0).toStringAsFixed(2)}',
+      transactionId: result.transactionReference,
+      newBalanceText: result.customerBalanceAfter == null
+          ? null
+          : '৳${result.customerBalanceAfter!.toStringAsFixed(2)}',
+      time: result.createdAt,
+      typeText: 'Merchant Payment',
+      extraLabel: 'Merchant',
+      extraValue:
+          result.merchantNumber ?? target?.merchantNumber ?? 'SmartKash',
+      secondaryLabel: 'View Inbox',
+      onSecondaryAction: () =>
+          context.pushNamed(NotificationInboxScreen.routeName),
+      primaryLabel: 'Pay Again',
+      onPrimaryAction: _reset,
     );
   }
 }

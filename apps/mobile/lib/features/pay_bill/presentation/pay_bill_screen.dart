@@ -297,108 +297,29 @@ class _PayBillScreenState extends ConsumerState<PayBillScreen> {
 
   Widget _resultStep() {
     final result = _result!;
-    return Column(
-      children: [
-        const SizedBox(height: 16),
-        Icon(
-          result.success ? Icons.check_circle : Icons.cancel,
-          color: result.success
-              ? const Color(0xFF2E7D32)
-              : const Color(0xFFC62828),
-          size: 78,
-        ),
-        const SizedBox(height: 14),
-        Text(
-          result.success ? 'Bill Paid Successfully!' : 'Bill Payment Failed',
-          style: TextStyle(
-            color: result.success
-                ? const Color(0xFF2E7D32)
-                : const Color(0xFFC62828),
-            fontSize: 24,
-            fontWeight: FontWeight.w900,
-          ),
-        ),
-        const SizedBox(height: 8),
-        Text(result.message,
-            textAlign: TextAlign.center,
-            style: const TextStyle(color: Color(0xFF607D8B))),
-        const SizedBox(height: 22),
-        _receiptCard(result),
-        const SizedBox(height: 24),
-        Row(
-          children: [
-            Expanded(
-              child: OutlinedButton(
-                onPressed: () => context.pushNamed(
-                  NotificationInboxScreen.routeName,
-                ),
-                style: OutlinedButton.styleFrom(
-                  foregroundColor: const Color(0xFF008F7A),
-                  side: const BorderSide(color: Color(0xFF008F7A)),
-                  minimumSize: const Size.fromHeight(52),
-                ),
-                child: const Text(
-                  'View Inbox',
-                  style: TextStyle(fontWeight: FontWeight.w900),
-                ),
-              ),
-            ),
-            const SizedBox(width: 12),
-            Expanded(
-              child: _primaryButton(label: 'Pay Another', onPressed: _reset),
-            ),
-          ],
-        ),
-      ],
-    );
-  }
+    final biller =
+        _billers.firstWhere((item) => item.code == result.billerCode).label;
 
-  Widget _receiptCard(PayBillResult result) {
-    final rows = [
-      ('Biller', result.billerCode),
-      ('Account', result.billAccountNumber),
-      ('Amount', 'BDT ${result.amount.toStringAsFixed(2)}'),
-      if (result.transactionReference != null)
-        ('TrxID', result.transactionReference!),
-      if (result.balanceAfter != null)
-        ('New Balance', 'BDT ${result.balanceAfter!.toStringAsFixed(2)}'),
-    ];
-
-    return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: const Color(0xFFE9EDF2)),
-      ),
-      child: Column(
-        children: [
-          for (final row in rows)
-            Padding(
-              padding: const EdgeInsets.symmetric(vertical: 7),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Text(row.$1,
-                      style: const TextStyle(
-                          color: Color(0xFF607D8B),
-                          fontWeight: FontWeight.w700)),
-                  const SizedBox(width: 12),
-                  Flexible(
-                    child: Text(
-                      row.$2,
-                      textAlign: TextAlign.end,
-                      style: const TextStyle(
-                          color: Color(0xFF263238),
-                          fontWeight: FontWeight.w900),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-        ],
-      ),
+    return TransactionConfirmationScreen(
+      success: result.success,
+      actionName: 'Pay Bill',
+      message: result.message,
+      accountName: biller,
+      accountNumber: result.billAccountNumber,
+      avatarIcon: Icons.receipt_long_outlined,
+      totalText: '৳${result.amount.toStringAsFixed(2)}',
+      transactionId: result.transactionReference,
+      newBalanceText: result.balanceAfter == null
+          ? null
+          : '৳${result.balanceAfter!.toStringAsFixed(2)}',
+      typeText: 'Bill Payment',
+      extraLabel: 'Biller',
+      extraValue: result.billerCode,
+      secondaryLabel: 'View Inbox',
+      onSecondaryAction: () =>
+          context.pushNamed(NotificationInboxScreen.routeName),
+      primaryLabel: 'Pay Another',
+      onPrimaryAction: _reset,
     );
   }
 

@@ -938,6 +938,312 @@ class _TypeChip extends StatelessWidget {
   }
 }
 
+class TransactionConfirmationScreen extends StatelessWidget {
+  const TransactionConfirmationScreen({
+    super.key,
+    required this.success,
+    required this.actionName,
+    required this.message,
+    required this.accountName,
+    required this.accountNumber,
+    required this.totalText,
+    required this.onPrimaryAction,
+    required this.primaryLabel,
+    this.transactionId,
+    this.newBalanceText,
+    this.time,
+    this.typeText,
+    this.extraLabel = 'Reference',
+    this.extraValue = 'SmartKash',
+    this.chargeText = '+ No charge',
+    this.avatarUrl,
+    this.avatarIcon = Icons.person_outline,
+    this.onSecondaryAction,
+    this.secondaryLabel,
+  });
+
+  final bool success;
+  final String actionName;
+  final String message;
+  final String accountName;
+  final String accountNumber;
+  final String totalText;
+  final String? transactionId;
+  final String? newBalanceText;
+  final DateTime? time;
+  final String? typeText;
+  final String extraLabel;
+  final String extraValue;
+  final String chargeText;
+  final String? avatarUrl;
+  final IconData avatarIcon;
+  final VoidCallback onPrimaryAction;
+  final String primaryLabel;
+  final VoidCallback? onSecondaryAction;
+  final String? secondaryLabel;
+
+  static const _accent = Color(0xFF008F7A);
+  static const _danger = Color(0xFFC62828);
+
+  @override
+  Widget build(BuildContext context) {
+    final statusColor = success ? _accent : _danger;
+    final completedAt = time ?? DateTime.now();
+
+    return SingleChildScrollView(
+      padding: const EdgeInsets.fromLTRB(18, 16, 18, 24),
+      child: Column(
+        children: [
+          Container(
+            width: double.infinity,
+            padding: const EdgeInsets.fromLTRB(20, 18, 20, 20),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(12),
+              boxShadow: const [
+                BoxShadow(
+                  color: Color(0x1F000000),
+                  blurRadius: 20,
+                  offset: Offset(0, 8),
+                ),
+              ],
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Text(
+                  'SmartKash',
+                  style: TextStyle(
+                    color: Color(0xFF263238),
+                    fontSize: 22,
+                    fontStyle: FontStyle.italic,
+                    fontWeight: FontWeight.w900,
+                  ),
+                ),
+                const SizedBox(height: 8),
+                Text(
+                  '$actionName ${_formatLongDate(completedAt)}',
+                  style: const TextStyle(
+                    color: Color(0xFF455A64),
+                    fontSize: 16,
+                    fontStyle: FontStyle.italic,
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(height: 22),
+          Icon(
+            success ? Icons.check_circle_outline : Icons.cancel_outlined,
+            color: statusColor,
+            size: 64,
+          ),
+          const SizedBox(height: 8),
+          Text(
+            message.isEmpty
+                ? success
+                    ? 'Your $actionName is successful'
+                    : '$actionName failed'
+                : message,
+            textAlign: TextAlign.center,
+            style: TextStyle(
+              color: statusColor,
+              fontSize: 20,
+              fontWeight: FontWeight.w900,
+            ),
+          ),
+          const SizedBox(height: 28),
+          AmountRecipientCard(
+            label: 'Account',
+            title: accountName,
+            subtitle: accountNumber,
+            imageUrl: avatarUrl,
+            fallbackIcon: avatarIcon,
+          ),
+          const SizedBox(height: 8),
+          _ReceiptGrid(
+            items: [
+              _ReceiptGridItem('Time', _formatShortDate(completedAt)),
+              _ReceiptGridItem(
+                'Transaction ID',
+                transactionId?.isNotEmpty == true ? transactionId! : 'N/A',
+                copyable: transactionId?.isNotEmpty == true,
+              ),
+              _ReceiptGridItem('Total', '$totalText\n$chargeText'),
+              _ReceiptGridItem('New Balance', newBalanceText ?? 'Hidden'),
+              _ReceiptGridItem('Type', typeText ?? actionName),
+              _ReceiptGridItem(extraLabel, extraValue),
+            ],
+          ),
+          const SizedBox(height: 22),
+          OutlinedButton.icon(
+            onPressed: onSecondaryAction,
+            icon: const Icon(Icons.history),
+            label: Text(secondaryLabel ?? 'View Inbox'),
+            style: OutlinedButton.styleFrom(
+              foregroundColor: _accent,
+              disabledForegroundColor: const Color(0xFF90A4AE),
+              side: const BorderSide(color: _accent),
+              minimumSize: const Size.fromHeight(54),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(8),
+              ),
+            ),
+          ),
+          const SizedBox(height: 28),
+          const Icon(Icons.star, color: Color(0xFF008F7A), size: 44),
+          const SizedBox(height: 10),
+          const Text(
+            'You have earned',
+            style: TextStyle(color: Color(0xFF607D8B), fontSize: 16),
+          ),
+          const SizedBox(height: 4),
+          const Text(
+            'SmartKash Reward Points',
+            style: TextStyle(
+              color: Color(0xFF263238),
+              fontSize: 20,
+              fontWeight: FontWeight.w900,
+            ),
+          ),
+          const SizedBox(height: 30),
+          PrimaryActionButton(
+            label: primaryLabel,
+            icon: Icons.arrow_forward,
+            onPressed: onPrimaryAction,
+          ),
+        ],
+      ),
+    );
+  }
+
+  static String _formatLongDate(DateTime date) {
+    final day = date.day.toString().padLeft(2, '0');
+    final month = date.month.toString().padLeft(2, '0');
+    final hour = _hour12(date);
+    final minute = date.minute.toString().padLeft(2, '0');
+    final suffix = date.hour >= 12 ? 'PM' : 'AM';
+    return '$day-$month-${date.year} $hour:$minute $suffix';
+  }
+
+  static String _formatShortDate(DateTime date) {
+    final hour = _hour12(date);
+    final minute = date.minute.toString().padLeft(2, '0');
+    final suffix = date.hour >= 12 ? 'pm' : 'am';
+    final day = date.day.toString().padLeft(2, '0');
+    final month = date.month.toString().padLeft(2, '0');
+    final year = (date.year % 100).toString().padLeft(2, '0');
+    return '$hour:${minute}$suffix $day/$month/$year';
+  }
+
+  static String _hour12(DateTime date) {
+    final hour = date.hour % 12 == 0 ? 12 : date.hour % 12;
+    return hour.toString().padLeft(2, '0');
+  }
+}
+
+class _ReceiptGrid extends StatelessWidget {
+  const _ReceiptGrid({required this.items});
+
+  final List<_ReceiptGridItem> items;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      decoration: BoxDecoration(
+        color: Colors.white,
+        border: Border.all(color: const Color(0xFFE9EDF2)),
+      ),
+      child: Column(
+        children: [
+          for (var index = 0; index < items.length; index += 2)
+            IntrinsicHeight(
+              child: Row(
+                children: [
+                  Expanded(child: _ReceiptGridCell(item: items[index])),
+                  Container(width: 1, color: const Color(0xFFE9EDF2)),
+                  Expanded(
+                    child: _ReceiptGridCell(
+                      item: index + 1 < items.length
+                          ? items[index + 1]
+                          : const _ReceiptGridItem('', ''),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+        ],
+      ),
+    );
+  }
+}
+
+class _ReceiptGridCell extends StatelessWidget {
+  const _ReceiptGridCell({required this.item});
+
+  final _ReceiptGridItem item;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      constraints: const BoxConstraints(minHeight: 92),
+      padding: const EdgeInsets.all(18),
+      decoration: const BoxDecoration(
+        border: Border(bottom: BorderSide(color: Color(0xFFE9EDF2))),
+      ),
+      child: item.label.isEmpty
+          ? const SizedBox.shrink()
+          : Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  item.label,
+                  style: const TextStyle(
+                    color: Color(0xFF607D8B),
+                    fontSize: 14,
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
+                const SizedBox(height: 10),
+                Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Expanded(
+                      child: Text(
+                        item.value,
+                        style: const TextStyle(
+                          color: Color(0xFF263238),
+                          fontSize: 16,
+                          height: 1.35,
+                          fontWeight: FontWeight.w900,
+                        ),
+                      ),
+                    ),
+                    if (item.copyable) ...[
+                      const SizedBox(width: 6),
+                      const Icon(
+                        Icons.copy,
+                        color: Color(0xFF008F7A),
+                        size: 18,
+                      ),
+                    ],
+                  ],
+                ),
+              ],
+            ),
+    );
+  }
+}
+
+class _ReceiptGridItem {
+  const _ReceiptGridItem(this.label, this.value, {this.copyable = false});
+
+  final String label;
+  final String value;
+  final bool copyable;
+}
+
 class ReceiptSummaryCard extends StatelessWidget {
   const ReceiptSummaryCard({
     super.key,

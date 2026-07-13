@@ -6,6 +6,7 @@ import '../../../shared/widgets/feature_flow_widgets.dart';
 import '../../../shared/widgets/hold_to_confirm_screen.dart';
 import '../../transaction/providers/transaction_providers.dart';
 import '../../wallet/providers/wallet_providers.dart';
+import '../domain/savings_deposit_result.dart';
 import '../domain/savings_goal.dart';
 import '../providers/savings_providers.dart';
 
@@ -28,6 +29,7 @@ class _SavingsScreenState extends ConsumerState<SavingsScreen> {
   final _noteController = TextEditingController();
 
   SavingsGoal? _selectedGoal;
+  SavingsDepositResult? _depositResult;
   String? _depositIdempotencyKey;
   bool _isCreating = false;
   bool _isDepositing = false;
@@ -128,15 +130,12 @@ class _SavingsScreenState extends ConsumerState<SavingsScreen> {
       ref.read(walletRefreshProvider)();
       ref.read(savingsRefreshProvider)();
       ref.read(transactionRefreshProvider)();
-      _depositAmountController.clear();
       _pinController.clear();
       _noteController.clear();
+      _depositResult = result;
       _depositIdempotencyKey = null;
       _isDepositPinStep = false;
       _isDepositConfirming = false;
-      _showMessage(result.message.isEmpty
-          ? 'Savings deposit completed.'
-          : result.message);
     } catch (error) {
       _showMessage(_friendlyError(error, fallback: 'Could not deposit.'));
     } finally {
@@ -202,37 +201,39 @@ class _SavingsScreenState extends ConsumerState<SavingsScreen> {
       ),
       body: _isDepositConfirming
           ? _depositConfirmStep()
-          : _isDepositPinStep
-              ? _depositPinStep()
-              : SingleChildScrollView(
-                  padding: const EdgeInsets.all(20),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      const FeatureIntroCard(
-                        icon: Icons.savings_outlined,
-                        title: 'Goal Savings',
-                        subtitle:
-                            'Create goals and deposit from your SmartKash wallet. Every deposit appears in Inbox transactions.',
+          : _depositResult != null
+              ? _depositResultStep()
+              : _isDepositPinStep
+                  ? _depositPinStep()
+                  : SingleChildScrollView(
+                      padding: const EdgeInsets.all(20),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          const FeatureIntroCard(
+                            icon: Icons.savings_outlined,
+                            title: 'Goal Savings',
+                            subtitle:
+                                'Create goals and deposit from your SmartKash wallet. Every deposit appears in Inbox transactions.',
+                          ),
+                          const SizedBox(height: 22),
+                          _createGoalCard(),
+                          const SizedBox(height: 28),
+                          const Text(
+                            'My Goals',
+                            style: TextStyle(
+                              fontSize: 20,
+                              fontWeight: FontWeight.w800,
+                              color: Color(0xFF263238),
+                            ),
+                          ),
+                          const SizedBox(height: 12),
+                          _goalsList(goalsAsync),
+                          const SizedBox(height: 28),
+                          _depositCard(goalsAsync),
+                        ],
                       ),
-                      const SizedBox(height: 22),
-                      _createGoalCard(),
-                      const SizedBox(height: 28),
-                      const Text(
-                        'My Goals',
-                        style: TextStyle(
-                          fontSize: 20,
-                          fontWeight: FontWeight.w800,
-                          color: Color(0xFF263238),
-                        ),
-                      ),
-                      const SizedBox(height: 12),
-                      _goalsList(goalsAsync),
-                      const SizedBox(height: 28),
-                      _depositCard(goalsAsync),
-                    ],
-                  ),
-                ),
+                    ),
     );
   }
 
@@ -261,6 +262,43 @@ class _SavingsScreenState extends ConsumerState<SavingsScreen> {
           fallbackIcon: Icons.savings_outlined,
         ),
       ),
+    );
+  }
+
+  Widget _depositResultStep() {
+    final result = _depositResult!;
+
+    return TransactionConfirmationScreen(
+      success: result.success,
+      actionName: 'Savings Deposit',
+      message:
+          result.message.isEmpty ? 'Savings deposit completed' : result.message,
+      accountName: result.goal.name,
+      accountNumber: 'Target ৳${result.goal.targetAmount.toStringAsFixed(2)}',
+      avatarIcon: Icons.savings_outlined,
+      totalText: '৳${result.amount.toStringAsFixed(2)}',
+      transactionId: result.transactionReference,
+      newBalanceText: result.walletBalanceAfter == null
+          ? null
+          : '৳${result.walletBalanceAfter!.toStringAsFixed(2)}',
+      time: result.createdAt,
+      typeText: 'Goal Savings',
+      extraLabel: 'Goal',
+      extraValue: result.goal.name,
+      secondaryLabel: 'View Goals',
+      onSecondaryAction: () {
+        setState(() {
+          _depositResult = null;
+          _depositAmountController.clear();
+        });
+      },
+      primaryLabel: 'Back to Savings',
+      onPrimaryAction: () {
+        setState(() {
+          _depositResult = null;
+          _depositAmountController.clear();
+        });
+      },
     );
   }
 
@@ -500,6 +538,7 @@ class _SavingsScreenState extends ConsumerState<SavingsScreen> {
               }
               setState(() {
                 _selectedGoal = goal;
+                _depositResult = null;
                 _depositIdempotencyKey = null;
                 _isDepositPinStep = false;
                 _isDepositConfirming = false;

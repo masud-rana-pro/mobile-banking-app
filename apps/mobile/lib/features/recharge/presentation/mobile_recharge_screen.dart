@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 
 import '../../../core/errors/api_exception.dart';
 import '../../../shared/widgets/feature_flow_widgets.dart';
 import '../../../shared/widgets/hold_to_confirm_screen.dart';
+import '../../notification/presentation/notification_inbox_screen.dart';
 import '../../transaction/providers/transaction_providers.dart';
 import '../../wallet/providers/wallet_providers.dart';
 import '../domain/mobile_recharge_record.dart';
@@ -355,70 +357,26 @@ class _MobileRechargeScreenState extends ConsumerState<MobileRechargeScreen> {
     final result = _rechargeResult!;
     final isSuccess = result.status == 'SUCCESS';
 
-    return Column(
-      children: [
-        const SizedBox(height: 8),
-        Container(
-          width: 80,
-          height: 80,
-          decoration: BoxDecoration(
-            color:
-                isSuccess ? const Color(0xFFE8F5E9) : const Color(0xFFFFEBEE),
-            shape: BoxShape.circle,
-          ),
-          child: Icon(
-            isSuccess ? Icons.check_circle : Icons.cancel,
-            color:
-                isSuccess ? const Color(0xFF2E7D32) : const Color(0xFFC62828),
-            size: 48,
-          ),
-        ),
-        const SizedBox(height: 16),
-        Text(
-          isSuccess ? 'Recharge Successful!' : 'Recharge Failed',
-          style: TextStyle(
-            fontSize: 24,
-            fontWeight: FontWeight.w900,
-            color:
-                isSuccess ? const Color(0xFF2E7D32) : const Color(0xFFC62828),
-          ),
-        ),
-        const SizedBox(height: 24),
-        _resultCard(result),
-        const SizedBox(height: 24),
-        _primaryButton(
-          label: 'Make Another Recharge',
-          onPressed: _reset,
-        ),
-      ],
-    );
-  }
-
-  Widget _resultCard(MobileRechargeRecord result) {
-    return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(12),
-        boxShadow: const [
-          BoxShadow(
-            color: Color(0x0F000000),
-            blurRadius: 12,
-            offset: Offset(0, 4),
-          ),
-        ],
-      ),
-      child: Column(
-        children: [
-          _detailRow('Operator', result.operator),
-          _detailRow('Mobile Number', result.mobileNumber),
-          _detailRow('Amount', 'BDT ${result.amount.toStringAsFixed(2)}'),
-          _detailRow('Status', result.status),
-          if (result.transactionReference != null)
-            _detailRow('Reference', result.transactionReference!),
-        ],
-      ),
+    return TransactionConfirmationScreen(
+      success: isSuccess,
+      actionName: 'Mobile Recharge',
+      message: isSuccess
+          ? 'Your mobile recharge is successful'
+          : 'Mobile recharge failed',
+      accountName: result.mobileNumber,
+      accountNumber: result.operator,
+      avatarIcon: Icons.phone_android_outlined,
+      totalText: '৳${result.amount.toStringAsFixed(2)}',
+      transactionId: result.transactionReference,
+      time: result.createdAt,
+      typeText: 'Prepaid',
+      extraLabel: 'Mobile Operator',
+      extraValue: result.operator,
+      secondaryLabel: 'View Inbox',
+      onSecondaryAction: () =>
+          context.pushNamed(NotificationInboxScreen.routeName),
+      primaryLabel: 'Recharge Again',
+      onPrimaryAction: _reset,
     );
   }
 
@@ -452,34 +410,6 @@ class _MobileRechargeScreenState extends ConsumerState<MobileRechargeScreen> {
                   fontWeight: FontWeight.w800,
                 ),
               ),
-      ),
-    );
-  }
-
-  Widget _detailRow(String label, String value) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 6),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          Text(
-            label,
-            style: const TextStyle(
-              color: Color(0xFF607D8B),
-              fontWeight: FontWeight.w600,
-            ),
-          ),
-          Flexible(
-            child: Text(
-              value,
-              textAlign: TextAlign.end,
-              style: const TextStyle(
-                color: Color(0xFF263238),
-                fontWeight: FontWeight.w700,
-              ),
-            ),
-          ),
-        ],
       ),
     );
   }
