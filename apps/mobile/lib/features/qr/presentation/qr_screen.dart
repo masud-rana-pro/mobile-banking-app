@@ -2,161 +2,301 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:mobile_scanner/mobile_scanner.dart';
+import 'package:qr_flutter/qr_flutter.dart';
 
 import '../../auth/providers/auth_providers.dart';
+import '../../payment/presentation/merchant_payment_screen.dart';
 import '../../send_money/presentation/send_money_screen.dart';
 import '../domain/qr_payload.dart';
 
-class QrScreen extends ConsumerWidget {
+class QrScreen extends ConsumerStatefulWidget {
   const QrScreen({super.key});
 
   static const routeName = 'qr';
   static const routePath = '/qr';
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<QrScreen> createState() => _QrScreenState();
+}
+
+class _QrScreenState extends ConsumerState<QrScreen> {
+  final _scannerController = MobileScannerController(
+    detectionSpeed: DetectionSpeed.noDuplicates,
+  );
+  bool _hasNavigatedFromScan = false;
+
+  @override
+  void dispose() {
+    _scannerController.dispose();
+    super.dispose();
+  }
+
+  void _handlePayload(String rawPayload) {
+    final payload = QrPayload.parse(rawPayload);
+    if (payload == null) {
+      _showMessage(
+        'Invalid SmartKash QR. Use SMARTKASH_USER or SMARTKASH_MERCHANT QR.',
+      );
+      return;
+    }
+
+    if (payload.type == QrPayloadType.user) {
+      context.goNamed(
+        SendMoneyScreen.routeName,
+        queryParameters: {'qrPayload': payload.fullPayload},
+      );
+      return;
+    }
+
+    context.goNamed(
+      MerchantPaymentScreen.routeName,
+      queryParameters: {'merchantNumber': payload.value},
+    );
+  }
+
+  void _handleScan(BarcodeCapture capture) {
+    if (_hasNavigatedFromScan) {
+      return;
+    }
+
+    String? rawValue;
+    for (final barcode in capture.barcodes) {
+      final value = barcode.rawValue?.trim();
+      if (value != null && value.isNotEmpty) {
+        rawValue = value;
+        break;
+      }
+    }
+
+    if (rawValue == null) {
+      return;
+    }
+
+    final payload = QrPayload.parse(rawValue);
+    if (payload == null) {
+      _showMessage('This is not a valid SmartKash QR.');
+      return;
+    }
+
+    setState(() => _hasNavigatedFromScan = true);
+    _handlePayload(rawValue);
+  }
+
+  void _showMessage(String message) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text(message)),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
     final authState = ref.watch(authControllerProvider);
     final myNumber = authState.backendToken?.phoneNumber ?? '';
-    final payload = QrPayload(mobileNumber: myNumber);
-    final fullPayload = payload.fullPayload;
+    final myPayload = myNumber.isEmpty
+        ? null
+        : QrPayload.user(mobileNumber: myNumber).fullPayload;
 
     return Scaffold(
       appBar: AppBar(
         title: const Text('Scan QR'),
         centerTitle: true,
+        actions: [
+          IconButton(
+            tooltip: 'Toggle flash',
+            onPressed: _scannerController.toggleTorch,
+            icon: const Icon(Icons.flash_on_rounded),
+          ),
+        ],
       ),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(24),
-        child: Column(
-          children: [
-            const SizedBox(height: 20),
-            Container(
-              width: double.infinity,
-              padding: const EdgeInsets.all(24),
-              decoration: BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.circular(16),
-                boxShadow: const [
-                  BoxShadow(
-                    color: Color(0x12000000),
-                    blurRadius: 18,
-                    offset: Offset(0, 6),
-                  ),
-                ],
-              ),
-              child: Column(
-                children: [
-                  Container(
-                    width: 72,
-                    height: 72,
-                    decoration: BoxDecoration(
-                      color: const Color(0xFF008F7A).withValues(alpha: 0.1),
-                      shape: BoxShape.circle,
-                    ),
-                    child: const Icon(
-                      Icons.qr_code_2,
-                      color: Color(0xFF008F7A),
-                      size: 40,
-                    ),
-                  ),
-                  const SizedBox(height: 16),
-                  const Text(
-                    'My QR Payload',
-                    style: TextStyle(
-                      fontSize: 18,
-                      fontWeight: FontWeight.w800,
-                      color: Color(0xFF263238),
-                    ),
-                  ),
-                  const SizedBox(height: 8),
-                  const Text(
-                    'Share this code with the sender',
-                    style: TextStyle(color: Color(0xFF607D8B), fontSize: 13),
-                  ),
-                  const SizedBox(height: 16),
-                  Container(
-                    width: double.infinity,
-                    padding: const EdgeInsets.all(12),
-                    decoration: BoxDecoration(
-                      color: const Color(0xFFF5F7FA),
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                    child: Text(
-                      fullPayload,
-                      style: const TextStyle(
-                        fontSize: 14,
-                        fontWeight: FontWeight.w600,
-                        color: Color(0xFF263238),
-                        letterSpacing: 0.5,
-                      ),
-                      textAlign: TextAlign.center,
-                    ),
-                  ),
-                  const SizedBox(height: 12),
-                  TextButton.icon(
-                    onPressed: () {
-                      Clipboard.setData(ClipboardData(text: fullPayload));
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(
-                          content: Text('QR payload copied to clipboard'),
-                        ),
-                      );
-                    },
-                    icon: const Icon(Icons.copy, size: 18),
-                    label: const Text('Copy'),
-                  ),
-                ],
+      body: ListView(
+        padding: const EdgeInsets.all(20),
+        children: [
+          _ScannerCard(
+            controller: _scannerController,
+            onDetect: _handleScan,
+          ),
+          const SizedBox(height: 18),
+          _InfoCard(
+            icon: Icons.send_to_mobile_rounded,
+            title: 'Send Money QR',
+            message:
+                'Scan a SMARTKASH_USER QR to open Send Money with receiver selected.',
+          ),
+          const SizedBox(height: 12),
+          _InfoCard(
+            icon: Icons.storefront_rounded,
+            title: 'Merchant Payment QR',
+            message:
+                'Scan a SMARTKASH_MERCHANT QR to open Payment with merchant selected.',
+          ),
+          const SizedBox(height: 18),
+          if (myPayload != null) _MyQrCard(payload: myPayload),
+          const SizedBox(height: 18),
+          _QrPasteField(onSubmit: _handlePayload),
+        ],
+      ),
+    );
+  }
+}
+
+class _ScannerCard extends StatelessWidget {
+  const _ScannerCard({
+    required this.controller,
+    required this.onDetect,
+  });
+
+  final MobileScannerController controller;
+  final void Function(BarcodeCapture capture) onDetect;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      height: 300,
+      decoration: BoxDecoration(
+        color: const Color(0xFF102A2A),
+        borderRadius: BorderRadius.circular(18),
+      ),
+      clipBehavior: Clip.antiAlias,
+      child: Stack(
+        fit: StackFit.expand,
+        children: [
+          MobileScanner(
+            controller: controller,
+            onDetect: onDetect,
+          ),
+          CustomPaint(painter: _ScannerFramePainter()),
+          const Align(
+            alignment: Alignment.bottomCenter,
+            child: Padding(
+              padding: EdgeInsets.all(18),
+              child: Text(
+                'Place a SmartKash QR inside the frame',
+                style: TextStyle(
+                  color: Colors.white,
+                  fontWeight: FontWeight.w700,
+                ),
               ),
             ),
-            const SizedBox(height: 32),
-            const Row(
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _MyQrCard extends StatelessWidget {
+  const _MyQrCard({required this.payload});
+
+  final String payload;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(18),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(16),
+        boxShadow: const [
+          BoxShadow(
+            color: Color(0x12000000),
+            blurRadius: 18,
+            offset: Offset(0, 6),
+          ),
+        ],
+      ),
+      child: Column(
+        children: [
+          const Text(
+            'My SmartKash QR',
+            style: TextStyle(
+              fontSize: 18,
+              fontWeight: FontWeight.w800,
+              color: Color(0xFF263238),
+            ),
+          ),
+          const SizedBox(height: 6),
+          const Text(
+            'Another user can scan this to send you money',
+            textAlign: TextAlign.center,
+            style: TextStyle(color: Color(0xFF607D8B), fontSize: 13),
+          ),
+          const SizedBox(height: 16),
+          QrImageView(
+            data: payload,
+            version: QrVersions.auto,
+            size: 190,
+            backgroundColor: Colors.white,
+          ),
+          const SizedBox(height: 10),
+          SelectableText(
+            payload,
+            textAlign: TextAlign.center,
+            style: const TextStyle(fontWeight: FontWeight.w700),
+          ),
+          TextButton.icon(
+            onPressed: () {
+              Clipboard.setData(ClipboardData(text: payload));
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(content: Text('QR payload copied')),
+              );
+            },
+            icon: const Icon(Icons.copy_rounded, size: 18),
+            label: const Text('Copy payload'),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _InfoCard extends StatelessWidget {
+  const _InfoCard({
+    required this.icon,
+    required this.title,
+    required this.message,
+  });
+
+  final IconData icon;
+  final String title;
+  final String message;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(
+        color: const Color(0xFFE9F7F4),
+        borderRadius: BorderRadius.circular(14),
+      ),
+      child: Row(
+        children: [
+          Icon(icon, color: const Color(0xFF008F7A)),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Expanded(child: Divider()),
-                Padding(
-                  padding: EdgeInsets.symmetric(horizontal: 16),
-                  child: Text('OR',
-                      style: TextStyle(
-                          color: Color(0xFF90A4AE),
-                          fontWeight: FontWeight.w700)),
+                Text(
+                  title,
+                  style: const TextStyle(
+                    fontWeight: FontWeight.w800,
+                    color: Color(0xFF263238),
+                  ),
                 ),
-                Expanded(child: Divider()),
+                const SizedBox(height: 2),
+                Text(
+                  message,
+                  style: const TextStyle(
+                    color: Color(0xFF607D8B),
+                    fontSize: 12,
+                  ),
+                ),
               ],
             ),
-            const SizedBox(height: 24),
-            const Text(
-              'Enter Sender QR Payload',
-              style: TextStyle(
-                fontSize: 18,
-                fontWeight: FontWeight.w800,
-                color: Color(0xFF263238),
-              ),
-            ),
-            const SizedBox(height: 8),
-            const Text(
-              'Paste the QR payload you received',
-              style: TextStyle(color: Color(0xFF607D8B), fontSize: 13),
-            ),
-            const SizedBox(height: 16),
-            _QrPasteField(
-              onSubmit: (payload) {
-                final number = QrPayload.extractMobileNumber(payload);
-                if (number == null) {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(
-                      content: Text(
-                          'Invalid QR payload. Must start with SMARTKASH_USER:'),
-                    ),
-                  );
-                  return;
-                }
-
-                context.pushNamed(
-                  SendMoneyScreen.routeName,
-                );
-              },
-            ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }
@@ -183,17 +323,27 @@ class _QrPasteFieldState extends State<_QrPasteField> {
   @override
   Widget build(BuildContext context) {
     return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
       children: [
+        const Text(
+          'Paste QR payload',
+          style: TextStyle(
+            fontSize: 16,
+            fontWeight: FontWeight.w800,
+            color: Color(0xFF263238),
+          ),
+        ),
+        const SizedBox(height: 10),
         TextField(
           controller: _controller,
           maxLines: 3,
           decoration: const InputDecoration(
-            hintText: 'Paste QR payload here...',
+            hintText: 'SMARTKASH_USER:+880... or SMARTKASH_MERCHANT:...',
             border: OutlineInputBorder(),
           ),
           style: const TextStyle(fontSize: 14),
         ),
-        const SizedBox(height: 16),
+        const SizedBox(height: 12),
         SizedBox(
           width: double.infinity,
           height: 50,
@@ -208,9 +358,11 @@ class _QrPasteFieldState extends State<_QrPasteField> {
               }
               widget.onSubmit(text);
             },
-            icon: const Icon(Icons.send),
-            label: const Text('Send Money to this QR',
-                style: TextStyle(fontSize: 16, fontWeight: FontWeight.w800)),
+            icon: const Icon(Icons.open_in_new_rounded),
+            label: const Text(
+              'Continue with QR',
+              style: TextStyle(fontSize: 16, fontWeight: FontWeight.w800),
+            ),
             style: ElevatedButton.styleFrom(
               backgroundColor: const Color(0xFF008F7A),
               foregroundColor: Colors.white,
@@ -220,4 +372,60 @@ class _QrPasteFieldState extends State<_QrPasteField> {
       ],
     );
   }
+}
+
+class _ScannerFramePainter extends CustomPainter {
+  @override
+  void paint(Canvas canvas, Size size) {
+    final paint = Paint()
+      ..color = const Color(0xFF00BFA5)
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 4
+      ..strokeCap = StrokeCap.round;
+
+    final rect = Rect.fromCenter(
+      center: Offset(size.width / 2, size.height / 2),
+      width: size.width * 0.68,
+      height: size.width * 0.68,
+    );
+    const corner = 34.0;
+
+    canvas.drawLine(
+        rect.topLeft, rect.topLeft + const Offset(corner, 0), paint);
+    canvas.drawLine(
+        rect.topLeft, rect.topLeft + const Offset(0, corner), paint);
+    canvas.drawLine(
+      rect.topRight,
+      rect.topRight + const Offset(-corner, 0),
+      paint,
+    );
+    canvas.drawLine(
+      rect.topRight,
+      rect.topRight + const Offset(0, corner),
+      paint,
+    );
+    canvas.drawLine(
+      rect.bottomLeft,
+      rect.bottomLeft + const Offset(corner, 0),
+      paint,
+    );
+    canvas.drawLine(
+      rect.bottomLeft,
+      rect.bottomLeft + const Offset(0, -corner),
+      paint,
+    );
+    canvas.drawLine(
+      rect.bottomRight,
+      rect.bottomRight + const Offset(-corner, 0),
+      paint,
+    );
+    canvas.drawLine(
+      rect.bottomRight,
+      rect.bottomRight + const Offset(0, -corner),
+      paint,
+    );
+  }
+
+  @override
+  bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
 }
