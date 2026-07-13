@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 
+import '../../../shared/widgets/feature_flow_widgets.dart';
+import '../../notification/presentation/notification_inbox_screen.dart';
 import '../../transaction/providers/transaction_providers.dart';
 import '../../wallet/providers/wallet_providers.dart';
 import '../domain/send_money_receiver.dart';
@@ -146,20 +149,13 @@ class _SendMoneyScreenState extends ConsumerState<SendMoneyScreen> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const Text(
-          'Receiver Mobile Number',
-          style: TextStyle(
-            fontSize: 20,
-            fontWeight: FontWeight.w800,
-            color: Color(0xFF263238),
-          ),
+        const FeatureIntroCard(
+          icon: Icons.send_to_mobile,
+          title: 'Send Money',
+          subtitle:
+              'Send money to a registered SmartKash number. Receiver must be active before transfer.',
         ),
-        const SizedBox(height: 8),
-        const Text(
-          'Enter the SmartKash account number to send money to.',
-          style: TextStyle(color: Color(0xFF607D8B)),
-        ),
-        const SizedBox(height: 20),
+        const SizedBox(height: 22),
         TextField(
           controller: _phoneController,
           keyboardType: TextInputType.phone,
@@ -171,26 +167,10 @@ class _SendMoneyScreenState extends ConsumerState<SendMoneyScreen> {
           style: const TextStyle(fontSize: 20, fontWeight: FontWeight.w600),
         ),
         const SizedBox(height: 24),
-        SizedBox(
-          width: double.infinity,
-          height: 50,
-          child: ElevatedButton(
-            onPressed: _isLoading ? null : _resolveReceiver,
-            style: ElevatedButton.styleFrom(
-              backgroundColor: const Color(0xFF008F7A),
-              foregroundColor: Colors.white,
-            ),
-            child: _isLoading
-                ? const SizedBox(
-                    width: 24,
-                    height: 24,
-                    child: CircularProgressIndicator(
-                        color: Colors.white, strokeWidth: 2.5),
-                  )
-                : const Text('Find Receiver',
-                    style:
-                        TextStyle(fontSize: 16, fontWeight: FontWeight.w800)),
-          ),
+        PrimaryActionButton(
+          label: 'Find Receiver',
+          loading: _isLoading,
+          onPressed: _resolveReceiver,
         ),
       ],
     );
@@ -201,13 +181,7 @@ class _SendMoneyScreenState extends ConsumerState<SendMoneyScreen> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Container(
-          width: double.infinity,
-          padding: const EdgeInsets.all(16),
-          decoration: BoxDecoration(
-            color: const Color(0xFFE8F5E9),
-            borderRadius: BorderRadius.circular(12),
-          ),
+        FeatureSectionCard(
           child: Row(
             children: [
               Container(
@@ -241,24 +215,11 @@ class _SendMoneyScreenState extends ConsumerState<SendMoneyScreen> {
                   ],
                 ),
               ),
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                decoration: BoxDecoration(
-                  color: receiver.isValid
-                      ? const Color(0xFF2E7D32).withValues(alpha: 0.1)
-                      : const Color(0xFFC62828).withValues(alpha: 0.1),
-                  borderRadius: BorderRadius.circular(8),
-                ),
-                child: Text(
-                  receiver.isValid ? 'Active' : 'Inactive',
-                  style: TextStyle(
-                    fontSize: 12,
-                    fontWeight: FontWeight.w700,
-                    color: receiver.isValid
-                        ? const Color(0xFF2E7D32)
-                        : const Color(0xFFC62828),
-                  ),
-                ),
+              StatusPill(
+                label: receiver.isValid ? 'Active' : 'Inactive',
+                color: receiver.isValid
+                    ? const Color(0xFF2E7D32)
+                    : const Color(0xFFC62828),
               ),
             ],
           ),
@@ -269,7 +230,7 @@ class _SendMoneyScreenState extends ConsumerState<SendMoneyScreen> {
           keyboardType: const TextInputType.numberWithOptions(decimal: true),
           decoration: const InputDecoration(
             labelText: 'Amount (BDT)',
-            prefixText: '৳ ',
+            prefixText: 'Tk ',
             border: OutlineInputBorder(),
           ),
           style: const TextStyle(fontSize: 22, fontWeight: FontWeight.w700),
@@ -284,25 +245,16 @@ class _SendMoneyScreenState extends ConsumerState<SendMoneyScreen> {
           ),
         ),
         const SizedBox(height: 20),
-        SizedBox(
-          width: double.infinity,
-          height: 50,
-          child: ElevatedButton(
-            onPressed: () {
-              final amount = double.tryParse(_amountController.text.trim());
-              if (amount == null || amount < 1) {
-                _showMessage('Enter a valid amount.');
-                return;
-              }
-              setState(() => _currentStep = _SendStep.pin);
-            },
-            style: ElevatedButton.styleFrom(
-              backgroundColor: const Color(0xFF008F7A),
-              foregroundColor: Colors.white,
-            ),
-            child: const Text('Next: Enter PIN',
-                style: TextStyle(fontSize: 16, fontWeight: FontWeight.w800)),
-          ),
+        PrimaryActionButton(
+          label: 'Next: Enter PIN',
+          onPressed: () {
+            final amount = double.tryParse(_amountController.text.trim());
+            if (amount == null || amount < 1) {
+              _showMessage('Enter a valid amount.');
+              return;
+            }
+            setState(() => _currentStep = _SendStep.pin);
+          },
         ),
         TextButton(
           onPressed: () => setState(() => _currentStep = _SendStep.receiver),
@@ -326,7 +278,7 @@ class _SendMoneyScreenState extends ConsumerState<SendMoneyScreen> {
         ),
         const SizedBox(height: 8),
         Text(
-          'Sending ৳ ${double.tryParse(_amountController.text.trim())?.toStringAsFixed(2) ?? '0.00'} to ${_resolvedReceiver?.mobileNumber}',
+          'Sending Tk ${double.tryParse(_amountController.text.trim())?.toStringAsFixed(2) ?? '0.00'} to ${_resolvedReceiver?.mobileNumber}',
           style: const TextStyle(color: Color(0xFF607D8B)),
         ),
         const SizedBox(height: 20),
@@ -342,26 +294,10 @@ class _SendMoneyScreenState extends ConsumerState<SendMoneyScreen> {
           style: const TextStyle(fontSize: 22, fontWeight: FontWeight.w700),
         ),
         const SizedBox(height: 20),
-        SizedBox(
-          width: double.infinity,
-          height: 50,
-          child: ElevatedButton(
-            onPressed: _isLoading ? null : _sendMoney,
-            style: ElevatedButton.styleFrom(
-              backgroundColor: const Color(0xFF008F7A),
-              foregroundColor: Colors.white,
-            ),
-            child: _isLoading
-                ? const SizedBox(
-                    width: 24,
-                    height: 24,
-                    child: CircularProgressIndicator(
-                        color: Colors.white, strokeWidth: 2.5),
-                  )
-                : const Text('Send Money',
-                    style:
-                        TextStyle(fontSize: 16, fontWeight: FontWeight.w800)),
-          ),
+        PrimaryActionButton(
+          label: 'Send Money',
+          loading: _isLoading,
+          onPressed: _sendMoney,
         ),
         TextButton(
           onPressed: () => setState(() => _currentStep = _SendStep.amount),
@@ -410,67 +346,53 @@ class _SendMoneyScreenState extends ConsumerState<SendMoneyScreen> {
           style: const TextStyle(color: Color(0xFF607D8B), fontSize: 14),
         ),
         const SizedBox(height: 24),
-        Container(
-          width: double.infinity,
-          padding: const EdgeInsets.all(16),
-          decoration: BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.circular(12),
-            boxShadow: const [
-              BoxShadow(
-                color: Color(0x0F000000),
-                blurRadius: 12,
-                offset: Offset(0, 4),
+        ReceiptSummaryCard(
+          rows: [
+            if (result.amount != null)
+              ReceiptSummaryRow(
+                'Amount',
+                'Tk ${result.amount!.toStringAsFixed(2)}',
               ),
-            ],
-          ),
-          child: Column(
-            children: [
-              if (result.amount != null)
-                _detailRow('Amount', '৳ ${result.amount!.toStringAsFixed(2)}'),
-              if (result.receiverMobileNumber != null)
-                _detailRow('To', result.receiverMobileNumber!),
-              if (result.transactionReference != null)
-                _detailRow('Reference', result.transactionReference!),
-              if (result.senderBalanceAfter != null)
-                _detailRow('New Balance',
-                    '৳ ${result.senderBalanceAfter!.toStringAsFixed(2)}'),
-            ],
-          ),
+            if (result.receiverMobileNumber != null)
+              ReceiptSummaryRow('To', result.receiverMobileNumber!),
+            if (result.transactionReference != null)
+              ReceiptSummaryRow('TrxID', result.transactionReference!),
+            if (result.senderBalanceAfter != null)
+              ReceiptSummaryRow(
+                'New Balance',
+                'Tk ${result.senderBalanceAfter!.toStringAsFixed(2)}',
+              ),
+          ],
         ),
         const SizedBox(height: 24),
-        SizedBox(
-          width: double.infinity,
-          height: 50,
-          child: ElevatedButton(
-            onPressed: _reset,
-            style: ElevatedButton.styleFrom(
-              backgroundColor: const Color(0xFF008F7A),
-              foregroundColor: Colors.white,
+        Row(
+          children: [
+            Expanded(
+              child: OutlinedButton(
+                onPressed: () =>
+                    context.pushNamed(NotificationInboxScreen.routeName),
+                style: OutlinedButton.styleFrom(
+                  foregroundColor: const Color(0xFF008F7A),
+                  side: const BorderSide(color: Color(0xFF008F7A)),
+                  minimumSize: const Size.fromHeight(54),
+                ),
+                child: const Text(
+                  'View Inbox',
+                  style: TextStyle(fontWeight: FontWeight.w900),
+                ),
+              ),
             ),
-            child: const Text('Send Again',
-                style: TextStyle(fontSize: 16, fontWeight: FontWeight.w800)),
-          ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: PrimaryActionButton(
+                label: 'Send Again',
+                icon: Icons.refresh,
+                onPressed: _reset,
+              ),
+            ),
+          ],
         ),
       ],
-    );
-  }
-
-  Widget _detailRow(String label, String value) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 6),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          Text(label,
-              style: const TextStyle(
-                  color: Color(0xFF607D8B), fontWeight: FontWeight.w600)),
-          Text(value,
-              style: const TextStyle(
-                  color: Color(0xFF263238), fontWeight: FontWeight.w700),
-              textAlign: TextAlign.end),
-        ],
-      ),
     );
   }
 }

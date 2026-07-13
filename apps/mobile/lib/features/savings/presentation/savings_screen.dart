@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/errors/api_exception.dart';
+import '../../../shared/widgets/feature_flow_widgets.dart';
 import '../../transaction/providers/transaction_providers.dart';
 import '../../wallet/providers/wallet_providers.dart';
 import '../domain/savings_goal.dart';
@@ -166,6 +167,13 @@ class _SavingsScreenState extends ConsumerState<SavingsScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
+            const FeatureIntroCard(
+              icon: Icons.savings_outlined,
+              title: 'Goal Savings',
+              subtitle:
+                  'Create goals and deposit from your SmartKash wallet. Every deposit appears in Inbox transactions.',
+            ),
+            const SizedBox(height: 22),
             _createGoalCard(),
             const SizedBox(height: 28),
             const Text(
@@ -187,7 +195,7 @@ class _SavingsScreenState extends ConsumerState<SavingsScreen> {
   }
 
   Widget _createGoalCard() {
-    return _sectionCard(
+    return FeatureSectionCard(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -230,7 +238,7 @@ class _SavingsScreenState extends ConsumerState<SavingsScreen> {
             ),
           ),
           const SizedBox(height: 18),
-          _primaryButton(
+          PrimaryActionButton(
             label: 'Create Goal',
             loading: _isCreating,
             onPressed: _isCreating ? null : _createGoal,
@@ -356,7 +364,7 @@ class _SavingsScreenState extends ConsumerState<SavingsScreen> {
             ? _selectedGoal!.id
             : null;
 
-    return _sectionCard(
+    return FeatureSectionCard(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -429,67 +437,13 @@ class _SavingsScreenState extends ConsumerState<SavingsScreen> {
             ),
           ),
           const SizedBox(height: 18),
-          _primaryButton(
+          PrimaryActionButton(
             label: 'Deposit',
             loading: _isDepositing,
             onPressed:
                 activeGoals.isEmpty || _isDepositing ? null : _depositToGoal,
           ),
         ],
-      ),
-    );
-  }
-
-  Widget _sectionCard({required Widget child}) {
-    return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(8),
-        border: Border.all(color: const Color(0xFFE9EDF2)),
-        boxShadow: const [
-          BoxShadow(
-            color: Color(0x0F000000),
-            blurRadius: 10,
-            offset: Offset(0, 4),
-          ),
-        ],
-      ),
-      child: child,
-    );
-  }
-
-  Widget _primaryButton({
-    required String label,
-    required VoidCallback? onPressed,
-    bool loading = false,
-  }) {
-    return SizedBox(
-      width: double.infinity,
-      height: 50,
-      child: ElevatedButton(
-        onPressed: onPressed,
-        style: ElevatedButton.styleFrom(
-          backgroundColor: const Color(0xFF008F7A),
-          foregroundColor: Colors.white,
-        ),
-        child: loading
-            ? const SizedBox(
-                width: 24,
-                height: 24,
-                child: CircularProgressIndicator(
-                  color: Colors.white,
-                  strokeWidth: 2.5,
-                ),
-              )
-            : Text(
-                label,
-                style: const TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.w800,
-                ),
-              ),
       ),
     );
   }

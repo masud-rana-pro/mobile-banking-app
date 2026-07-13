@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/errors/api_exception.dart';
+import '../../../shared/widgets/feature_flow_widgets.dart';
 import '../../transaction/providers/transaction_providers.dart';
 import '../domain/loan_request_summary.dart';
 import '../providers/loan_providers.dart';
@@ -95,6 +96,13 @@ class _LoanScreenState extends ConsumerState<LoanScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
+            const FeatureIntroCard(
+              icon: Icons.account_balance_outlined,
+              title: 'Loan Request',
+              subtitle:
+                  'Submit a demo loan request and track the status. Wallet credit and repayment are future scope.',
+            ),
+            const SizedBox(height: 22),
             _requestCard(),
             const SizedBox(height: 28),
             const Text(
@@ -114,21 +122,7 @@ class _LoanScreenState extends ConsumerState<LoanScreen> {
   }
 
   Widget _requestCard() {
-    return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(8),
-        border: Border.all(color: const Color(0xFFE9EDF2)),
-        boxShadow: const [
-          BoxShadow(
-            color: Color(0x0F000000),
-            blurRadius: 10,
-            offset: Offset(0, 4),
-          ),
-        ],
-      ),
+    return FeatureSectionCard(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -163,32 +157,11 @@ class _LoanScreenState extends ConsumerState<LoanScreen> {
             ),
           ),
           const SizedBox(height: 18),
-          SizedBox(
-            width: double.infinity,
-            height: 50,
-            child: ElevatedButton(
-              onPressed: _isSubmitting ? null : _submitRequest,
-              style: ElevatedButton.styleFrom(
-                backgroundColor: const Color(0xFF008F7A),
-                foregroundColor: Colors.white,
-              ),
-              child: _isSubmitting
-                  ? const SizedBox(
-                      width: 24,
-                      height: 24,
-                      child: CircularProgressIndicator(
-                        color: Colors.white,
-                        strokeWidth: 2.5,
-                      ),
-                    )
-                  : const Text(
-                      'Submit Request',
-                      style: TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.w800,
-                      ),
-                    ),
-            ),
+          PrimaryActionButton(
+            label: 'Submit Request',
+            icon: Icons.check,
+            loading: _isSubmitting,
+            onPressed: _submitRequest,
           ),
         ],
       ),
@@ -272,13 +245,9 @@ class _LoanScreenState extends ConsumerState<LoanScreen> {
           Column(
             crossAxisAlignment: CrossAxisAlignment.end,
             children: [
-              Text(
-                request.status,
-                style: TextStyle(
-                  color: statusColor,
-                  fontSize: 12,
-                  fontWeight: FontWeight.w900,
-                ),
+              StatusPill(
+                label: request.status,
+                color: statusColor,
               ),
               if (request.reviewedAt != null) ...[
                 const SizedBox(height: 4),

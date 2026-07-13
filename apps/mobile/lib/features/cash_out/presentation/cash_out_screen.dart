@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../core/errors/api_exception.dart';
+import '../../../shared/widgets/feature_flow_widgets.dart';
 import '../../notification/presentation/notification_inbox_screen.dart';
 import '../../transaction/providers/transaction_providers.dart';
 import '../../wallet/providers/wallet_providers.dart';
@@ -143,10 +144,10 @@ class _CashOutScreenState extends ConsumerState<CashOutScreen> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const _InfoHeader(
+        const FeatureIntroCard(
           icon: Icons.payments_outlined,
           title: 'Agent Cash Out',
-          message:
+          subtitle:
               'Demo Cash Out debits your SmartKash wallet and creates receipt history. No real agent settlement is used.',
         ),
         const SizedBox(height: 22),
@@ -180,7 +181,10 @@ class _CashOutScreenState extends ConsumerState<CashOutScreen> {
           ),
         ),
         const SizedBox(height: 20),
-        _primaryButton(label: 'Next: Enter PIN', onPressed: _continueToPin),
+        PrimaryActionButton(
+          label: 'Next: Enter PIN',
+          onPressed: _continueToPin,
+        ),
       ],
     );
   }
@@ -210,7 +214,7 @@ class _CashOutScreenState extends ConsumerState<CashOutScreen> {
           ),
         ),
         const SizedBox(height: 18),
-        _primaryButton(
+        PrimaryActionButton(
           label: 'Cash Out Now',
           onPressed: _isLoading ? null : _submit,
           loading: _isLoading,
@@ -243,79 +247,6 @@ class _CashOutScreenState extends ConsumerState<CashOutScreen> {
       secondaryButtonLabel: 'View Inbox',
       onSecondaryPressed: () => context.pushNamed(
         NotificationInboxScreen.routeName,
-      ),
-    );
-  }
-
-  Widget _primaryButton({
-    required String label,
-    required VoidCallback? onPressed,
-    bool loading = false,
-  }) {
-    return SizedBox(
-      width: double.infinity,
-      height: 52,
-      child: ElevatedButton(
-        onPressed: onPressed,
-        style: ElevatedButton.styleFrom(
-          backgroundColor: const Color(0xFF008F7A),
-          foregroundColor: Colors.white,
-        ),
-        child: loading
-            ? const SizedBox(
-                width: 24,
-                height: 24,
-                child: CircularProgressIndicator(
-                    color: Colors.white, strokeWidth: 2.5),
-              )
-            : Text(label, style: const TextStyle(fontWeight: FontWeight.w900)),
-      ),
-    );
-  }
-}
-
-class _InfoHeader extends StatelessWidget {
-  const _InfoHeader({
-    required this.icon,
-    required this.title,
-    required this.message,
-  });
-
-  final IconData icon;
-  final String title;
-  final String message;
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.all(18),
-      decoration: BoxDecoration(
-        color: const Color(0xFFE9F8F4),
-        borderRadius: BorderRadius.circular(12),
-      ),
-      child: Row(
-        children: [
-          CircleAvatar(
-            radius: 28,
-            backgroundColor: const Color(0xFF008F7A),
-            child: Icon(icon, color: Colors.white),
-          ),
-          const SizedBox(width: 14),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(title,
-                    style: const TextStyle(
-                        fontSize: 18, fontWeight: FontWeight.w900)),
-                const SizedBox(height: 6),
-                Text(message,
-                    style: const TextStyle(
-                        color: Color(0xFF607D8B), height: 1.35)),
-              ],
-            ),
-          ),
-        ],
       ),
     );
   }

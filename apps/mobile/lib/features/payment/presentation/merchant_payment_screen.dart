@@ -1,7 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 
 import '../../../core/errors/api_exception.dart';
+import '../../../shared/widgets/feature_flow_widgets.dart';
+import '../../notification/presentation/notification_inbox_screen.dart';
 import '../../transaction/providers/transaction_providers.dart';
 import '../../wallet/providers/wallet_providers.dart';
 import '../domain/merchant_payment_result.dart';
@@ -169,20 +172,13 @@ class _MerchantPaymentScreenState extends ConsumerState<MerchantPaymentScreen> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const Text(
-          'Merchant Number',
-          style: TextStyle(
-            fontSize: 20,
-            fontWeight: FontWeight.w800,
-            color: Color(0xFF263238),
-          ),
+        const FeatureIntroCard(
+          icon: Icons.shopping_bag_outlined,
+          title: 'Merchant Payment',
+          subtitle:
+              'Pay an active SmartKash merchant from your wallet. PIN confirmation is required.',
         ),
-        const SizedBox(height: 8),
-        const Text(
-          'Enter a registered active merchant number before payment.',
-          style: TextStyle(color: Color(0xFF607D8B)),
-        ),
-        const SizedBox(height: 20),
+        const SizedBox(height: 22),
         TextField(
           controller: _merchantNumberController,
           keyboardType: TextInputType.phone,
@@ -199,29 +195,10 @@ class _MerchantPaymentScreenState extends ConsumerState<MerchantPaymentScreen> {
           },
         ),
         const SizedBox(height: 24),
-        SizedBox(
-          width: double.infinity,
-          height: 50,
-          child: ElevatedButton(
-            onPressed: _isLoading ? null : _resolveMerchant,
-            style: ElevatedButton.styleFrom(
-              backgroundColor: const Color(0xFF008F7A),
-              foregroundColor: Colors.white,
-            ),
-            child: _isLoading
-                ? const SizedBox(
-                    width: 24,
-                    height: 24,
-                    child: CircularProgressIndicator(
-                      color: Colors.white,
-                      strokeWidth: 2.5,
-                    ),
-                  )
-                : const Text(
-                    'Next: Enter Amount',
-                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.w800),
-                  ),
-          ),
+        PrimaryActionButton(
+          label: 'Next: Enter Amount',
+          loading: _isLoading,
+          onPressed: _resolveMerchant,
         ),
       ],
     );
@@ -255,31 +232,20 @@ class _MerchantPaymentScreenState extends ConsumerState<MerchantPaymentScreen> {
           ),
         ),
         const SizedBox(height: 20),
-        SizedBox(
-          width: double.infinity,
-          height: 50,
-          child: ElevatedButton(
-            onPressed: () {
-              final amount = double.tryParse(_amountController.text.trim());
-              if (amount == null || amount < 1) {
-                _showMessage('Enter a valid amount.');
-                return;
-              }
-              setState(() {
-                _idempotencyKey ??=
-                    ref.read(paymentRepositoryProvider).createIdempotencyKey();
-                _currentStep = _PaymentStep.pin;
-              });
-            },
-            style: ElevatedButton.styleFrom(
-              backgroundColor: const Color(0xFF008F7A),
-              foregroundColor: Colors.white,
-            ),
-            child: const Text(
-              'Next: Enter PIN',
-              style: TextStyle(fontSize: 16, fontWeight: FontWeight.w800),
-            ),
-          ),
+        PrimaryActionButton(
+          label: 'Next: Enter PIN',
+          onPressed: () {
+            final amount = double.tryParse(_amountController.text.trim());
+            if (amount == null || amount < 1) {
+              _showMessage('Enter a valid amount.');
+              return;
+            }
+            setState(() {
+              _idempotencyKey ??=
+                  ref.read(paymentRepositoryProvider).createIdempotencyKey();
+              _currentStep = _PaymentStep.pin;
+            });
+          },
         ),
         TextButton(
           onPressed: () => setState(() {
@@ -325,29 +291,10 @@ class _MerchantPaymentScreenState extends ConsumerState<MerchantPaymentScreen> {
           style: const TextStyle(fontSize: 22, fontWeight: FontWeight.w700),
         ),
         const SizedBox(height: 20),
-        SizedBox(
-          width: double.infinity,
-          height: 50,
-          child: ElevatedButton(
-            onPressed: _isLoading ? null : _payMerchant,
-            style: ElevatedButton.styleFrom(
-              backgroundColor: const Color(0xFF008F7A),
-              foregroundColor: Colors.white,
-            ),
-            child: _isLoading
-                ? const SizedBox(
-                    width: 24,
-                    height: 24,
-                    child: CircularProgressIndicator(
-                      color: Colors.white,
-                      strokeWidth: 2.5,
-                    ),
-                  )
-                : const Text(
-                    'Pay Merchant',
-                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.w800),
-                  ),
-          ),
+        PrimaryActionButton(
+          label: 'Pay Merchant',
+          loading: _isLoading,
+          onPressed: _payMerchant,
         ),
         TextButton(
           onPressed: () => setState(() => _currentStep = _PaymentStep.amount),
@@ -396,70 +343,61 @@ class _MerchantPaymentScreenState extends ConsumerState<MerchantPaymentScreen> {
           style: const TextStyle(color: Color(0xFF607D8B), fontSize: 14),
         ),
         const SizedBox(height: 24),
-        Container(
-          width: double.infinity,
-          padding: const EdgeInsets.all(16),
-          decoration: BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.circular(12),
-            boxShadow: const [
-              BoxShadow(
-                color: Color(0x0F000000),
-                blurRadius: 12,
-                offset: Offset(0, 4),
+        ReceiptSummaryCard(
+          rows: [
+            if (result.amount != null)
+              ReceiptSummaryRow(
+                'Amount',
+                'Tk ${result.amount!.toStringAsFixed(2)}',
               ),
-            ],
-          ),
-          child: Column(
-            children: [
-              if (result.amount != null)
-                _detailRow(
-                  'Amount',
-                  'BDT ${result.amount!.toStringAsFixed(2)}',
-                ),
-              if (result.merchantNumber != null)
-                _detailRow(
-                  'To Merchant',
-                  result.businessName ?? result.merchantNumber!,
-                ),
-              if (result.transactionReference != null)
-                _detailRow('Reference', result.transactionReference!),
-              if (result.customerBalanceAfter != null)
-                _detailRow(
-                  'New Balance',
-                  'BDT ${result.customerBalanceAfter!.toStringAsFixed(2)}',
-                ),
-            ],
-          ),
+            if (result.merchantNumber != null)
+              ReceiptSummaryRow(
+                'To Merchant',
+                result.businessName ?? result.merchantNumber!,
+              ),
+            if (result.transactionReference != null)
+              ReceiptSummaryRow('TrxID', result.transactionReference!),
+            if (result.customerBalanceAfter != null)
+              ReceiptSummaryRow(
+                'New Balance',
+                'Tk ${result.customerBalanceAfter!.toStringAsFixed(2)}',
+              ),
+          ],
         ),
         const SizedBox(height: 24),
-        SizedBox(
-          width: double.infinity,
-          height: 50,
-          child: ElevatedButton(
-            onPressed: _reset,
-            style: ElevatedButton.styleFrom(
-              backgroundColor: const Color(0xFF008F7A),
-              foregroundColor: Colors.white,
+        Row(
+          children: [
+            Expanded(
+              child: OutlinedButton(
+                onPressed: () =>
+                    context.pushNamed(NotificationInboxScreen.routeName),
+                style: OutlinedButton.styleFrom(
+                  foregroundColor: const Color(0xFF008F7A),
+                  side: const BorderSide(color: Color(0xFF008F7A)),
+                  minimumSize: const Size.fromHeight(54),
+                ),
+                child: const Text(
+                  'View Inbox',
+                  style: TextStyle(fontWeight: FontWeight.w900),
+                ),
+              ),
             ),
-            child: const Text(
-              'Make Another Payment',
-              style: TextStyle(fontSize: 16, fontWeight: FontWeight.w800),
+            const SizedBox(width: 12),
+            Expanded(
+              child: PrimaryActionButton(
+                label: 'Pay Again',
+                icon: Icons.refresh,
+                onPressed: _reset,
+              ),
             ),
-          ),
+          ],
         ),
       ],
     );
   }
 
   Widget _merchantCard(MerchantPaymentTarget? target) {
-    return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: const Color(0xFFE8F5E9),
-        borderRadius: BorderRadius.circular(12),
-      ),
+    return FeatureSectionCard(
       child: Row(
         children: [
           Container(
@@ -495,48 +433,9 @@ class _MerchantPaymentScreenState extends ConsumerState<MerchantPaymentScreen> {
               ],
             ),
           ),
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-            decoration: BoxDecoration(
-              color: const Color(0xFF2E7D32).withValues(alpha: 0.1),
-              borderRadius: BorderRadius.circular(8),
-            ),
-            child: Text(
-              target?.status ?? 'Active',
-              style: const TextStyle(
-                fontSize: 12,
-                fontWeight: FontWeight.w700,
-                color: Color(0xFF2E7D32),
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _detailRow(String label, String value) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 6),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          Text(
-            label,
-            style: const TextStyle(
-              color: Color(0xFF607D8B),
-              fontWeight: FontWeight.w600,
-            ),
-          ),
-          Flexible(
-            child: Text(
-              value,
-              style: const TextStyle(
-                color: Color(0xFF263238),
-                fontWeight: FontWeight.w700,
-              ),
-              textAlign: TextAlign.end,
-            ),
+          StatusPill(
+            label: target?.status ?? 'Active',
+            color: const Color(0xFF2E7D32),
           ),
         ],
       ),
