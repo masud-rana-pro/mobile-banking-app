@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../auth/providers/auth_providers.dart';
 import '../../transaction/domain/transaction_summary.dart';
 import '../../transaction/providers/transaction_providers.dart';
 
@@ -159,6 +160,8 @@ class _TransactionInboxTab extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final transactionsAsync = ref.watch(transactionListProvider);
+    final currentUserAvatarUrl =
+        ref.watch(authControllerProvider).avatarUrl?.trim() ?? '';
 
     return Column(
       children: [
@@ -243,6 +246,7 @@ class _TransactionInboxTab extends ConsumerWidget {
                     final transaction = filtered[index];
                     return _InboxTransactionTile(
                       transaction: transaction,
+                      currentUserAvatarUrl: currentUserAvatarUrl,
                       onTap: () => _showTransactionSheet(context, transaction),
                     );
                   },
@@ -297,10 +301,12 @@ class _TransactionInboxTab extends ConsumerWidget {
 class _InboxTransactionTile extends StatelessWidget {
   const _InboxTransactionTile({
     required this.transaction,
+    required this.currentUserAvatarUrl,
     required this.onTap,
   });
 
   final TransactionSummary transaction;
+  final String currentUserAvatarUrl;
   final VoidCallback onTap;
 
   @override
@@ -312,10 +318,9 @@ class _InboxTransactionTile extends StatelessWidget {
         padding: const EdgeInsets.fromLTRB(20, 16, 14, 16),
         child: Row(
           children: [
-            CircleAvatar(
-              radius: 24,
-              backgroundColor: transaction.iconColor.withValues(alpha: 0.12),
-              child: Icon(transaction.icon, color: transaction.iconColor),
+            _TransactionAvatar(
+              transaction: transaction,
+              currentUserAvatarUrl: currentUserAvatarUrl,
             ),
             const SizedBox(width: 14),
             Expanded(
@@ -388,6 +393,61 @@ class _InboxTransactionTile extends StatelessWidget {
         ),
       ),
     );
+  }
+}
+
+class _TransactionAvatar extends StatelessWidget {
+  const _TransactionAvatar({
+    required this.transaction,
+    required this.currentUserAvatarUrl,
+  });
+
+  final TransactionSummary transaction;
+  final String currentUserAvatarUrl;
+
+  @override
+  Widget build(BuildContext context) {
+    final avatarUrl = _bestAvatarUrl();
+    if (avatarUrl.isEmpty) {
+      return CircleAvatar(
+        radius: 24,
+        backgroundColor: transaction.iconColor.withValues(alpha: 0.12),
+        child: Icon(transaction.icon, color: transaction.iconColor),
+      );
+    }
+
+    return CircleAvatar(
+      radius: 24,
+      backgroundColor: transaction.iconColor.withValues(alpha: 0.12),
+      child: ClipOval(
+        child: Image.network(
+          avatarUrl,
+          key: ValueKey(avatarUrl),
+          width: 48,
+          height: 48,
+          fit: BoxFit.cover,
+          errorBuilder: (_, __, ___) => Icon(
+            transaction.icon,
+            color: transaction.iconColor,
+          ),
+        ),
+      ),
+    );
+  }
+
+  String _bestAvatarUrl() {
+    final counterpartyAvatarUrl =
+        transaction.counterpartyAvatarUrl?.trim() ?? '';
+    if (counterpartyAvatarUrl.isNotEmpty) {
+      return counterpartyAvatarUrl;
+    }
+
+    final userAvatarUrl = transaction.userAvatarUrl?.trim() ?? '';
+    if (userAvatarUrl.isNotEmpty) {
+      return userAvatarUrl;
+    }
+
+    return currentUserAvatarUrl.trim();
   }
 }
 

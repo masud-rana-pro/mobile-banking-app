@@ -43,6 +43,13 @@ public class TransactionQueryServiceImpl implements TransactionQueryService {
             Instant to
     ) {
         User user = currentUser(principal);
+        if (type == null && status == null && from == null && to == null) {
+            return transactionRecordRepository.findByUserIdOrderByCreatedAtDesc(user.getId())
+                    .stream()
+                    .map(transactionRecordMapper::toResponse)
+                    .toList();
+        }
+
         return transactionRecordRepository.findCurrentUserTransactions(user.getId(), type, status, from, to)
                 .stream()
                 .map(transactionRecordMapper::toResponse)
@@ -60,6 +67,25 @@ public class TransactionQueryServiceImpl implements TransactionQueryService {
 
     private User currentUser(JwtPrincipal principal) {
         return userRepository.findByFirebaseUid(principal.firebaseUid())
+                .or(() -> userRepository.findByMobileNumber(normalizeMobileNumber(principal.phoneNumber())))
                 .orElseThrow(() -> new ResourceNotFoundException("User account is not created yet."));
+    }
+
+    private String normalizeMobileNumber(String mobileNumber) {
+        if (mobileNumber == null || mobileNumber.isBlank()) {
+            return "";
+        }
+
+        String normalized = mobileNumber.trim().replace(" ", "").replace("-", "");
+        if (normalized.startsWith("+880")) {
+            return normalized;
+        }
+        if (normalized.startsWith("880")) {
+            return "+" + normalized;
+        }
+        if (normalized.startsWith("0") && normalized.length() == 11) {
+            return "+88" + normalized;
+        }
+        return normalized;
     }
 }

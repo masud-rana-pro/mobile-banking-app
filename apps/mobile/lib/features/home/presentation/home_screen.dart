@@ -193,15 +193,14 @@ class _ProfileAvatar extends StatelessWidget {
     final initial = fallbackText.trim().isEmpty
         ? 'S'
         : fallbackText.trim().characters.first.toUpperCase();
+    final safeAvatarUrl = avatarUrl.trim();
     return CircleAvatar(
       radius: 32,
       backgroundColor: Colors.white,
       child: CircleAvatar(
         radius: 29,
         backgroundColor: const Color(0xFFE9F8F4),
-        backgroundImage: avatarUrl.isEmpty ? null : NetworkImage(avatarUrl),
-        onBackgroundImageError: avatarUrl.isEmpty ? null : (_, __) {},
-        child: avatarUrl.isEmpty
+        child: safeAvatarUrl.isEmpty
             ? Text(
                 initial,
                 style: const TextStyle(
@@ -210,7 +209,23 @@ class _ProfileAvatar extends StatelessWidget {
                   fontWeight: FontWeight.w900,
                 ),
               )
-            : null,
+            : ClipOval(
+                child: Image.network(
+                  safeAvatarUrl,
+                  key: ValueKey(safeAvatarUrl),
+                  width: 58,
+                  height: 58,
+                  fit: BoxFit.cover,
+                  errorBuilder: (_, __, ___) => Text(
+                    initial,
+                    style: const TextStyle(
+                      color: Color(0xFF008F7A),
+                      fontSize: 24,
+                      fontWeight: FontWeight.w900,
+                    ),
+                  ),
+                ),
+              ),
       ),
     );
   }

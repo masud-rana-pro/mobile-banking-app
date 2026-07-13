@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import '../../../app/config/app_config.dart';
+
 class TransactionSummary {
   const TransactionSummary({
     required this.id,
@@ -9,6 +11,8 @@ class TransactionSummary {
     required this.amount,
     this.counterpartyUserId,
     this.counterpartyMobileNumber,
+    this.userAvatarUrl,
+    this.counterpartyAvatarUrl,
     this.description,
     required this.createdAt,
   });
@@ -20,6 +24,8 @@ class TransactionSummary {
   final double amount;
   final int? counterpartyUserId;
   final String? counterpartyMobileNumber;
+  final String? userAvatarUrl;
+  final String? counterpartyAvatarUrl;
   final String? description;
   final DateTime createdAt;
 
@@ -32,10 +38,28 @@ class TransactionSummary {
       amount: (json['amount'] as num?)?.toDouble() ?? 0.0,
       counterpartyUserId: json['counterpartyUserId'] as int?,
       counterpartyMobileNumber: json['counterpartyMobileNumber'] as String?,
+      userAvatarUrl: _absoluteAvatarUrl(json['userAvatarUrl'] as String?),
+      counterpartyAvatarUrl:
+          _absoluteAvatarUrl(json['counterpartyAvatarUrl'] as String?),
       description: json['description'] as String?,
       createdAt: DateTime.tryParse(json['createdAt'] as String? ?? '') ??
           DateTime.now(),
     );
+  }
+
+  static String? _absoluteAvatarUrl(String? avatarUrl) {
+    if (avatarUrl == null || avatarUrl.trim().isEmpty) {
+      return null;
+    }
+
+    final trimmed = avatarUrl.trim();
+    if (trimmed.startsWith('http://') || trimmed.startsWith('https://')) {
+      return trimmed;
+    }
+
+    final baseUrl = AppConfig.backendBaseUrl.replaceFirst(RegExp(r'/$'), '');
+    final path = trimmed.startsWith('/') ? trimmed : '/$trimmed';
+    return '$baseUrl$path';
   }
 
   String get typeLabel {

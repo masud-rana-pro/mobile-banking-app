@@ -14,6 +14,8 @@ public record TransactionResponse(
         BigDecimal amount,
         Long counterpartyUserId,
         String counterpartyMobileNumber,
+        String userAvatarUrl,
+        String counterpartyAvatarUrl,
         String description,
         Instant createdAt
 ) {
