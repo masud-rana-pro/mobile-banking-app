@@ -238,38 +238,32 @@ class _PayBillScreenState extends ConsumerState<PayBillScreen> {
   }
 
   Widget _pinStep() {
+    final amount =
+        double.tryParse(_amountController.text.trim())?.toStringAsFixed(2) ??
+            '0.00';
+    final biller =
+        _billers.firstWhere((item) => item.code == _selectedBiller).label;
+    final account = _accountController.text.trim();
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const Text(
-          'Confirm Bill Payment',
-          style: TextStyle(fontSize: 22, fontWeight: FontWeight.w900),
-        ),
-        const SizedBox(height: 8),
-        Text(
-          'Pay BDT ${double.tryParse(_amountController.text.trim())?.toStringAsFixed(2) ?? '0.00'} to $_selectedBiller for ${_accountController.text.trim()}',
-          style: const TextStyle(color: Color(0xFF607D8B)),
-        ),
-        const SizedBox(height: 20),
-        TextField(
-          controller: _pinController,
-          obscureText: true,
-          maxLength: 5,
-          keyboardType: TextInputType.number,
-          decoration: const InputDecoration(
-            labelText: '5-digit PIN',
-            border: OutlineInputBorder(),
-          ),
-        ),
-        const SizedBox(height: 18),
-        _primaryButton(
-          label: 'Review Pay Bill',
-          onPressed: _isLoading ? null : _continueToConfirm,
+        PinEntryPanel(
+          pinController: _pinController,
+          actionTitle: 'Pay Bill',
+          amountText: '৳$amount',
+          totalText: '৳$amount',
+          typeLabel: 'Utility',
+          secondaryTypeLabel: 'Saved',
           loading: _isLoading,
-        ),
-        TextButton(
-          onPressed: () => setState(() => _step = _PayBillStep.details),
-          child: const Text('Change Details'),
+          onConfirm: _continueToConfirm,
+          onBackToAmount: () => setState(() => _step = _PayBillStep.details),
+          recipient: AmountRecipientCard(
+            label: 'Biller',
+            title: biller,
+            subtitle: account,
+            fallbackIcon: Icons.receipt_long_outlined,
+          ),
         ),
       ],
     );

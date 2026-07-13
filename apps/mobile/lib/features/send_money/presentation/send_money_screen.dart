@@ -291,43 +291,29 @@ class _SendMoneyScreenState extends ConsumerState<SendMoneyScreen> {
   }
 
   Widget _buildPinStep() {
+    final receiver = _resolvedReceiver!;
+    final amount =
+        double.tryParse(_amountController.text.trim())?.toStringAsFixed(2) ??
+            '0.00';
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const Text(
-          'Confirm with PIN',
-          style: TextStyle(
-            fontSize: 20,
-            fontWeight: FontWeight.w800,
-            color: Color(0xFF263238),
-          ),
-        ),
-        const SizedBox(height: 8),
-        Text(
-          'Sending Tk ${double.tryParse(_amountController.text.trim())?.toStringAsFixed(2) ?? '0.00'} to ${_resolvedReceiver?.mobileNumber}',
-          style: const TextStyle(color: Color(0xFF607D8B)),
-        ),
-        const SizedBox(height: 20),
-        TextField(
-          controller: _pinController,
-          obscureText: true,
-          maxLength: 5,
-          keyboardType: TextInputType.number,
-          decoration: const InputDecoration(
-            labelText: '5-digit PIN',
-            border: OutlineInputBorder(),
-          ),
-          style: const TextStyle(fontSize: 22, fontWeight: FontWeight.w700),
-        ),
-        const SizedBox(height: 20),
-        PrimaryActionButton(
-          label: 'Review Send Money',
+        PinEntryPanel(
+          pinController: _pinController,
+          actionTitle: 'Send Money',
+          amountText: '৳$amount',
+          totalText: '৳$amount',
+          showTypeSelector: false,
           loading: _isLoading,
-          onPressed: _continueToConfirm,
-        ),
-        TextButton(
-          onPressed: () => setState(() => _currentStep = _SendStep.amount),
-          child: const Text('Change Amount'),
+          onConfirm: _continueToConfirm,
+          onBackToAmount: () => setState(() => _currentStep = _SendStep.amount),
+          recipient: AmountRecipientCard(
+            label: 'Recipient',
+            title: receiver.displayName ?? receiver.mobileNumber,
+            subtitle: receiver.mobileNumber,
+            imageUrl: receiver.avatarUrl,
+          ),
         ),
       ],
     );

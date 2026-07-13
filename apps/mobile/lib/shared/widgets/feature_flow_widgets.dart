@@ -678,6 +678,266 @@ class _AmountEntryPanelState extends State<AmountEntryPanel> {
   }
 }
 
+class PinEntryPanel extends StatelessWidget {
+  const PinEntryPanel({
+    super.key,
+    required this.pinController,
+    required this.actionTitle,
+    required this.amountText,
+    required this.totalText,
+    required this.onConfirm,
+    this.loading = false,
+    this.chargeText = '+ No charge',
+    this.typeLabel = 'Prepaid',
+    this.secondaryTypeLabel = 'Postpaid',
+    this.showTypeSelector = true,
+    this.onBackToAmount,
+    this.recipient,
+  });
+
+  final TextEditingController pinController;
+  final String actionTitle;
+  final String amountText;
+  final String totalText;
+  final String chargeText;
+  final String typeLabel;
+  final String secondaryTypeLabel;
+  final bool showTypeSelector;
+  final bool loading;
+  final VoidCallback? onConfirm;
+  final VoidCallback? onBackToAmount;
+  final Widget? recipient;
+
+  static const _accent = Color(0xFF008F7A);
+  static const _muted = Color(0xFF607D8B);
+
+  @override
+  Widget build(BuildContext context) {
+    final canConfirm = onConfirm != null && !loading;
+
+    return Semantics(
+      label: 'PIN confirmation for $actionTitle',
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          if (recipient != null) ...[
+            recipient!,
+            const SizedBox(height: 8),
+          ],
+          Container(
+            width: double.infinity,
+            color: Colors.white,
+            padding: const EdgeInsets.fromLTRB(20, 22, 20, 24),
+            child: Row(
+              children: [
+                Expanded(
+                    child: _SummaryColumn(label: 'Amount', value: amountText)),
+                Expanded(
+                  child: _SummaryColumn(
+                    label: 'Charge',
+                    value: chargeText,
+                    mutedValue: true,
+                  ),
+                ),
+                Expanded(
+                  child: _SummaryColumn(
+                    label: 'Total',
+                    value: totalText,
+                    alignEnd: true,
+                  ),
+                ),
+              ],
+            ),
+          ),
+          if (showTypeSelector) ...[
+            const SizedBox(height: 8),
+            Container(
+              width: double.infinity,
+              color: Colors.white,
+              padding: const EdgeInsets.fromLTRB(20, 22, 20, 26),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Text(
+                    'Select Type',
+                    style: TextStyle(
+                      color: _muted,
+                      fontSize: 16,
+                      fontWeight: FontWeight.w700,
+                    ),
+                  ),
+                  const SizedBox(height: 18),
+                  Wrap(
+                    spacing: 12,
+                    children: [
+                      _TypeChip(label: typeLabel, selected: true),
+                      _TypeChip(label: secondaryTypeLabel, selected: false),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+          ],
+          const SizedBox(height: 8),
+          Container(
+            width: double.infinity,
+            color: Colors.white,
+            padding: const EdgeInsets.fromLTRB(20, 20, 20, 22),
+            child: Row(
+              children: [
+                const Icon(Icons.lock, color: _accent, size: 28),
+                const SizedBox(width: 18),
+                Expanded(
+                  child: TextField(
+                    controller: pinController,
+                    obscureText: true,
+                    maxLength: 5,
+                    keyboardType: TextInputType.number,
+                    textAlign: TextAlign.center,
+                    decoration: const InputDecoration(
+                      hintText: 'Enter PIN',
+                      counterText: '',
+                      border: InputBorder.none,
+                    ),
+                    style: const TextStyle(
+                      color: Color(0xFF263238),
+                      fontSize: 22,
+                      fontWeight: FontWeight.w800,
+                      letterSpacing: 2,
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 18),
+                const Icon(Icons.fingerprint, color: _accent, size: 36),
+              ],
+            ),
+          ),
+          const SizedBox(height: 18),
+          SizedBox(
+            width: double.infinity,
+            height: 58,
+            child: ElevatedButton(
+              onPressed: canConfirm ? onConfirm : null,
+              style: ElevatedButton.styleFrom(
+                backgroundColor: _accent,
+                disabledBackgroundColor: const Color(0xFF9E9E9E),
+                foregroundColor: Colors.white,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                elevation: 0,
+              ),
+              child: loading
+                  ? const SizedBox(
+                      width: 24,
+                      height: 24,
+                      child: CircularProgressIndicator(
+                        color: Colors.white,
+                        strokeWidth: 2.5,
+                      ),
+                    )
+                  : Row(
+                      children: [
+                        const Text(
+                          'Confirm PIN',
+                          style: TextStyle(
+                            fontSize: 18,
+                            fontWeight: FontWeight.w900,
+                          ),
+                        ),
+                        const Spacer(),
+                        const Icon(Icons.arrow_forward, size: 32),
+                      ],
+                    ),
+            ),
+          ),
+          if (onBackToAmount != null)
+            TextButton(
+              onPressed: onBackToAmount,
+              child: const Text('Change Amount'),
+            ),
+        ],
+      ),
+    );
+  }
+}
+
+class _SummaryColumn extends StatelessWidget {
+  const _SummaryColumn({
+    required this.label,
+    required this.value,
+    this.alignEnd = false,
+    this.mutedValue = false,
+  });
+
+  final String label;
+  final String value;
+  final bool alignEnd;
+  final bool mutedValue;
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment:
+          alignEnd ? CrossAxisAlignment.end : CrossAxisAlignment.start,
+      children: [
+        Text(
+          label,
+          style: const TextStyle(
+            color: Color(0xFF607D8B),
+            fontSize: 15,
+            fontWeight: FontWeight.w700,
+          ),
+        ),
+        const SizedBox(height: 12),
+        Text(
+          value,
+          textAlign: alignEnd ? TextAlign.end : TextAlign.start,
+          style: TextStyle(
+            color:
+                mutedValue ? const Color(0xFF9E9E9E) : const Color(0xFF263238),
+            fontSize: 17,
+            fontWeight: FontWeight.w800,
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+class _TypeChip extends StatelessWidget {
+  const _TypeChip({
+    required this.label,
+    required this.selected,
+  });
+
+  final String label;
+  final bool selected;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 28, vertical: 13),
+      decoration: BoxDecoration(
+        color: selected ? const Color(0xFFE9F8F4) : Colors.white,
+        borderRadius: BorderRadius.circular(28),
+        border: Border.all(
+          color: selected ? const Color(0xFF008F7A) : const Color(0xFFE0E6EA),
+          width: selected ? 1.4 : 1,
+        ),
+      ),
+      child: Text(
+        label,
+        style: TextStyle(
+          color: selected ? const Color(0xFF008F7A) : const Color(0xFF455A64),
+          fontSize: 15,
+          fontWeight: FontWeight.w800,
+        ),
+      ),
+    );
+  }
+}
+
 class ReceiptSummaryCard extends StatelessWidget {
   const ReceiptSummaryCard({
     super.key,

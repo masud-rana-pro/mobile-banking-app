@@ -282,43 +282,44 @@ class _MobileRechargeScreenState extends ConsumerState<MobileRechargeScreen> {
   }
 
   Widget _buildPinStep() {
+    final amount =
+        double.tryParse(_amountController.text.trim())?.toStringAsFixed(2) ??
+            '0.00';
+    final mobile = _mobileController.text.trim();
+    final operator =
+        _operators.firstWhere((item) => item.value == _selectedOperator).label;
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const Text(
-          'Confirm Recharge',
-          style: TextStyle(
-            fontSize: 20,
-            fontWeight: FontWeight.w800,
-            color: Color(0xFF263238),
-          ),
-        ),
-        const SizedBox(height: 8),
-        Text(
-          'Recharge BDT ${double.tryParse(_amountController.text.trim())?.toStringAsFixed(2) ?? '0.00'} to ${_mobileController.text.trim()} ($_selectedOperator)',
-          style: const TextStyle(color: Color(0xFF607D8B)),
-        ),
-        const SizedBox(height: 20),
-        TextField(
-          controller: _pinController,
-          obscureText: true,
-          maxLength: 5,
-          keyboardType: TextInputType.number,
-          decoration: const InputDecoration(
-            labelText: '5-digit PIN',
-            border: OutlineInputBorder(),
-          ),
-          style: const TextStyle(fontSize: 22, fontWeight: FontWeight.w700),
-        ),
-        const SizedBox(height: 20),
-        _primaryButton(
-          label: 'Review Recharge',
-          onPressed: _isLoading ? null : _continueToConfirm,
+        PinEntryPanel(
+          pinController: _pinController,
+          actionTitle: 'Mobile Recharge',
+          amountText: '৳$amount',
+          totalText: '৳$amount',
+          typeLabel: 'Prepaid',
+          secondaryTypeLabel: 'Postpaid',
           loading: _isLoading,
-        ),
-        TextButton(
-          onPressed: () => setState(() => _currentStep = _RechargeStep.details),
-          child: const Text('Change Details'),
+          onConfirm: _continueToConfirm,
+          onBackToAmount: () =>
+              setState(() => _currentStep = _RechargeStep.details),
+          recipient: AmountRecipientCard(
+            label: 'Recipient',
+            title: mobile,
+            subtitle: operator,
+            fallbackIcon: Icons.phone_android,
+            trailing: CircleAvatar(
+              radius: 24,
+              backgroundColor: const Color(0xFFE9F8F4),
+              child: Text(
+                operator.substring(0, 1),
+                style: const TextStyle(
+                  color: Color(0xFF008F7A),
+                  fontWeight: FontWeight.w900,
+                ),
+              ),
+            ),
+          ),
         ),
       ],
     );

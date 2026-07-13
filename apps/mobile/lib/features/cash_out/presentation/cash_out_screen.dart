@@ -233,38 +233,30 @@ class _CashOutScreenState extends ConsumerState<CashOutScreen> {
   }
 
   Widget _pinStep() {
+    final amount =
+        double.tryParse(_amountController.text.trim())?.toStringAsFixed(2) ??
+            '0.00';
+    final agentNumber = _agentController.text.trim();
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const Text(
-          'Confirm Cash Out',
-          style: TextStyle(fontSize: 22, fontWeight: FontWeight.w900),
-        ),
-        const SizedBox(height: 8),
-        Text(
-          'Cash out BDT ${double.tryParse(_amountController.text.trim())?.toStringAsFixed(2) ?? '0.00'} from agent ${_agentController.text.trim()}',
-          style: const TextStyle(color: Color(0xFF607D8B)),
-        ),
-        const SizedBox(height: 20),
-        TextField(
-          controller: _pinController,
-          obscureText: true,
-          maxLength: 5,
-          keyboardType: TextInputType.number,
-          decoration: const InputDecoration(
-            labelText: '5-digit PIN',
-            border: OutlineInputBorder(),
-          ),
-        ),
-        const SizedBox(height: 18),
-        PrimaryActionButton(
-          label: 'Review Cash Out',
-          onPressed: _isLoading ? null : _continueToConfirm,
+        PinEntryPanel(
+          pinController: _pinController,
+          actionTitle: 'Cash Out',
+          amountText: '৳$amount',
+          totalText: '৳$amount',
+          typeLabel: 'Agent',
+          secondaryTypeLabel: 'QR',
           loading: _isLoading,
-        ),
-        TextButton(
-          onPressed: () => setState(() => _step = _CashOutStep.details),
-          child: const Text('Change Details'),
+          onConfirm: _continueToConfirm,
+          onBackToAmount: () => setState(() => _step = _CashOutStep.details),
+          recipient: AmountRecipientCard(
+            label: 'Agent',
+            title: 'SmartKash Agent',
+            subtitle: agentNumber,
+            fallbackIcon: Icons.payments_outlined,
+          ),
         ),
       ],
     );

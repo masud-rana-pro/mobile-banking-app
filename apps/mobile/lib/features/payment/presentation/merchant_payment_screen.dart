@@ -312,45 +312,32 @@ class _MerchantPaymentScreenState extends ConsumerState<MerchantPaymentScreen> {
   }
 
   Widget _buildPinStep() {
-    final target = _merchantTarget;
+    final target = _merchantTarget!;
+    final amount =
+        double.tryParse(_amountController.text.trim())?.toStringAsFixed(2) ??
+            '0.00';
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const Text(
-          'Confirm with PIN',
-          style: TextStyle(
-            fontSize: 20,
-            fontWeight: FontWeight.w800,
-            color: Color(0xFF263238),
-          ),
-        ),
-        const SizedBox(height: 8),
-        Text(
-          'Paying BDT ${double.tryParse(_amountController.text.trim())?.toStringAsFixed(2) ?? '0.00'} to ${target?.businessName ?? target?.merchantNumber ?? 'merchant'}',
-          style: const TextStyle(color: Color(0xFF607D8B)),
-        ),
-        const SizedBox(height: 20),
-        TextField(
-          controller: _pinController,
-          obscureText: true,
-          maxLength: 5,
-          keyboardType: TextInputType.number,
-          decoration: const InputDecoration(
-            labelText: '5-digit PIN',
-            border: OutlineInputBorder(),
-          ),
-          style: const TextStyle(fontSize: 22, fontWeight: FontWeight.w700),
-        ),
-        const SizedBox(height: 20),
-        PrimaryActionButton(
-          label: 'Review Payment',
+        PinEntryPanel(
+          pinController: _pinController,
+          actionTitle: 'Payment',
+          amountText: '৳$amount',
+          totalText: '৳$amount',
+          typeLabel: 'Merchant',
+          secondaryTypeLabel: 'Offer',
           loading: _isLoading,
-          onPressed: _continueToConfirm,
-        ),
-        TextButton(
-          onPressed: () => setState(() => _currentStep = _PaymentStep.amount),
-          child: const Text('Change Amount'),
+          onConfirm: _continueToConfirm,
+          onBackToAmount: () =>
+              setState(() => _currentStep = _PaymentStep.amount),
+          recipient: AmountRecipientCard(
+            label: 'Merchant',
+            title: target.businessName,
+            subtitle: '${target.merchantNumber} - ${target.businessType}',
+            imageUrl: target.avatarUrl,
+            fallbackIcon: Icons.storefront_outlined,
+          ),
         ),
       ],
     );
@@ -472,5 +459,4 @@ class _MerchantPaymentScreenState extends ConsumerState<MerchantPaymentScreen> {
       ],
     );
   }
-
 }
