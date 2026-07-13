@@ -20,6 +20,7 @@ import '../../features/savings/presentation/savings_screen.dart';
 import '../../features/send_money/presentation/send_money_screen.dart';
 import '../../features/transaction/presentation/transaction_detail_screen.dart';
 import '../../features/transaction/presentation/transaction_list_screen.dart';
+import '../../shared/widgets/smartkash_shell.dart';
 
 final appRouterProvider = Provider<GoRouter>(
   (ref) {
@@ -69,11 +70,6 @@ final appRouterProvider = Provider<GoRouter>(
       },
       routes: [
         GoRoute(
-          path: HomeScreen.routePath,
-          name: HomeScreen.routeName,
-          builder: (context, state) => const HomeScreen(),
-        ),
-        GoRoute(
           path: LoginScreen.routePath,
           name: LoginScreen.routeName,
           builder: (context, state) => const LoginScreen(),
@@ -88,73 +84,86 @@ final appRouterProvider = Provider<GoRouter>(
           name: ProfileCompletionScreen.routeName,
           builder: (context, state) => const ProfileCompletionScreen(),
         ),
-        GoRoute(
-          path: AccountScreen.routePath,
-          name: AccountScreen.routeName,
-          builder: (context, state) => const AccountScreen(),
-        ),
-        GoRoute(
-          path: TransactionListScreen.routePath,
-          name: TransactionListScreen.routeName,
-          builder: (context, state) => const TransactionListScreen(),
-        ),
-        GoRoute(
-          path: TransactionDetailScreen.routePath,
-          name: TransactionDetailScreen.routeName,
-          builder: (context, state) {
-            final id = int.parse(state.pathParameters['id'] ?? '0');
-            return TransactionDetailScreen(transactionId: id);
-          },
-        ),
-        GoRoute(
-          path: AddMoneyScreen.routePath,
-          name: AddMoneyScreen.routeName,
-          builder: (context, state) => const AddMoneyScreen(),
-        ),
-        GoRoute(
-          path: SendMoneyScreen.routePath,
-          name: SendMoneyScreen.routeName,
-          builder: (context, state) => const SendMoneyScreen(),
-        ),
-        GoRoute(
-          path: QrScreen.routePath,
-          name: QrScreen.routeName,
-          builder: (context, state) => const QrScreen(),
-        ),
-        GoRoute(
-          path: MerchantPaymentScreen.routePath,
-          name: MerchantPaymentScreen.routeName,
-          builder: (context, state) => const MerchantPaymentScreen(),
-        ),
-        GoRoute(
-          path: CashOutScreen.routePath,
-          name: CashOutScreen.routeName,
-          builder: (context, state) => const CashOutScreen(),
-        ),
-        GoRoute(
-          path: PayBillScreen.routePath,
-          name: PayBillScreen.routeName,
-          builder: (context, state) => const PayBillScreen(),
-        ),
-        GoRoute(
-          path: MobileRechargeScreen.routePath,
-          name: MobileRechargeScreen.routeName,
-          builder: (context, state) => const MobileRechargeScreen(),
-        ),
-        GoRoute(
-          path: SavingsScreen.routePath,
-          name: SavingsScreen.routeName,
-          builder: (context, state) => const SavingsScreen(),
-        ),
-        GoRoute(
-          path: LoanScreen.routePath,
-          name: LoanScreen.routeName,
-          builder: (context, state) => const LoanScreen(),
-        ),
-        GoRoute(
-          path: NotificationInboxScreen.routePath,
-          name: NotificationInboxScreen.routeName,
-          builder: (context, state) => const NotificationInboxScreen(),
+        ShellRoute(
+          builder: (context, state, child) => SmartKashShell(
+            currentPath: state.uri.path,
+            child: child,
+          ),
+          routes: [
+            GoRoute(
+              path: HomeScreen.routePath,
+              name: HomeScreen.routeName,
+              builder: (context, state) => const HomeScreen(),
+            ),
+            GoRoute(
+              path: AccountScreen.routePath,
+              name: AccountScreen.routeName,
+              builder: (context, state) => const AccountScreen(),
+            ),
+            GoRoute(
+              path: TransactionListScreen.routePath,
+              name: TransactionListScreen.routeName,
+              builder: (context, state) => const TransactionListScreen(),
+            ),
+            GoRoute(
+              path: TransactionDetailScreen.routePath,
+              name: TransactionDetailScreen.routeName,
+              builder: (context, state) {
+                final id = int.parse(state.pathParameters['id'] ?? '0');
+                return TransactionDetailScreen(transactionId: id);
+              },
+            ),
+            GoRoute(
+              path: AddMoneyScreen.routePath,
+              name: AddMoneyScreen.routeName,
+              builder: (context, state) => const AddMoneyScreen(),
+            ),
+            GoRoute(
+              path: SendMoneyScreen.routePath,
+              name: SendMoneyScreen.routeName,
+              builder: (context, state) => const SendMoneyScreen(),
+            ),
+            GoRoute(
+              path: QrScreen.routePath,
+              name: QrScreen.routeName,
+              builder: (context, state) => const QrScreen(),
+            ),
+            GoRoute(
+              path: MerchantPaymentScreen.routePath,
+              name: MerchantPaymentScreen.routeName,
+              builder: (context, state) => const MerchantPaymentScreen(),
+            ),
+            GoRoute(
+              path: CashOutScreen.routePath,
+              name: CashOutScreen.routeName,
+              builder: (context, state) => const CashOutScreen(),
+            ),
+            GoRoute(
+              path: PayBillScreen.routePath,
+              name: PayBillScreen.routeName,
+              builder: (context, state) => const PayBillScreen(),
+            ),
+            GoRoute(
+              path: MobileRechargeScreen.routePath,
+              name: MobileRechargeScreen.routeName,
+              builder: (context, state) => const MobileRechargeScreen(),
+            ),
+            GoRoute(
+              path: SavingsScreen.routePath,
+              name: SavingsScreen.routeName,
+              builder: (context, state) => const SavingsScreen(),
+            ),
+            GoRoute(
+              path: LoanScreen.routePath,
+              name: LoanScreen.routeName,
+              builder: (context, state) => const LoanScreen(),
+            ),
+            GoRoute(
+              path: NotificationInboxScreen.routePath,
+              name: NotificationInboxScreen.routeName,
+              builder: (context, state) => const NotificationInboxScreen(),
+            ),
+          ],
         ),
       ],
     );

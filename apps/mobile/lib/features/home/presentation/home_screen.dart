@@ -77,7 +77,6 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
           ],
         ),
       ),
-      bottomNavigationBar: const _SmartKashBottomNav(),
     );
   }
 }
@@ -832,34 +831,4 @@ void _handleQuickFeatureTap(
     title: label,
     message: notice ?? '$label is planned for a later SmartKash MVP step.',
   );
-}
-
-class _SmartKashBottomNav extends StatelessWidget {
-  const _SmartKashBottomNav();
-
-  @override
-  Widget build(BuildContext context) {
-    return NavigationBar(
-      selectedIndex: 0,
-      onDestinationSelected: (index) {
-        if (index == 1) {
-          context.pushNamed(AccountScreen.routeName);
-        }
-        if (index == 2) {
-          context.pushNamed(QrScreen.routeName);
-        }
-        if (index == 3) {
-          context.pushNamed(NotificationInboxScreen.routeName);
-        }
-      },
-      destinations: const [
-        NavigationDestination(icon: Icon(Icons.home_rounded), label: 'Home'),
-        NavigationDestination(
-            icon: Icon(Icons.person_outline), label: 'Account'),
-        NavigationDestination(
-            icon: Icon(Icons.qr_code_scanner), label: 'Scan QR'),
-        NavigationDestination(icon: Icon(Icons.mail_outline), label: 'Inbox'),
-      ],
-    );
-  }
 }
