@@ -9,4 +9,6 @@ public interface AgentService {
     AgentResponse createCurrentUserAgent(JwtPrincipal principal, CreateAgentRequest request);
 
     AgentResponse getCurrentUserAgent(JwtPrincipal principal);
+
+    AgentResponse resolveActiveAgent(JwtPrincipal principal, String agentNumber);
 }

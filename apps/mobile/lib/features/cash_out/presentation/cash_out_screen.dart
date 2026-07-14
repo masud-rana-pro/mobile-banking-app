@@ -6,11 +6,11 @@ import '../../../core/errors/api_exception.dart';
 import '../../../shared/widgets/contact_number_input.dart';
 import '../../../shared/widgets/feature_flow_widgets.dart';
 import '../../../shared/widgets/hold_to_confirm_screen.dart';
-import '../../auth/providers/auth_providers.dart';
 import '../../notification/presentation/notification_inbox_screen.dart';
 import '../../qr/presentation/qr_screen.dart';
 import '../../transaction/providers/transaction_providers.dart';
 import '../../wallet/providers/wallet_providers.dart';
+import '../domain/cash_out_agent.dart';
 import '../domain/cash_out_result.dart';
 import '../providers/cash_out_providers.dart';
 
@@ -38,6 +38,7 @@ class _CashOutScreenState extends ConsumerState<CashOutScreen> {
   final _noteController = TextEditingController();
 
   _CashOutStep _step = _CashOutStep.agent;
+  CashOutAgent? _agentTarget;
   CashOutResult? _result;
   String? _idempotencyKey;
   bool _isLoading = false;
@@ -48,7 +49,6 @@ class _CashOutScreenState extends ConsumerState<CashOutScreen> {
     final agentNumber = widget.initialAgentNumber?.trim();
     if (agentNumber != null && agentNumber.isNotEmpty) {
       _agentController.text = agentNumber;
-      _step = _CashOutStep.amount;
     }
   }
 
@@ -61,13 +61,27 @@ class _CashOutScreenState extends ConsumerState<CashOutScreen> {
     super.dispose();
   }
 
-  void _continueToAmount() {
+  Future<void> _continueToAmount() async {
     final agent = _agentController.text.trim();
     if (!_isValidBangladeshMobileNumber(agent)) {
       _showMessage('Enter a valid Bangladesh agent number.');
       return;
     }
-    setState(() => _step = _CashOutStep.amount);
+
+    setState(() => _isLoading = true);
+    try {
+      final target = await ref.read(cashOutRepositoryProvider).resolveAgent(
+            agent,
+          );
+      setState(() {
+        _agentTarget = target;
+        _step = _CashOutStep.amount;
+        _isLoading = false;
+      });
+    } catch (error) {
+      setState(() => _isLoading = false);
+      _showMessage(_friendlyError(error));
+    }
   }
 
   void _continueToPin() {
@@ -129,6 +143,7 @@ class _CashOutScreenState extends ConsumerState<CashOutScreen> {
   void _reset() {
     setState(() {
       _step = _CashOutStep.agent;
+      _agentTarget = null;
       _result = null;
       _idempotencyKey = null;
       _agentController.clear();
@@ -208,7 +223,10 @@ class _CashOutScreenState extends ConsumerState<CashOutScreen> {
                 },
           loading: _isLoading,
           proceedButtonLabel: 'Next: Enter Amount',
-          onProceed: _continueToAmount,
+          onChanged: (_) => setState(() => _agentTarget = null),
+          onProceed: () {
+            _continueToAmount();
+          },
         ),
       ],
     );
@@ -220,14 +238,18 @@ class _CashOutScreenState extends ConsumerState<CashOutScreen> {
           orElse: () => null,
         );
     final agentNumber = _agentController.text.trim();
+    final target = _agentTarget;
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         AmountRecipientCard(
           label: 'Agent',
-          title: 'SmartKash Agent',
-          subtitle: agentNumber,
+          title: target?.businessName ?? 'SmartKash Agent',
+          subtitle: target?.location == null || target!.location!.isEmpty
+              ? agentNumber
+              : '$agentNumber - ${target.location}',
+          imageUrl: target?.avatarUrl,
           fallbackIcon: Icons.payments_outlined,
         ),
         const SizedBox(height: 18),
@@ -264,6 +286,7 @@ class _CashOutScreenState extends ConsumerState<CashOutScreen> {
         double.tryParse(_amountController.text.trim())?.toStringAsFixed(2) ??
             '0.00';
     final agentNumber = _agentController.text.trim();
+    final target = _agentTarget;
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -280,8 +303,9 @@ class _CashOutScreenState extends ConsumerState<CashOutScreen> {
           onBackToAmount: () => setState(() => _step = _CashOutStep.amount),
           recipient: AmountRecipientCard(
             label: 'Agent',
-            title: 'SmartKash Agent',
+            title: target?.businessName ?? 'SmartKash Agent',
             subtitle: agentNumber,
+            imageUrl: target?.avatarUrl,
             fallbackIcon: Icons.payments_outlined,
           ),
         ),
@@ -294,11 +318,13 @@ class _CashOutScreenState extends ConsumerState<CashOutScreen> {
         double.tryParse(_amountController.text.trim())?.toStringAsFixed(2) ??
             '0.00';
     final agentNumber = _agentController.text.trim();
+    final target = _agentTarget;
 
     return HoldToConfirmScreen(
       actionName: 'Cash Out',
-      accountName: 'SmartKash Agent',
+      accountName: target?.businessName ?? 'SmartKash Agent',
       accountNumber: agentNumber,
+      avatarUrl: target?.avatarUrl,
       avatarIcon: Icons.payments_outlined,
       isLoading: _isLoading,
       onCancel: () => setState(() => _step = _CashOutStep.pin),
@@ -315,14 +341,14 @@ class _CashOutScreenState extends ConsumerState<CashOutScreen> {
 
   Widget _resultStep() {
     final result = _result!;
-    final avatarUrl = ref.watch(authControllerProvider).avatarUrl?.trim();
+    final target = _agentTarget;
     return TransactionConfirmationScreen(
       success: result.success,
       actionName: 'Cash Out',
       message: result.message,
-      accountName: 'SmartKash Agent',
+      accountName: target?.businessName ?? 'SmartKash Agent',
       accountNumber: result.agentNumber,
-      avatarUrl: avatarUrl,
+      avatarUrl: target?.avatarUrl,
       avatarIcon: Icons.payments_outlined,
       totalText: '৳${result.amount.toStringAsFixed(2)}',
       transactionId: result.transactionReference,

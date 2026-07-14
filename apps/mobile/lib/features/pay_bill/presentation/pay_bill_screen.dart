@@ -3,10 +3,11 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../core/errors/api_exception.dart';
+import '../../../shared/models/resolved_recipient_profile.dart';
+import '../../../shared/providers/recipient_profile_providers.dart';
 import '../../../shared/widgets/contact_number_input.dart';
 import '../../../shared/widgets/feature_flow_widgets.dart';
 import '../../../shared/widgets/hold_to_confirm_screen.dart';
-import '../../auth/providers/auth_providers.dart';
 import '../../notification/presentation/notification_inbox_screen.dart';
 import '../../transaction/providers/transaction_providers.dart';
 import '../../wallet/providers/wallet_providers.dart';
@@ -50,6 +51,7 @@ class _PayBillScreenState extends ConsumerState<PayBillScreen> {
 
   _PayBillStep _step = _PayBillStep.biller;
   String _selectedBiller = _billers.first.code;
+  ResolvedRecipientProfile? _accountProfile;
   PayBillResult? _result;
   String? _idempotencyKey;
   bool _isLoading = false;
@@ -63,13 +65,29 @@ class _PayBillScreenState extends ConsumerState<PayBillScreen> {
     super.dispose();
   }
 
-  void _continueToAmount() {
+  Future<void> _continueToAmount() async {
     final account = _accountController.text.trim();
     if (account.length < 3) {
       _showMessage('Enter a valid bill account number.');
       return;
     }
-    setState(() => _step = _PayBillStep.amount);
+
+    setState(() => _isLoading = true);
+    try {
+      final profile = _looksLikeBangladeshMobileNumber(account)
+          ? await ref
+              .read(recipientProfileRepositoryProvider)
+              .tryResolveByMobileNumber(account)
+          : null;
+      setState(() {
+        _accountProfile = profile;
+        _step = _PayBillStep.amount;
+        _isLoading = false;
+      });
+    } catch (error) {
+      setState(() => _isLoading = false);
+      _showMessage(_friendlyError(error));
+    }
   }
 
   void _continueToPin() {
@@ -133,6 +151,7 @@ class _PayBillScreenState extends ConsumerState<PayBillScreen> {
     setState(() {
       _step = _PayBillStep.biller;
       _selectedBiller = _billers.first.code;
+      _accountProfile = null;
       _result = null;
       _idempotencyKey = null;
       _accountController.clear();
@@ -219,7 +238,10 @@ class _PayBillScreenState extends ConsumerState<PayBillScreen> {
           keyboardType: TextInputType.text,
           loading: _isLoading,
           proceedButtonLabel: 'Next: Enter Amount',
-          onProceed: _continueToAmount,
+          onChanged: (_) => setState(() => _accountProfile = null),
+          onProceed: () {
+            _continueToAmount();
+          },
         ),
       ],
     );
@@ -233,14 +255,16 @@ class _PayBillScreenState extends ConsumerState<PayBillScreen> {
     final biller =
         _billers.firstWhere((item) => item.code == _selectedBiller).label;
     final account = _accountController.text.trim();
+    final profile = _accountProfile;
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         AmountRecipientCard(
           label: 'Biller',
-          title: biller,
-          subtitle: account,
+          title: profile?.displayName ?? biller,
+          subtitle: profile == null ? account : '$account - $biller',
+          imageUrl: profile?.avatarUrl,
           fallbackIcon: Icons.receipt_long_outlined,
         ),
         const SizedBox(height: 18),
@@ -279,6 +303,7 @@ class _PayBillScreenState extends ConsumerState<PayBillScreen> {
     final biller =
         _billers.firstWhere((item) => item.code == _selectedBiller).label;
     final account = _accountController.text.trim();
+    final profile = _accountProfile;
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -295,8 +320,9 @@ class _PayBillScreenState extends ConsumerState<PayBillScreen> {
           onBackToAmount: () => setState(() => _step = _PayBillStep.amount),
           recipient: AmountRecipientCard(
             label: 'Biller',
-            title: biller,
-            subtitle: account,
+            title: profile?.displayName ?? biller,
+            subtitle: profile == null ? account : '$account - $biller',
+            imageUrl: profile?.avatarUrl,
             fallbackIcon: Icons.receipt_long_outlined,
           ),
         ),
@@ -311,11 +337,13 @@ class _PayBillScreenState extends ConsumerState<PayBillScreen> {
     final biller =
         _billers.firstWhere((item) => item.code == _selectedBiller).label;
     final account = _accountController.text.trim();
+    final profile = _accountProfile;
 
     return HoldToConfirmScreen(
       actionName: 'Pay Bill',
-      accountName: biller,
-      accountNumber: account,
+      accountName: profile?.displayName ?? biller,
+      accountNumber: profile == null ? account : '$account - $biller',
+      avatarUrl: profile?.avatarUrl,
       avatarIcon: Icons.receipt_long_outlined,
       isLoading: _isLoading,
       onCancel: () => setState(() => _step = _PayBillStep.pin),
@@ -334,15 +362,17 @@ class _PayBillScreenState extends ConsumerState<PayBillScreen> {
     final result = _result!;
     final biller =
         _billers.firstWhere((item) => item.code == result.billerCode).label;
-    final avatarUrl = ref.watch(authControllerProvider).avatarUrl?.trim();
+    final profile = _accountProfile;
 
     return TransactionConfirmationScreen(
       success: result.success,
       actionName: 'Pay Bill',
       message: result.message,
-      accountName: biller,
-      accountNumber: result.billAccountNumber,
-      avatarUrl: avatarUrl,
+      accountName: profile?.displayName ?? biller,
+      accountNumber: profile == null
+          ? result.billAccountNumber
+          : '${result.billAccountNumber} - $biller',
+      avatarUrl: profile?.avatarUrl,
       avatarIcon: Icons.receipt_long_outlined,
       totalText: '৳${result.amount.toStringAsFixed(2)}',
       transactionId: result.transactionReference,
@@ -358,5 +388,10 @@ class _PayBillScreenState extends ConsumerState<PayBillScreen> {
       primaryLabel: 'Pay Another',
       onPrimaryAction: _reset,
     );
+  }
+
+  bool _looksLikeBangladeshMobileNumber(String value) {
+    final normalized = value.trim().replaceAll(' ', '').replaceAll('-', '');
+    return RegExp(r'^(\+8801|8801|01|1)[0-9]{9}$').hasMatch(normalized);
   }
 }

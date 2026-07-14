@@ -11,6 +11,8 @@ public interface UserService {
 
     UserResponse getCurrentUser(JwtPrincipal principal);
 
+    UserResponse resolveUserByMobileNumber(JwtPrincipal principal, String mobileNumber);
+
     UserResponse updateCurrentUserProfile(JwtPrincipal principal, UpdateUserProfileRequest request);
 
     UserResponse uploadCurrentUserProfileImage(JwtPrincipal principal, MultipartFile image);

@@ -3,10 +3,11 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../core/errors/api_exception.dart';
+import '../../../shared/models/resolved_recipient_profile.dart';
+import '../../../shared/providers/recipient_profile_providers.dart';
 import '../../../shared/widgets/contact_number_input.dart';
 import '../../../shared/widgets/feature_flow_widgets.dart';
 import '../../../shared/widgets/hold_to_confirm_screen.dart';
-import '../../auth/providers/auth_providers.dart';
 import '../../notification/presentation/notification_inbox_screen.dart';
 import '../../transaction/providers/transaction_providers.dart';
 import '../../wallet/providers/wallet_providers.dart';
@@ -50,6 +51,7 @@ class _MobileRechargeScreenState extends ConsumerState<MobileRechargeScreen> {
 
   _RechargeStep _currentStep = _RechargeStep.recipient;
   String _selectedOperator = _operators.first.value;
+  ResolvedRecipientProfile? _recipientProfile;
   MobileRechargeRecord? _rechargeResult;
   String? _idempotencyKey;
   bool _isLoading = false;
@@ -63,14 +65,29 @@ class _MobileRechargeScreenState extends ConsumerState<MobileRechargeScreen> {
     super.dispose();
   }
 
-  void _continueToAmount() {
+  Future<void> _continueToAmount() async {
     final mobile = _mobileController.text.trim();
 
     if (!RegExp(r'^[0-9]{10,15}$').hasMatch(mobile)) {
       _showMessage('Enter a valid mobile number with 10 to 15 digits.');
       return;
     }
-    setState(() => _currentStep = _RechargeStep.amount);
+
+    setState(() => _isLoading = true);
+    try {
+      final profile = await ref
+          .read(recipientProfileRepositoryProvider)
+          .tryResolveByMobileNumber(mobile);
+      setState(() {
+        _recipientProfile = profile;
+        _currentStep = _RechargeStep.amount;
+        _isLoading = false;
+      });
+    } catch (error) {
+      setState(() => _isLoading = false);
+      _showMessage(
+          _friendlyError(error, fallback: 'Could not resolve number.'));
+    }
   }
 
   void _continueToPin() {
@@ -138,6 +155,7 @@ class _MobileRechargeScreenState extends ConsumerState<MobileRechargeScreen> {
   void _reset() {
     setState(() {
       _currentStep = _RechargeStep.recipient;
+      _recipientProfile = null;
       _rechargeResult = null;
       _idempotencyKey = null;
       _mobileController.clear();
@@ -242,10 +260,12 @@ class _MobileRechargeScreenState extends ConsumerState<MobileRechargeScreen> {
           hintText: '01XXXXXXXXX',
           contactButtonLabel: 'Contacts',
           qrButtonLabel: 'Scan QR',
-          onChanged: (_) => setState(() {}),
+          onChanged: (_) => setState(() => _recipientProfile = null),
           loading: _isLoading,
           proceedButtonLabel: 'Next: Enter Amount',
-          onProceed: _continueToAmount,
+          onProceed: () {
+            _continueToAmount();
+          },
         ),
       ],
     );
@@ -257,6 +277,7 @@ class _MobileRechargeScreenState extends ConsumerState<MobileRechargeScreen> {
           orElse: () => null,
         );
     final mobileNumber = _mobileController.text.trim();
+    final recipient = _recipientProfile;
     final operator =
         _operators.firstWhere((item) => item.value == _selectedOperator).label;
 
@@ -265,8 +286,9 @@ class _MobileRechargeScreenState extends ConsumerState<MobileRechargeScreen> {
       children: [
         AmountRecipientCard(
           label: 'Recipient',
-          title: mobileNumber,
-          subtitle: operator,
+          title: recipient?.displayName ?? mobileNumber,
+          subtitle: recipient == null ? operator : '$mobileNumber - $operator',
+          imageUrl: recipient?.avatarUrl,
           fallbackIcon: Icons.phone_android,
           trailing: CircleAvatar(
             radius: 24,
@@ -314,6 +336,7 @@ class _MobileRechargeScreenState extends ConsumerState<MobileRechargeScreen> {
         double.tryParse(_amountController.text.trim())?.toStringAsFixed(2) ??
             '0.00';
     final mobile = _mobileController.text.trim();
+    final recipient = _recipientProfile;
     final operator =
         _operators.firstWhere((item) => item.value == _selectedOperator).label;
 
@@ -333,8 +356,9 @@ class _MobileRechargeScreenState extends ConsumerState<MobileRechargeScreen> {
               setState(() => _currentStep = _RechargeStep.amount),
           recipient: AmountRecipientCard(
             label: 'Recipient',
-            title: mobile,
-            subtitle: operator,
+            title: recipient?.displayName ?? mobile,
+            subtitle: recipient == null ? operator : '$mobile - $operator',
+            imageUrl: recipient?.avatarUrl,
             fallbackIcon: Icons.phone_android,
             trailing: CircleAvatar(
               radius: 24,
@@ -358,13 +382,15 @@ class _MobileRechargeScreenState extends ConsumerState<MobileRechargeScreen> {
         double.tryParse(_amountController.text.trim())?.toStringAsFixed(2) ??
             '0.00';
     final mobile = _mobileController.text.trim();
+    final recipient = _recipientProfile;
     final operator =
         _operators.firstWhere((item) => item.value == _selectedOperator).label;
 
     return HoldToConfirmScreen(
       actionName: 'Mobile Recharge',
-      accountName: mobile,
-      accountNumber: operator,
+      accountName: recipient?.displayName ?? mobile,
+      accountNumber: recipient == null ? operator : '$mobile - $operator',
+      avatarUrl: recipient?.avatarUrl,
       avatarIcon: Icons.phone_android_outlined,
       isLoading: _isLoading,
       onCancel: () => setState(() => _currentStep = _RechargeStep.pin),
@@ -382,7 +408,7 @@ class _MobileRechargeScreenState extends ConsumerState<MobileRechargeScreen> {
   Widget _buildResultStep() {
     final result = _rechargeResult!;
     final isSuccess = result.status == 'SUCCESS';
-    final avatarUrl = ref.watch(authControllerProvider).avatarUrl?.trim();
+    final recipient = _recipientProfile;
 
     return TransactionConfirmationScreen(
       success: isSuccess,
@@ -390,9 +416,11 @@ class _MobileRechargeScreenState extends ConsumerState<MobileRechargeScreen> {
       message: isSuccess
           ? 'Your mobile recharge is successful'
           : 'Mobile recharge failed',
-      accountName: result.mobileNumber,
-      accountNumber: result.operator,
-      avatarUrl: avatarUrl,
+      accountName: recipient?.displayName ?? result.mobileNumber,
+      accountNumber: recipient == null
+          ? result.operator
+          : '${result.mobileNumber} - ${result.operator}',
+      avatarUrl: recipient?.avatarUrl,
       avatarIcon: Icons.phone_android_outlined,
       totalText: '৳${result.amount.toStringAsFixed(2)}',
       transactionId: result.transactionReference,

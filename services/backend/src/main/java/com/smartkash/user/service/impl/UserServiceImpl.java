@@ -62,6 +62,17 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
+    @Transactional(readOnly = true)
+    public UserResponse resolveUserByMobileNumber(JwtPrincipal principal, String mobileNumber) {
+        findCurrentUser(principal);
+        String normalizedMobileNumber = normalizeBangladeshMobileNumber(mobileNumber);
+        User user = userRepository.findByMobileNumber(normalizedMobileNumber)
+                .orElseThrow(() -> new ResourceNotFoundException("Recipient user was not found."));
+
+        return userMapper.toResponse(user);
+    }
+
+    @Override
     @Transactional
     public UserResponse updateCurrentUserProfile(JwtPrincipal principal, UpdateUserProfileRequest request) {
         User user = findCurrentUser(principal);
@@ -111,6 +122,27 @@ public class UserServiceImpl implements UserService {
     private User findCurrentUser(JwtPrincipal principal) {
         return userRepository.findByFirebaseUid(principal.firebaseUid())
                 .orElseThrow(() -> new ResourceNotFoundException("User profile is not created yet."));
+    }
+
+    private String normalizeBangladeshMobileNumber(String mobileNumber) {
+        if (!StringUtils.hasText(mobileNumber)) {
+            throw new IllegalArgumentException("Mobile number is required.");
+        }
+
+        String normalized = mobileNumber.trim().replace(" ", "").replace("-", "");
+        if (normalized.startsWith("+880") && normalized.matches("^\\+8801[0-9]{9}$")) {
+            return normalized;
+        }
+        if (normalized.startsWith("880") && normalized.matches("^8801[0-9]{9}$")) {
+            return "+" + normalized;
+        }
+        if (normalized.startsWith("01") && normalized.matches("^01[0-9]{9}$")) {
+            return "+88" + normalized;
+        }
+        if (normalized.startsWith("1") && normalized.matches("^1[0-9]{9}$")) {
+            return "+880" + normalized;
+        }
+        throw new IllegalArgumentException("Mobile number must be a valid Bangladesh mobile number.");
     }
 
     private String storeProfileImage(MultipartFile image) {

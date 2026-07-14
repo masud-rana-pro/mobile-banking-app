@@ -10,6 +10,7 @@ public record AgentResponse(
         String businessName,
         String agentNumber,
         String location,
+        String avatarUrl,
         AgentStatus status,
         Instant createdAt,
         Instant updatedAt
