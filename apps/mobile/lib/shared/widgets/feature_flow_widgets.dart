@@ -816,25 +816,21 @@ class PinEntryPanel extends StatelessWidget {
               ],
             ),
           ),
-          OverflowBox(
-            maxWidth: MediaQuery.sizeOf(context).width,
-            alignment: Alignment.center,
-            child: SizedBox(
-              width: MediaQuery.sizeOf(context).width,
-              child: _PinConfirmKeypad(
-                loading: loading,
-                canConfirm: canConfirm,
-                onConfirm: onConfirm,
-                onNumberTap: _appendDigit,
-                onBackspace: _backspace,
-              ),
-            ),
-          ),
           if (onBackToAmount != null)
             TextButton(
               onPressed: onBackToAmount,
               child: const Text('Change Amount'),
             ),
+          SizedBox(
+            width: double.infinity,
+            child: _PinConfirmKeypad(
+              loading: loading,
+              canConfirm: canConfirm,
+              onConfirm: onConfirm,
+              onNumberTap: _appendDigit,
+              onBackspace: _backspace,
+            ),
+          ),
         ],
       ),
     );
