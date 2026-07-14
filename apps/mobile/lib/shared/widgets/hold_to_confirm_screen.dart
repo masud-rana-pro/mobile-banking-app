@@ -407,18 +407,15 @@ class _FooterArcPainter extends CustomPainter {
     final basePaint = Paint()
       ..color = const Color(0xFF008F7A)
       ..style = PaintingStyle.fill;
-    final progressPaint = Paint()
-      ..color = const Color(0xFF00695C)
-      ..style = PaintingStyle.fill;
     final lineBasePaint = Paint()
-      ..color = Colors.white.withValues(alpha: 0.36)
+      ..color = const Color(0xFFD7EEE8)
       ..style = PaintingStyle.stroke
-      ..strokeWidth = 7
+      ..strokeWidth = 8
       ..strokeCap = StrokeCap.round;
     final lineProgressPaint = Paint()
-      ..color = Colors.white
+      ..color = const Color(0xFF00A98F)
       ..style = PaintingStyle.stroke
-      ..strokeWidth = 7
+      ..strokeWidth = 8
       ..strokeCap = StrokeCap.round;
 
     final path = Path()
@@ -434,27 +431,18 @@ class _FooterArcPainter extends CustomPainter {
       ..close();
     canvas.drawPath(path, basePaint);
 
-    if (safeProgress > 0) {
-      canvas.save();
-      canvas.clipRect(
-        Rect.fromLTWH(0, 0, size.width * safeProgress, size.height),
-      );
-      canvas.drawPath(path, progressPaint);
-      canvas.restore();
-    }
-
-    final topLinePath = Path()
-      ..moveTo(0, size.height * 0.26)
+    final progressLinePath = Path()
+      ..moveTo(0, size.height * 0.18)
       ..quadraticBezierTo(
         size.width / 2,
-        -size.height * 0.18,
+        -size.height * 0.08,
         size.width,
-        size.height * 0.26,
+        size.height * 0.18,
       );
-    canvas.drawPath(topLinePath, lineBasePaint);
+    canvas.drawPath(progressLinePath, lineBasePaint);
 
     if (safeProgress > 0) {
-      final metric = topLinePath.computeMetrics().first;
+      final metric = progressLinePath.computeMetrics().first;
       final progressPath = metric.extractPath(
         0,
         metric.length * safeProgress,
