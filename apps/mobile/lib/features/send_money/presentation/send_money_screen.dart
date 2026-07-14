@@ -224,12 +224,9 @@ class _SendMoneyScreenState extends ConsumerState<SendMoneyScreen> {
                     queryParameters: {'tab': 'scan'},
                   );
                 },
-        ),
-        const SizedBox(height: 18),
-        PrimaryActionButton(
-          label: 'Find Receiver',
           loading: _isLoading,
-          onPressed: _resolveReceiver,
+          proceedButtonLabel: 'Find Receiver',
+          onProceed: _resolveReceiver,
         ),
       ],
     );

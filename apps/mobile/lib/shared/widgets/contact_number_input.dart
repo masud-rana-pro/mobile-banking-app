@@ -12,6 +12,9 @@ class ContactNumberInput extends StatefulWidget {
     required this.qrButtonLabel,
     this.onChanged,
     this.onQrPressed,
+    this.onProceed,
+    this.proceedButtonLabel = 'Proceed',
+    this.loading = false,
     this.keyboardType = TextInputType.phone,
     super.key,
   });
@@ -23,6 +26,9 @@ class ContactNumberInput extends StatefulWidget {
   final String qrButtonLabel;
   final ValueChanged<String>? onChanged;
   final VoidCallback? onQrPressed;
+  final VoidCallback? onProceed;
+  final String proceedButtonLabel;
+  final bool loading;
   final TextInputType keyboardType;
 
   @override
@@ -50,9 +56,41 @@ class _ContactNumberInputState extends State<ContactNumberInput> {
     setState(() => _selectedContact = selected);
   }
 
+  void _appendDigit(String value) {
+    if (widget.loading) {
+      return;
+    }
+    widget.controller.text = '${widget.controller.text}$value';
+    widget.onChanged?.call(widget.controller.text);
+    if (_selectedContact != null &&
+        widget.controller.text != _selectedContact!.number) {
+      _selectedContact = null;
+    }
+    setState(() {});
+  }
+
+  void _backspace() {
+    if (widget.loading || widget.controller.text.isEmpty) {
+      return;
+    }
+    widget.controller.text = widget.controller.text.substring(
+      0,
+      widget.controller.text.length - 1,
+    );
+    widget.onChanged?.call(widget.controller.text);
+    if (_selectedContact != null &&
+        widget.controller.text != _selectedContact!.number) {
+      _selectedContact = null;
+    }
+    setState(() {});
+  }
+
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final canProceed = widget.onProceed != null &&
+        widget.controller.text.trim().isNotEmpty &&
+        !widget.loading;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -77,7 +115,11 @@ class _ContactNumberInputState extends State<ContactNumberInput> {
               Expanded(
                 child: TextField(
                   controller: widget.controller,
-                  keyboardType: widget.keyboardType,
+                  readOnly: true,
+                  showCursor: true,
+                  enableInteractiveSelection: false,
+                  keyboardType: TextInputType.none,
+                  onTap: FocusScope.of(context).unfocus,
                   onChanged: (value) {
                     widget.onChanged?.call(value);
                     if (_selectedContact != null &&
@@ -131,7 +173,194 @@ class _ContactNumberInputState extends State<ContactNumberInput> {
             ),
           ),
         ),
+        if (widget.onProceed != null) ...[
+          const SizedBox(height: 12),
+          _NumberProceedKeypad(
+            label: widget.proceedButtonLabel,
+            loading: widget.loading,
+            canProceed: canProceed,
+            onProceed: widget.onProceed,
+            onNumberTap: _appendDigit,
+            onBackspace: _backspace,
+          ),
+        ],
       ],
+    );
+  }
+}
+
+class _NumberProceedKeypad extends StatelessWidget {
+  const _NumberProceedKeypad({
+    required this.label,
+    required this.loading,
+    required this.canProceed,
+    required this.onProceed,
+    required this.onNumberTap,
+    required this.onBackspace,
+  });
+
+  final String label;
+  final bool loading;
+  final bool canProceed;
+  final VoidCallback? onProceed;
+  final ValueChanged<String> onNumberTap;
+  final VoidCallback onBackspace;
+
+  static const _accent = Color(0xFF008F7A);
+
+  @override
+  Widget build(BuildContext context) {
+    const rows = [
+      ['1', '2', '3'],
+      ['4', '5', '6'],
+      ['7', '8', '9'],
+    ];
+
+    return ClipRRect(
+      borderRadius: BorderRadius.circular(14),
+      child: Container(
+        color: const Color(0xFFF5F7FA),
+        child: Column(
+          children: [
+            SizedBox(
+              width: double.infinity,
+              height: 58,
+              child: ElevatedButton(
+                onPressed: canProceed ? onProceed : null,
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: _accent,
+                  disabledBackgroundColor: const Color(0xFF9E9E9E),
+                  foregroundColor: Colors.white,
+                  shape: const RoundedRectangleBorder(
+                    borderRadius: BorderRadius.zero,
+                  ),
+                  elevation: 0,
+                ),
+                child: loading
+                    ? const SizedBox(
+                        width: 24,
+                        height: 24,
+                        child: CircularProgressIndicator(
+                          color: Colors.white,
+                          strokeWidth: 2.5,
+                        ),
+                      )
+                    : Row(
+                        children: [
+                          Text(
+                            label,
+                            style: const TextStyle(
+                              fontSize: 18,
+                              fontWeight: FontWeight.w900,
+                            ),
+                          ),
+                          const Spacer(),
+                          const Icon(Icons.arrow_forward, size: 32),
+                        ],
+                      ),
+              ),
+            ),
+            Padding(
+              padding: const EdgeInsets.fromLTRB(20, 10, 20, 14),
+              child: Column(
+                children: [
+                  for (final row in rows)
+                    Row(
+                      children: [
+                        for (final value in row)
+                          Expanded(
+                            child: _NumberKeypadButton(
+                              label: value,
+                              onTap: () => onNumberTap(value),
+                            ),
+                          ),
+                      ],
+                    ),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: _NumberKeypadIconButton(
+                          icon: Icons.close,
+                          onTap: onBackspace,
+                        ),
+                      ),
+                      Expanded(
+                        child: _NumberKeypadButton(
+                          label: '0',
+                          onTap: () => onNumberTap('0'),
+                        ),
+                      ),
+                      Expanded(
+                        child: _NumberKeypadIconButton(
+                          icon: Icons.keyboard_return,
+                          onTap: canProceed ? (onProceed ?? () {}) : () {},
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _NumberKeypadButton extends StatelessWidget {
+  const _NumberKeypadButton({required this.label, required this.onTap});
+
+  final String label;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(48),
+      child: SizedBox(
+        height: 56,
+        child: Center(
+          child: Text(
+            label,
+            style: const TextStyle(
+              color: Color(0xFF455A64),
+              fontSize: 30,
+              fontWeight: FontWeight.w800,
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _NumberKeypadIconButton extends StatelessWidget {
+  const _NumberKeypadIconButton({required this.icon, required this.onTap});
+
+  final IconData icon;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(48),
+      child: SizedBox(
+        height: 56,
+        child: Center(
+          child: Container(
+            width: 44,
+            height: 36,
+            decoration: BoxDecoration(
+              color: const Color(0xFF455A64),
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: Icon(icon, color: Colors.white, size: 22),
+          ),
+        ),
+      ),
     );
   }
 }

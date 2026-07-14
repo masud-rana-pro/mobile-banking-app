@@ -243,12 +243,9 @@ class _MobileRechargeScreenState extends ConsumerState<MobileRechargeScreen> {
           contactButtonLabel: 'Contacts',
           qrButtonLabel: 'Scan QR',
           onChanged: (_) => setState(() {}),
-        ),
-        const SizedBox(height: 22),
-        PrimaryActionButton(
-          label: 'Next: Enter Amount',
           loading: _isLoading,
-          onPressed: _isLoading ? null : _continueToAmount,
+          proceedButtonLabel: 'Next: Enter Amount',
+          onProceed: _continueToAmount,
         ),
       ],
     );

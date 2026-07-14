@@ -233,12 +233,9 @@ class _MerchantPaymentScreenState extends ConsumerState<MerchantPaymentScreen> {
                     queryParameters: {'tab': 'scan'},
                   );
                 },
-        ),
-        const SizedBox(height: 18),
-        PrimaryActionButton(
-          label: 'Next: Enter Amount',
           loading: _isLoading,
-          onPressed: _resolveMerchant,
+          proceedButtonLabel: 'Next: Enter Amount',
+          onProceed: _resolveMerchant,
         ),
       ],
     );

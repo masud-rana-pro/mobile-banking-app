@@ -217,12 +217,9 @@ class _PayBillScreenState extends ConsumerState<PayBillScreen> {
           contactButtonLabel: 'Contacts',
           qrButtonLabel: 'Scan QR',
           keyboardType: TextInputType.text,
-        ),
-        const SizedBox(height: 22),
-        PrimaryActionButton(
-          label: 'Next: Enter Amount',
           loading: _isLoading,
-          onPressed: _isLoading ? null : _continueToAmount,
+          proceedButtonLabel: 'Next: Enter Amount',
+          onProceed: _continueToAmount,
         ),
       ],
     );
