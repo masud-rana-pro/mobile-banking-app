@@ -5,6 +5,7 @@ import 'package:go_router/go_router.dart';
 import '../../../core/errors/api_exception.dart';
 import '../../../shared/widgets/feature_flow_widgets.dart';
 import '../../../shared/widgets/hold_to_confirm_screen.dart';
+import '../../auth/providers/auth_providers.dart';
 import '../../notification/presentation/notification_inbox_screen.dart';
 import '../../transaction/providers/transaction_providers.dart';
 import '../../wallet/providers/wallet_providers.dart';
@@ -155,10 +156,11 @@ class _PayBillScreenState extends ConsumerState<PayBillScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final isConfirmStep = _step == _PayBillStep.confirm;
+    final isPopupStep =
+        _step == _PayBillStep.confirm || _step == _PayBillStep.result;
     return Scaffold(
       appBar: AppBar(title: const Text('Pay Bill'), centerTitle: true),
-      body: isConfirmStep
+      body: isPopupStep
           ? _buildBody()
           : SingleChildScrollView(
               padding: const EdgeInsets.all(20),
@@ -334,6 +336,7 @@ class _PayBillScreenState extends ConsumerState<PayBillScreen> {
     final result = _result!;
     final biller =
         _billers.firstWhere((item) => item.code == result.billerCode).label;
+    final avatarUrl = ref.watch(authControllerProvider).avatarUrl?.trim();
 
     return TransactionConfirmationScreen(
       success: result.success,
@@ -341,6 +344,7 @@ class _PayBillScreenState extends ConsumerState<PayBillScreen> {
       message: result.message,
       accountName: biller,
       accountNumber: result.billAccountNumber,
+      avatarUrl: avatarUrl,
       avatarIcon: Icons.receipt_long_outlined,
       totalText: '৳${result.amount.toStringAsFixed(2)}',
       transactionId: result.transactionReference,
@@ -355,32 +359,6 @@ class _PayBillScreenState extends ConsumerState<PayBillScreen> {
           context.pushNamed(NotificationInboxScreen.routeName),
       primaryLabel: 'Pay Another',
       onPrimaryAction: _reset,
-    );
-  }
-
-  Widget _primaryButton({
-    required String label,
-    required VoidCallback? onPressed,
-    bool loading = false,
-  }) {
-    return SizedBox(
-      width: double.infinity,
-      height: 52,
-      child: ElevatedButton(
-        onPressed: onPressed,
-        style: ElevatedButton.styleFrom(
-          backgroundColor: const Color(0xFF008F7A),
-          foregroundColor: Colors.white,
-        ),
-        child: loading
-            ? const SizedBox(
-                width: 24,
-                height: 24,
-                child: CircularProgressIndicator(
-                    color: Colors.white, strokeWidth: 2.5),
-              )
-            : Text(label, style: const TextStyle(fontWeight: FontWeight.w900)),
-      ),
     );
   }
 }

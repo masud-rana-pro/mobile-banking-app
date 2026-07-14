@@ -168,13 +168,14 @@ class _MerchantPaymentScreenState extends ConsumerState<MerchantPaymentScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final isConfirmStep = _currentStep == _PaymentStep.confirm;
+    final isPopupStep = _currentStep == _PaymentStep.confirm ||
+        _currentStep == _PaymentStep.result;
     return Scaffold(
       appBar: AppBar(
         title: const Text('Merchant Payment'),
         centerTitle: true,
       ),
-      body: isConfirmStep
+      body: isPopupStep
           ? _buildBody()
           : SingleChildScrollView(
               padding: const EdgeInsets.all(20),

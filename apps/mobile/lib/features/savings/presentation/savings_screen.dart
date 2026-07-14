@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/errors/api_exception.dart';
 import '../../../shared/widgets/feature_flow_widgets.dart';
 import '../../../shared/widgets/hold_to_confirm_screen.dart';
+import '../../auth/providers/auth_providers.dart';
 import '../../transaction/providers/transaction_providers.dart';
 import '../../wallet/providers/wallet_providers.dart';
 import '../domain/savings_deposit_result.dart';
@@ -286,6 +287,7 @@ class _SavingsScreenState extends ConsumerState<SavingsScreen> {
 
   Widget _depositResultStep() {
     final result = _depositResult!;
+    final avatarUrl = ref.watch(authControllerProvider).avatarUrl?.trim();
 
     return TransactionConfirmationScreen(
       success: result.success,
@@ -294,6 +296,7 @@ class _SavingsScreenState extends ConsumerState<SavingsScreen> {
           result.message.isEmpty ? 'Savings deposit completed' : result.message,
       accountName: result.goal.name,
       accountNumber: 'Target ৳${result.goal.targetAmount.toStringAsFixed(2)}',
+      avatarUrl: avatarUrl,
       avatarIcon: Icons.savings_outlined,
       totalText: '৳${result.amount.toStringAsFixed(2)}',
       transactionId: result.transactionReference,

@@ -162,13 +162,14 @@ class _SendMoneyScreenState extends ConsumerState<SendMoneyScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final isConfirmStep = _currentStep == _SendStep.confirm;
+    final isPopupStep =
+        _currentStep == _SendStep.confirm || _currentStep == _SendStep.result;
     return Scaffold(
       appBar: AppBar(
         title: const Text('Send Money'),
         centerTitle: true,
       ),
-      body: isConfirmStep
+      body: isPopupStep
           ? _buildBody()
           : SingleChildScrollView(
               padding: const EdgeInsets.all(20),
