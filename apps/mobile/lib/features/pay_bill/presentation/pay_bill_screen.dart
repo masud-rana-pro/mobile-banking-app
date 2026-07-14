@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../core/errors/api_exception.dart';
+import '../../../shared/widgets/contact_number_input.dart';
 import '../../../shared/widgets/feature_flow_widgets.dart';
 import '../../../shared/widgets/hold_to_confirm_screen.dart';
 import '../../auth/providers/auth_providers.dart';
@@ -209,13 +210,13 @@ class _PayBillScreenState extends ConsumerState<PayBillScreen> {
           ],
         ),
         const SizedBox(height: 20),
-        TextField(
+        ContactNumberInput(
           controller: _accountController,
-          decoration: const InputDecoration(
-            labelText: 'Bill Account Number',
-            hintText: 'Meter/customer/account ID',
-            border: OutlineInputBorder(),
-          ),
+          labelText: 'Bill Account Number',
+          hintText: 'Meter/customer/account ID',
+          contactButtonLabel: 'Contacts',
+          qrButtonLabel: 'Scan QR',
+          keyboardType: TextInputType.text,
         ),
         const SizedBox(height: 22),
         PrimaryActionButton(

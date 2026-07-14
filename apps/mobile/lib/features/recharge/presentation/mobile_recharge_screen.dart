@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../core/errors/api_exception.dart';
+import '../../../shared/widgets/contact_number_input.dart';
 import '../../../shared/widgets/feature_flow_widgets.dart';
 import '../../../shared/widgets/hold_to_confirm_screen.dart';
 import '../../auth/providers/auth_providers.dart';
@@ -235,15 +236,13 @@ class _MobileRechargeScreenState extends ConsumerState<MobileRechargeScreen> {
           ],
         ),
         const SizedBox(height: 20),
-        TextField(
+        ContactNumberInput(
           controller: _mobileController,
-          keyboardType: TextInputType.phone,
+          labelText: 'Mobile Number',
+          hintText: '01XXXXXXXXX',
+          contactButtonLabel: 'Contacts',
+          qrButtonLabel: 'Scan QR',
           onChanged: (_) => setState(() {}),
-          decoration: const InputDecoration(
-            labelText: 'Mobile Number',
-            hintText: '01XXXXXXXXX',
-            border: OutlineInputBorder(),
-          ),
         ),
         const SizedBox(height: 22),
         PrimaryActionButton(

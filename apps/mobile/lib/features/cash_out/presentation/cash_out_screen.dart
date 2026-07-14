@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../core/errors/api_exception.dart';
+import '../../../shared/widgets/contact_number_input.dart';
 import '../../../shared/widgets/feature_flow_widgets.dart';
 import '../../../shared/widgets/hold_to_confirm_screen.dart';
 import '../../auth/providers/auth_providers.dart';
@@ -191,18 +192,13 @@ class _CashOutScreenState extends ConsumerState<CashOutScreen> {
               'Enter or scan a demo agent first. Amount and PIN confirmation come in the next steps.',
         ),
         const SizedBox(height: 22),
-        TextField(
+        ContactNumberInput(
           controller: _agentController,
-          keyboardType: TextInputType.phone,
-          decoration: const InputDecoration(
-            labelText: 'Agent Number',
-            hintText: '01XXXXXXXXX',
-            border: OutlineInputBorder(),
-          ),
-        ),
-        const SizedBox(height: 12),
-        OutlinedButton.icon(
-          onPressed: _isLoading
+          labelText: 'Agent Number',
+          hintText: '01XXXXXXXXX',
+          contactButtonLabel: 'Contacts',
+          qrButtonLabel: 'Scan QR',
+          onQrPressed: _isLoading
               ? null
               : () {
                   context.goNamed(
@@ -210,8 +206,6 @@ class _CashOutScreenState extends ConsumerState<CashOutScreen> {
                     queryParameters: {'tab': 'scan'},
                   );
                 },
-          icon: const Icon(Icons.qr_code_scanner),
-          label: const Text('Scan agent QR'),
         ),
         const SizedBox(height: 22),
         PrimaryActionButton(

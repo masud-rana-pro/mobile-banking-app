@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../shared/widgets/feature_flow_widgets.dart';
+import '../../../shared/widgets/contact_number_input.dart';
 import '../../../shared/widgets/hold_to_confirm_screen.dart';
 import '../../notification/presentation/notification_inbox_screen.dart';
 import '../../qr/presentation/qr_screen.dart';
@@ -204,19 +205,18 @@ class _SendMoneyScreenState extends ConsumerState<SendMoneyScreen> {
               'Send money to a registered SmartKash number. Receiver must be active before transfer.',
         ),
         const SizedBox(height: 22),
-        TextField(
+        ContactNumberInput(
           controller: _phoneController,
-          keyboardType: TextInputType.phone,
-          decoration: const InputDecoration(
-            labelText: 'Mobile Number',
-            hintText: '01XXXXXXXXX',
-            border: OutlineInputBorder(),
-          ),
-          style: const TextStyle(fontSize: 20, fontWeight: FontWeight.w600),
-        ),
-        const SizedBox(height: 12),
-        OutlinedButton.icon(
-          onPressed: _isLoading
+          labelText: 'Mobile Number',
+          hintText: '01XXXXXXXXX',
+          contactButtonLabel: 'Contacts',
+          qrButtonLabel: 'Scan QR',
+          onChanged: (_) {
+            if (_resolvedReceiver != null) {
+              setState(() => _resolvedReceiver = null);
+            }
+          },
+          onQrPressed: _isLoading
               ? null
               : () {
                   context.goNamed(
@@ -224,8 +224,6 @@ class _SendMoneyScreenState extends ConsumerState<SendMoneyScreen> {
                     queryParameters: {'tab': 'scan'},
                   );
                 },
-          icon: const Icon(Icons.qr_code_scanner),
-          label: const Text('Scan receiver QR'),
         ),
         const SizedBox(height: 18),
         PrimaryActionButton(

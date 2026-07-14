@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../core/errors/api_exception.dart';
+import '../../../shared/widgets/contact_number_input.dart';
 import '../../../shared/widgets/feature_flow_widgets.dart';
 import '../../../shared/widgets/hold_to_confirm_screen.dart';
 import '../../notification/presentation/notification_inbox_screen.dart';
@@ -210,24 +211,21 @@ class _MerchantPaymentScreenState extends ConsumerState<MerchantPaymentScreen> {
               'Pay an active SmartKash merchant from your wallet. PIN confirmation is required.',
         ),
         const SizedBox(height: 22),
-        TextField(
+        ContactNumberInput(
           controller: _merchantNumberController,
-          keyboardType: TextInputType.phone,
-          decoration: const InputDecoration(
-            labelText: 'Merchant Number',
-            hintText: 'MERCH-001 / 01XXXXXXXXX',
-            border: OutlineInputBorder(),
-          ),
-          style: const TextStyle(fontSize: 20, fontWeight: FontWeight.w600),
-          onSubmitted: (_) {
-            if (!_isLoading) {
-              _resolveMerchant();
+          labelText: 'Merchant Number',
+          hintText: 'MERCH-001 / 01XXXXXXXXX',
+          contactButtonLabel: 'Contacts',
+          qrButtonLabel: 'Scan QR',
+          onChanged: (_) {
+            if (_merchantTarget != null) {
+              setState(() {
+                _merchantTarget = null;
+                _idempotencyKey = null;
+              });
             }
           },
-        ),
-        const SizedBox(height: 12),
-        OutlinedButton.icon(
-          onPressed: _isLoading
+          onQrPressed: _isLoading
               ? null
               : () {
                   context.goNamed(
@@ -235,8 +233,6 @@ class _MerchantPaymentScreenState extends ConsumerState<MerchantPaymentScreen> {
                     queryParameters: {'tab': 'scan'},
                   );
                 },
-          icon: const Icon(Icons.qr_code_scanner),
-          label: const Text('Scan merchant QR'),
         ),
         const SizedBox(height: 18),
         PrimaryActionButton(
