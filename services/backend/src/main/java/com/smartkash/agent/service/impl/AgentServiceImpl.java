@@ -64,6 +64,21 @@ public class AgentServiceImpl implements AgentService {
         return agentMapper.toResponse(agent);
     }
 
+    @Override
+    @Transactional(readOnly = true)
+    public AgentResponse resolveActiveAgent(JwtPrincipal principal, String agentNumber) {
+        currentUser(principal);
+        String normalizedAgentNumber = normalizeAgentNumber(agentNumber);
+        Agent agent = agentRepository.findByAgentNumber(normalizedAgentNumber)
+                .orElseThrow(() -> new ResourceNotFoundException("Agent account was not found."));
+
+        if (agent.getStatus() != AgentStatus.ACTIVE || agent.getUser().getStatus() != UserStatus.ACTIVE) {
+            throw new IllegalArgumentException("Agent account is not active.");
+        }
+
+        return agentMapper.toResponse(agent);
+    }
+
     private User currentUser(JwtPrincipal principal) {
         return userRepository.findByFirebaseUid(principal.firebaseUid())
                 .orElseThrow(() -> new ResourceNotFoundException("User account is not created yet."));

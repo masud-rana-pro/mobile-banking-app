@@ -10,6 +10,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
@@ -33,5 +34,13 @@ public class AgentController {
     @GetMapping("/me")
     public AgentResponse getCurrentUserAgent(@AuthenticationPrincipal JwtPrincipal principal) {
         return agentService.getCurrentUserAgent(principal);
+    }
+
+    @GetMapping("/resolve")
+    public AgentResponse resolveAgent(
+            @AuthenticationPrincipal JwtPrincipal principal,
+            @RequestParam String agentNumber
+    ) {
+        return agentService.resolveActiveAgent(principal, agentNumber);
     }
 }

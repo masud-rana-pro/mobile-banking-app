@@ -1,6 +1,7 @@
 import 'dart:math';
 
 import '../../../core/network/api_client.dart';
+import '../domain/cash_out_agent.dart';
 import '../domain/cash_out_result.dart';
 
 class CashOutRepository {
@@ -8,6 +9,15 @@ class CashOutRepository {
 
   final ApiClient _apiClient;
   final _random = Random();
+
+  Future<CashOutAgent> resolveAgent(String agentNumber) async {
+    final response = await _apiClient.get<Map<String, dynamic>>(
+      '/api/agents/resolve',
+      queryParameters: {'agentNumber': agentNumber},
+    );
+
+    return CashOutAgent.fromJson(response.data ?? const {});
+  }
 
   Future<CashOutResult> cashOut({
     required String agentNumber,

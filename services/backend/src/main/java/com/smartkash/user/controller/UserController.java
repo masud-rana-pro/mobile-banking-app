@@ -33,6 +33,14 @@ public class UserController {
         return ResponseEntity.ok(userService.getCurrentUser(principal));
     }
 
+    @GetMapping("/resolve")
+    public ResponseEntity<UserResponse> resolveUserByMobileNumber(
+            @AuthenticationPrincipal JwtPrincipal principal,
+            @RequestParam String mobileNumber
+    ) {
+        return ResponseEntity.ok(userService.resolveUserByMobileNumber(principal, mobileNumber));
+    }
+
     @PutMapping("/me/profile")
     public ResponseEntity<UserResponse> updateCurrentUserProfile(
             @AuthenticationPrincipal JwtPrincipal principal,
