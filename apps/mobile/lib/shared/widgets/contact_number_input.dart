@@ -52,50 +52,84 @@ class _ContactNumberInputState extends State<ContactNumberInput> {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        TextField(
-          controller: widget.controller,
-          keyboardType: widget.keyboardType,
-          onChanged: (value) {
-            widget.onChanged?.call(value);
-            if (_selectedContact != null && value != _selectedContact!.number) {
-              setState(() => _selectedContact = null);
-            }
-          },
-          decoration: InputDecoration(
-            labelText: widget.labelText,
-            hintText: widget.hintText,
-            border: const OutlineInputBorder(),
+        Container(
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(14),
+            border: Border.all(color: const Color(0xFFDDE7EA)),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withOpacity(0.04),
+                blurRadius: 12,
+                offset: const Offset(0, 6),
+              ),
+            ],
           ),
-          style: const TextStyle(fontSize: 20, fontWeight: FontWeight.w600),
+          child: Row(
+            children: [
+              const SizedBox(width: 14),
+              Icon(Icons.search, color: theme.colorScheme.primary, size: 28),
+              const SizedBox(width: 8),
+              Expanded(
+                child: TextField(
+                  controller: widget.controller,
+                  keyboardType: widget.keyboardType,
+                  onChanged: (value) {
+                    widget.onChanged?.call(value);
+                    if (_selectedContact != null &&
+                        value != _selectedContact!.number) {
+                      setState(() => _selectedContact = null);
+                    }
+                  },
+                  decoration: InputDecoration(
+                    labelText: widget.labelText,
+                    hintText: widget.hintText,
+                    border: InputBorder.none,
+                    floatingLabelBehavior: FloatingLabelBehavior.auto,
+                  ),
+                  style: const TextStyle(
+                    color: Color(0xFF263238),
+                    fontSize: 20,
+                    fontWeight: FontWeight.w800,
+                  ),
+                ),
+              ),
+              if (widget.onQrPressed != null) ...[
+                const SizedBox(width: 6),
+                IconButton(
+                  tooltip: widget.qrButtonLabel,
+                  onPressed: widget.onQrPressed,
+                  icon: Icon(
+                    Icons.qr_code_scanner,
+                    color: theme.colorScheme.primary,
+                  ),
+                ),
+                const SizedBox(width: 6),
+              ],
+            ],
+          ),
         ),
         if (_selectedContact != null) ...[
           const SizedBox(height: 10),
           _SelectedContactPreview(selection: _selectedContact!),
         ],
         const SizedBox(height: 12),
-        Row(
-          children: [
-            Expanded(
-              child: OutlinedButton.icon(
-                onPressed: _openContactPicker,
-                icon: const Icon(Icons.contacts_outlined),
-                label: Text(widget.contactButtonLabel),
-              ),
+        OutlinedButton.icon(
+          onPressed: _openContactPicker,
+          icon: const Icon(Icons.contacts_outlined),
+          label: Text(widget.contactButtonLabel),
+          style: OutlinedButton.styleFrom(
+            minimumSize: const Size.fromHeight(48),
+            foregroundColor: theme.colorScheme.primary,
+            side: BorderSide(color: theme.colorScheme.primary),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(12),
             ),
-            if (widget.onQrPressed != null) ...[
-              const SizedBox(width: 10),
-              Expanded(
-                child: OutlinedButton.icon(
-                  onPressed: widget.onQrPressed,
-                  icon: const Icon(Icons.qr_code_scanner),
-                  label: Text(widget.qrButtonLabel),
-                ),
-              ),
-            ],
-          ],
+          ),
         ),
       ],
     );
@@ -216,9 +250,11 @@ class _ContactPickerSheetState extends State<_ContactPickerSheet> {
   Widget build(BuildContext context) {
     final bottomInset = MediaQuery.viewInsetsOf(context).bottom;
     final contacts = _filteredContacts;
+    final recentContacts = _contacts.take(3).toList();
+    final theme = Theme.of(context);
 
     return Container(
-      height: MediaQuery.sizeOf(context).height * 0.78,
+      height: MediaQuery.sizeOf(context).height * 0.88,
       decoration: const BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.vertical(top: Radius.circular(26)),
@@ -240,7 +276,7 @@ class _ContactPickerSheetState extends State<_ContactPickerSheet> {
               children: [
                 const Expanded(
                   child: Text(
-                    'Select from contacts',
+                    'Select contact',
                     style: TextStyle(
                       color: Color(0xFF263238),
                       fontSize: 22,
@@ -255,17 +291,24 @@ class _ContactPickerSheetState extends State<_ContactPickerSheet> {
               ],
             ),
             const SizedBox(height: 12),
-            TextField(
-              controller: _searchController,
-              decoration: InputDecoration(
-                prefixIcon: const Icon(Icons.search),
-                hintText: 'Search name or number',
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(12),
+            Container(
+              decoration: BoxDecoration(
+                color: const Color(0xFFF8FAFB),
+                borderRadius: BorderRadius.circular(14),
+                border: Border.all(color: const Color(0xFFDDE7EA)),
+              ),
+              child: TextField(
+                controller: _searchController,
+                decoration: InputDecoration(
+                  prefixIcon:
+                      Icon(Icons.search, color: theme.colorScheme.primary),
+                  hintText: 'Enter name or number',
+                  border: InputBorder.none,
+                  contentPadding: const EdgeInsets.symmetric(vertical: 18),
                 ),
               ),
             ),
-            const SizedBox(height: 12),
+            const SizedBox(height: 18),
             Expanded(
               child: _loading
                   ? const Center(child: CircularProgressIndicator())
@@ -279,30 +322,30 @@ class _ContactPickerSheetState extends State<_ContactPickerSheet> {
                               icon: Icons.search_off,
                               message: 'No matching contacts found.',
                             )
-                          : ListView.separated(
-                              itemCount: contacts.length,
-                              separatorBuilder: (_, __) =>
-                                  const Divider(height: 1),
-                              itemBuilder: (context, index) {
-                                final contact = contacts[index];
-                                return ListTile(
-                                  contentPadding: EdgeInsets.zero,
-                                  leading: _ContactAvatar(contact: contact),
-                                  title: Text(
-                                    contact.name,
-                                    maxLines: 1,
-                                    overflow: TextOverflow.ellipsis,
-                                    style: const TextStyle(
-                                      fontWeight: FontWeight.w900,
+                          : ListView(
+                              children: [
+                                if (_searchController.text.trim().isEmpty &&
+                                    recentContacts.isNotEmpty) ...[
+                                  const _ContactSectionTitle('Recent'),
+                                  for (final contact in recentContacts)
+                                    _ContactPickerTile(
+                                      contact: contact,
+                                      starred: true,
+                                      onTap: () =>
+                                          Navigator.of(context).pop(contact),
                                     ),
+                                  const SizedBox(height: 16),
+                                  const Divider(height: 1),
+                                  const SizedBox(height: 16),
+                                ],
+                                const _ContactSectionTitle('All contacts'),
+                                for (final contact in contacts)
+                                  _ContactPickerTile(
+                                    contact: contact,
+                                    onTap: () =>
+                                        Navigator.of(context).pop(contact),
                                   ),
-                                  subtitle: Text(contact.number),
-                                  trailing: const Icon(Icons.arrow_forward_ios,
-                                      size: 16),
-                                  onTap: () =>
-                                      Navigator.of(context).pop(contact),
-                                );
-                              },
+                              ],
                             ),
             ),
           ],
@@ -323,6 +366,85 @@ class _ContactPickerSheetState extends State<_ContactPickerSheet> {
       return '';
     }
     return hasPlus ? '+$digits' : digits;
+  }
+}
+
+class _ContactSectionTitle extends StatelessWidget {
+  const _ContactSectionTitle(this.title);
+
+  final String title;
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 10),
+      child: Text(
+        title,
+        style: const TextStyle(
+          color: Color(0xFF607D8B),
+          fontSize: 16,
+          fontWeight: FontWeight.w900,
+        ),
+      ),
+    );
+  }
+}
+
+class _ContactPickerTile extends StatelessWidget {
+  const _ContactPickerTile({
+    required this.contact,
+    required this.onTap,
+    this.starred = false,
+  });
+
+  final ContactNumberSelection contact;
+  final VoidCallback onTap;
+  final bool starred;
+
+  @override
+  Widget build(BuildContext context) {
+    return ListTile(
+      contentPadding: const EdgeInsets.symmetric(vertical: 4),
+      leading: Stack(
+        clipBehavior: Clip.none,
+        children: [
+          _ContactAvatar(contact: contact, radius: 27),
+          if (starred)
+            const Positioned(
+              right: -2,
+              top: -2,
+              child: CircleAvatar(
+                radius: 10,
+                backgroundColor: Color(0xFF008F7A),
+                child: Icon(Icons.star, color: Colors.white, size: 13),
+              ),
+            ),
+        ],
+      ),
+      title: Text(
+        contact.name,
+        maxLines: 1,
+        overflow: TextOverflow.ellipsis,
+        style: const TextStyle(
+          color: Color(0xFF263238),
+          fontSize: 18,
+          fontWeight: FontWeight.w900,
+        ),
+      ),
+      subtitle: Padding(
+        padding: const EdgeInsets.only(top: 3),
+        child: Text(
+          contact.number,
+          style: const TextStyle(
+            color: Color(0xFF607D8B),
+            fontSize: 16,
+            fontWeight: FontWeight.w700,
+          ),
+        ),
+      ),
+      trailing: const Icon(Icons.chevron_right, color: Color(0xFF90A4AE)),
+      onTap: onTap,
+    );
   }
 }
 
