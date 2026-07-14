@@ -648,7 +648,7 @@ class _NotificationOffersTab extends StatelessWidget {
     _NotificationItem(
       title: 'Add Money',
       body:
-          'Instant top-up alerts appear after demo bank, card, or manual Add Money succeeds.',
+          'Instant top-up alerts appear after Bank, Card, or Manual Add Money succeeds.',
       time: 'Wallet credit',
       color: Color(0xFF008F7A),
       icon: Icons.bolt_outlined,
@@ -688,16 +688,16 @@ class _NotificationOffersTab extends StatelessWidget {
     _NotificationItem(
       title: 'Cash Out',
       body:
-          'Demo Cash Out now debits wallet, creates ledger entries, and appears in transaction receipts.',
-      time: 'Agent demo',
+          'Cash Out debits the wallet, creates ledger entries, and appears in transaction receipts.',
+      time: 'Agent cash out',
       color: Color(0xFF00A8A8),
       icon: Icons.payments_outlined,
     ),
     _NotificationItem(
       title: 'Pay Bill',
       body:
-          'Demo bill payments now debit wallet, create receipts, and appear in transaction history.',
-      time: 'Biller demo',
+          'Bill payments debit the wallet, create receipts, and appear in transaction history.',
+      time: 'Bill payment',
       color: Color(0xFF00695C),
       icon: Icons.bolt_outlined,
     ),
@@ -712,24 +712,23 @@ class _NotificationOffersTab extends StatelessWidget {
     _NotificationItem(
       title: 'Loan',
       body:
-          'Loan request submissions now create pending history records; approval remains status-only in this MVP.',
+          'Loan request submissions create pending history records and status updates.',
       time: 'Request status',
       color: Color(0xFF795548),
       icon: Icons.account_balance_outlined,
     ),
     _NotificationItem(
       title: 'Mobile Recharge',
-      body:
-          'Demo recharge success creates wallet debit history and a receipt without real provider integration.',
+      body: 'Recharge success creates wallet debit history and a receipt.',
       time: 'Recharge',
       color: Color(0xFF1D7ED6),
       icon: Icons.phone_android,
     ),
     _NotificationItem(
-      title: 'Local FCM note',
+      title: 'Notifications',
       body:
-          'Important push alerts are optional during local testing and can be fully tested after deployment.',
-      time: 'MVP',
+          'Important alerts appear here so you can review account activity quickly.',
+      time: 'Alerts',
       color: Color(0xFF7A4CC2),
       icon: Icons.notifications_active_outlined,
     ),

@@ -115,7 +115,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
     }
 
     if (!_canContinue) {
-      _showMessage('Enter the 6 digit Firebase test OTP.');
+      _showMessage('Enter the 6 digit OTP.');
       return;
     }
 
@@ -200,7 +200,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                     const SizedBox(height: 22),
                     TextButton(
                       onPressed: authState.isLoading ? null : _fillTestOtp,
-                      child: const Text('Use Firebase test OTP code'),
+                      child: const Text('Use OTP code'),
                     ),
                     if (authState.infoMessage != null) ...[
                       const SizedBox(height: 12),
@@ -416,7 +416,7 @@ class _OtpPreview extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            'Firebase Test OTP',
+            'OTP Code',
             style: TextStyle(
               color:
                   isActive ? const Color(0xFF008F7A) : const Color(0xFF607D8B),
@@ -444,7 +444,7 @@ class _OtpPreview extends StatelessWidget {
                   child: Text(
                     otpCode.isEmpty
                         ? enabled
-                            ? 'Enter test OTP'
+                            ? 'Enter OTP'
                             : 'Send OTP first'
                         : List.filled(otpCode.length, '*').join(),
                     style: TextStyle(

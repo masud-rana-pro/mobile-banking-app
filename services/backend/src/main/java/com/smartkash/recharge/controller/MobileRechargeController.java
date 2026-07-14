@@ -27,12 +27,12 @@ public class MobileRechargeController {
     }
 
     @PostMapping
-    public ResponseEntity<MobileRechargeResponse> createDemoRecharge(
+    public ResponseEntity<MobileRechargeResponse> createRecharge(
             @AuthenticationPrincipal JwtPrincipal principal,
             @Valid @RequestBody CreateMobileRechargeRequest request
     ) {
         return ResponseEntity.status(HttpStatus.CREATED)
-                .body(mobileRechargeService.createDemoRecharge(principal, request));
+                .body(mobileRechargeService.createRecharge(principal, request));
     }
 
     @GetMapping

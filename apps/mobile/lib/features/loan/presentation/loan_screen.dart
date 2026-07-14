@@ -132,7 +132,7 @@ class _LoanScreenState extends ConsumerState<LoanScreen> {
                     icon: Icons.account_balance_outlined,
                     title: 'Loan Request',
                     subtitle:
-                        'Submit a demo loan request and track the status. Wallet credit and repayment are future scope.',
+                        'Submit a loan request and track its approval status.',
                   ),
                   const SizedBox(height: 22),
                   _requestCard(),
@@ -172,7 +172,7 @@ class _LoanScreenState extends ConsumerState<LoanScreen> {
           ),
           const SizedBox(height: 8),
           const Text(
-            'MVP Phase 1 only tracks request status. No disbursement or repayment is implemented.',
+            'Your request will be reviewed and the latest status will appear here.',
             style: TextStyle(color: Color(0xFF607D8B)),
           ),
           const SizedBox(height: 18),
@@ -181,8 +181,8 @@ class _LoanScreenState extends ConsumerState<LoanScreen> {
             tabs: const ['Amount', 'Purpose', 'Status'],
             presets: const [1000, 5000, 10000],
             availableBalanceText: 'Loan request only',
-            sourceLabel: 'MVP Request',
-            secondarySourceLabel: 'Disbursement later',
+            sourceLabel: 'Loan Request',
+            secondarySourceLabel: 'Status tracking',
             showPromo: false,
             showProceed: false,
             proceedLabel: 'Proceed',
@@ -229,11 +229,11 @@ class _LoanScreenState extends ConsumerState<LoanScreen> {
         HoldToConfirmDetail(
           label: 'Requested',
           value: 'Tk $amount',
-          mutedValue: 'No wallet credit now',
+          mutedValue: 'Subject to review',
         ),
         const HoldToConfirmDetail(label: 'Status', value: 'Pending Review'),
         HoldToConfirmDetail(label: 'Purpose', value: purpose),
-        const HoldToConfirmDetail(label: 'MVP Scope', value: 'Status only'),
+        const HoldToConfirmDetail(label: 'Next Step', value: 'Review'),
       ],
     );
   }

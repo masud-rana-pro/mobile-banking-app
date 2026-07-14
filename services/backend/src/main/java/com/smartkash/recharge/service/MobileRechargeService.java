@@ -8,7 +8,7 @@ import java.util.List;
 
 public interface MobileRechargeService {
 
-    MobileRechargeResponse createDemoRecharge(JwtPrincipal principal, CreateMobileRechargeRequest request);
+    MobileRechargeResponse createRecharge(JwtPrincipal principal, CreateMobileRechargeRequest request);
 
     List<MobileRechargeResponse> getCurrentUserRecharges(JwtPrincipal principal);
 }

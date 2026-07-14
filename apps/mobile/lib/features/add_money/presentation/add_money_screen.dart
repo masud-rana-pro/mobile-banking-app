@@ -39,21 +39,21 @@ class _AddMoneyScreenState extends ConsumerState<AddMoneyScreen> {
     _AddMoneySource(
       value: 'DEMO_BANK',
       label: 'Bank',
-      subtitle: 'Demo bank transfer',
+      subtitle: 'Bank transfer',
       icon: Icons.account_balance_outlined,
       color: Color(0xFF2446A6),
     ),
     _AddMoneySource(
       value: 'DEMO_CARD',
       label: 'Card',
-      subtitle: 'Demo card top-up',
+      subtitle: 'Card top-up',
       icon: Icons.credit_card_outlined,
       color: Color(0xFF7A4CC2),
     ),
     _AddMoneySource(
       value: 'MANUAL',
       label: 'Manual',
-      subtitle: 'Learning MVP credit',
+      subtitle: 'Direct wallet credit',
       icon: Icons.account_balance_wallet_outlined,
       color: Color(0xFF008F7A),
     ),
@@ -178,7 +178,7 @@ class _AddMoneyScreenState extends ConsumerState<AddMoneyScreen> {
               maxLength: 255,
               decoration: InputDecoration(
                 labelText: 'Reference note (optional)',
-                hintText: 'Example: demo bank top-up',
+                hintText: 'Example: bank top-up reference',
                 filled: true,
                 fillColor: Colors.white,
                 border: OutlineInputBorder(
@@ -274,7 +274,7 @@ class _InstantTopUpHeader extends StatelessWidget {
                 ),
                 SizedBox(height: 6),
                 Text(
-                  'No admin approval in this learning MVP. Submit amount and your wallet is credited immediately.',
+                  'Submit an amount and your SmartKash wallet is credited instantly.',
                   style: TextStyle(
                     color: Color(0xFFEAF7F4),
                     height: 1.35,

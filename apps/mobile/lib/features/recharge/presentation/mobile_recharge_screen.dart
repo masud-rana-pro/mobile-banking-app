@@ -275,7 +275,7 @@ class _MobileRechargeScreenState extends ConsumerState<MobileRechargeScreen> {
         ),
         const SizedBox(height: 8),
         const Text(
-          'Demo recharge debits your SmartKash wallet. No real operator API is used.',
+          'Recharge amount will be debited from your SmartKash wallet.',
           style: TextStyle(color: Color(0xFF607D8B)),
         ),
         const SizedBox(height: 20),

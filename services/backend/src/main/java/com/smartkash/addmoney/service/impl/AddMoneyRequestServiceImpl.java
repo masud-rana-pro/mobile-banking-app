@@ -3,6 +3,7 @@ package com.smartkash.addmoney.service.impl;
 import com.smartkash.addmoney.dto.request.CreateAddMoneyRequest;
 import com.smartkash.addmoney.dto.response.AddMoneyRequestResponse;
 import com.smartkash.addmoney.entity.AddMoneyRequest;
+import com.smartkash.addmoney.enums.AddMoneySourceType;
 import com.smartkash.addmoney.mapper.AddMoneyRequestMapper;
 import com.smartkash.addmoney.repository.AddMoneyRequestRepository;
 import com.smartkash.addmoney.service.AddMoneyRequestService;
@@ -112,7 +113,7 @@ public class AddMoneyRequestServiceImpl implements AddMoneyRequestService {
                 TransactionStatus.SUCCESS,
                 request.amount(),
                 null,
-                "Instant Add Money from " + request.sourceType().name()
+                "Instant Add Money from " + sourceTypeLabel(request.sourceType())
         );
         transactionRecordRepository.save(transaction);
         ledgerEntryRepository.save(new LedgerEntry(
@@ -211,6 +212,14 @@ public class AddMoneyRequestServiceImpl implements AddMoneyRequestService {
 
     private String requestHash(BigDecimal amount, String sourceType, String note) {
         return sha256(amount.toPlainString() + ":" + sourceType + ":" + nullToEmpty(note));
+    }
+
+    private String sourceTypeLabel(AddMoneySourceType sourceType) {
+        return switch (sourceType) {
+            case DEMO_BANK -> "Bank Transfer";
+            case DEMO_CARD -> "Card";
+            case MANUAL -> "Manual Deposit";
+        };
     }
 
     private String sha256(String value) {

@@ -400,7 +400,7 @@ class _PrimaryActionPanel extends StatelessWidget {
               context,
               title: 'More services',
               message:
-                  'Extra services will be added after the core SmartKash MVP flows are verified. Current active flows are Add Money, Send Money, Cash Out, Pay Bill, Payment, Recharge, Savings, Loan, QR, Transactions, Account, and Inbox.',
+                  'All currently available SmartKash services are listed on this screen.',
             ),
             iconAlignment: IconAlignment.end,
             icon: const Icon(Icons.keyboard_arrow_down),
@@ -439,7 +439,7 @@ class _ActionTile extends StatelessWidget {
           context,
           title: action.label,
           message: switch (action.label) {
-            _ => '${action.label} is planned for a later SmartKash MVP step.',
+            _ => '${action.label} is not available yet.',
           },
         );
       },
@@ -613,7 +613,7 @@ class _PromoBanner extends StatelessWidget {
                 ),
                 SizedBox(height: 6),
                 Text(
-                  'Demo offers for your learning MVP',
+                  'Exclusive offers for SmartKash users',
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                   style: TextStyle(color: Colors.white70, fontSize: 12),
@@ -710,7 +710,7 @@ class _QuickFeaturesSection extends StatelessWidget {
                   icon: Icons.percent,
                   label: 'Offers',
                   notice:
-                      'Offers need campaign setup and eligibility rules. It is intentionally not part of this MVP phase.',
+                      'Offers will appear here when available for your account.',
                 ),
               ),
               SizedBox(width: 12),
@@ -829,6 +829,6 @@ void _handleQuickFeatureTap(
   _showMvpFeatureNotice(
     context,
     title: label,
-    message: notice ?? '$label is planned for a later SmartKash MVP step.',
+    message: notice ?? '$label is not available yet.',
   );
 }

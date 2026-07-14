@@ -67,7 +67,7 @@ class AuthController extends StateNotifier<AuthSessionState> {
         status: AuthSessionStatus.otpSent,
         phoneNumber: phoneNumber,
         verificationId: result.verificationId,
-        infoMessage: 'Test OTP sent. Enter the fixed Firebase test OTP.',
+        infoMessage: 'OTP sent. Enter the verification code.',
         clearError: true,
       );
     } catch (error) {
@@ -123,7 +123,7 @@ class AuthController extends StateNotifier<AuthSessionState> {
         state = state.copyWith(
           status: AuthSessionStatus.unauthenticated,
           clearBackendToken: true,
-          errorMessage: 'Firebase user is not signed in.',
+          errorMessage: 'You are not signed in. Please log in again.',
         );
         return;
       }
@@ -338,7 +338,7 @@ class AuthController extends StateNotifier<AuthSessionState> {
 
     if (error is ApiException) {
       if (error.path == '/api/auth/firebase-login') {
-        return 'Firebase OTP verified, but backend login failed: ${error.message}';
+        return 'OTP verified, but sign-in failed: ${error.message}';
       }
 
       if (error.errors.isNotEmpty) {
@@ -350,16 +350,16 @@ class AuthController extends StateNotifier<AuthSessionState> {
 
     final message = error.toString();
     if (message.contains('firebase_auth/invalid-verification-code')) {
-      return 'Invalid OTP. Use the fixed Firebase test OTP.';
+      return 'Invalid OTP. Please check the code and try again.';
     }
     if (message.contains('firebase_auth/too-many-requests')) {
       return 'Too many attempts. Please wait before trying again.';
     }
     if (message.contains('Firebase is disabled')) {
-      return 'Firebase is disabled. Run Flutter with FIREBASE_ENABLED=true.';
+      return 'OTP sign-in is not available in this app run.';
     }
     if (message.contains('/api/auth/firebase-login')) {
-      return 'Firebase OTP verified, but backend login failed. Check the backend terminal for the exact error.';
+      return 'OTP verified, but account sign-in failed. Please try again.';
     }
 
     return message;
@@ -372,29 +372,29 @@ class AuthController extends StateNotifier<AuthSessionState> {
       case 'too-many-requests':
         return 'Too many OTP attempts. Please wait before trying again.';
       case 'quota-exceeded':
-        return 'Firebase SMS quota is not available. Use Firebase test phone/OTP only.';
+        return 'OTP service is temporarily unavailable. Please try again later.';
       case 'operation-not-allowed':
-        return 'Firebase Phone Auth is not enabled for this project.';
+        return 'Phone sign-in is not enabled for this app.';
       case 'app-not-authorized':
-        return 'This Android app is not authorized in Firebase. Check package name and google-services.json.';
+        return 'This app is not authorized for phone sign-in.';
       case 'missing-client-identifier':
-        return 'Firebase cannot identify this app. Recheck google-services.json and run flutter clean.';
+        return 'This app cannot complete phone sign-in. Please reinstall or rebuild the app.';
       default:
-        return 'Firebase OTP failed: ${error.message}';
+        return 'OTP verification failed: ${error.message}';
     }
   }
 
   String? _firebaseOtpBlockReason() {
     if (!FirebaseConfig.enabled) {
-      return 'Firebase is disabled. Run with --dart-define=FIREBASE_ENABLED=true.';
+      return 'OTP sign-in is not available in this app run.';
     }
 
     if (kIsWeb) {
-      return 'You are running on Chrome/Web. Current SmartKash OTP setup is Android-only. Run on Android emulator, or add a Firebase Web app config first.';
+      return 'Phone sign-in is currently available on Android devices.';
     }
 
     if (defaultTargetPlatform != TargetPlatform.android) {
-      return 'Firebase OTP is configured for Android in this MVP. Run on Android emulator for now.';
+      return 'OTP sign-in is currently configured for Android devices.';
     }
 
     return null;

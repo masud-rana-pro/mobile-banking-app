@@ -245,7 +245,7 @@ class _CashOutScreenState extends ConsumerState<CashOutScreen> {
           icon: Icons.payments_outlined,
           title: 'Agent Cash Out',
           subtitle:
-              'Enter or scan a demo agent first. Amount and PIN confirmation come in the next steps.',
+              'Enter or scan an agent number first. Amount and PIN confirmation come next.',
         ),
         const SizedBox(height: 22),
         ContactNumberInput(

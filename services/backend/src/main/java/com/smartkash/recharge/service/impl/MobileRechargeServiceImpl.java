@@ -83,7 +83,7 @@ public class MobileRechargeServiceImpl implements MobileRechargeService {
 
     @Override
     @Transactional
-    public MobileRechargeResponse createDemoRecharge(JwtPrincipal principal, CreateMobileRechargeRequest request) {
+    public MobileRechargeResponse createRecharge(JwtPrincipal principal, CreateMobileRechargeRequest request) {
         User user = currentUser(principal);
         ensureActiveUser(user);
 
