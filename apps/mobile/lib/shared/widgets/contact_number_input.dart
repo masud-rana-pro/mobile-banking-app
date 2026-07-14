@@ -175,13 +175,20 @@ class _ContactNumberInputState extends State<ContactNumberInput> {
         ),
         if (widget.onProceed != null) ...[
           const SizedBox(height: 12),
-          _NumberProceedKeypad(
-            label: widget.proceedButtonLabel,
-            loading: widget.loading,
-            canProceed: canProceed,
-            onProceed: widget.onProceed,
-            onNumberTap: _appendDigit,
-            onBackspace: _backspace,
+          OverflowBox(
+            maxWidth: MediaQuery.sizeOf(context).width,
+            alignment: Alignment.center,
+            child: SizedBox(
+              width: MediaQuery.sizeOf(context).width,
+              child: _NumberProceedKeypad(
+                label: widget.proceedButtonLabel,
+                loading: widget.loading,
+                canProceed: canProceed,
+                onProceed: widget.onProceed,
+                onNumberTap: _appendDigit,
+                onBackspace: _backspace,
+              ),
+            ),
           ),
         ],
       ],
@@ -216,36 +223,36 @@ class _NumberProceedKeypad extends StatelessWidget {
       ['7', '8', '9'],
     ];
 
-    return ClipRRect(
-      borderRadius: BorderRadius.circular(14),
-      child: Container(
-        color: const Color(0xFFF5F7FA),
-        child: Column(
-          children: [
-            SizedBox(
-              width: double.infinity,
-              height: 58,
-              child: ElevatedButton(
-                onPressed: canProceed ? onProceed : null,
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: _accent,
-                  disabledBackgroundColor: const Color(0xFF9E9E9E),
-                  foregroundColor: Colors.white,
-                  shape: const RoundedRectangleBorder(
-                    borderRadius: BorderRadius.zero,
-                  ),
-                  elevation: 0,
+    return Container(
+      color: const Color(0xFFF5F7FA),
+      child: Column(
+        children: [
+          SizedBox(
+            width: double.infinity,
+            height: 58,
+            child: ElevatedButton(
+              onPressed: canProceed ? onProceed : null,
+              style: ElevatedButton.styleFrom(
+                backgroundColor: _accent,
+                disabledBackgroundColor: const Color(0xFF9E9E9E),
+                foregroundColor: Colors.white,
+                shape: const RoundedRectangleBorder(
+                  borderRadius: BorderRadius.zero,
                 ),
-                child: loading
-                    ? const SizedBox(
-                        width: 24,
-                        height: 24,
-                        child: CircularProgressIndicator(
-                          color: Colors.white,
-                          strokeWidth: 2.5,
-                        ),
-                      )
-                    : Row(
+                elevation: 0,
+              ),
+              child: loading
+                  ? const SizedBox(
+                      width: 24,
+                      height: 24,
+                      child: CircularProgressIndicator(
+                        color: Colors.white,
+                        strokeWidth: 2.5,
+                      ),
+                    )
+                  : Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 20),
+                      child: Row(
                         children: [
                           Text(
                             label,
@@ -258,51 +265,51 @@ class _NumberProceedKeypad extends StatelessWidget {
                           const Icon(Icons.arrow_forward, size: 32),
                         ],
                       ),
-              ),
-            ),
-            Padding(
-              padding: const EdgeInsets.fromLTRB(20, 10, 20, 14),
-              child: Column(
-                children: [
-                  for (final row in rows)
-                    Row(
-                      children: [
-                        for (final value in row)
-                          Expanded(
-                            child: _NumberKeypadButton(
-                              label: value,
-                              onTap: () => onNumberTap(value),
-                            ),
-                          ),
-                      ],
                     ),
+            ),
+          ),
+          Padding(
+            padding: const EdgeInsets.fromLTRB(20, 10, 20, 14),
+            child: Column(
+              children: [
+                for (final row in rows)
                   Row(
                     children: [
-                      Expanded(
-                        child: _NumberKeypadIconButton(
-                          icon: Icons.close,
-                          onTap: onBackspace,
+                      for (final value in row)
+                        Expanded(
+                          child: _NumberKeypadButton(
+                            label: value,
+                            onTap: () => onNumberTap(value),
+                          ),
                         ),
-                      ),
-                      Expanded(
-                        child: _NumberKeypadButton(
-                          label: '0',
-                          onTap: () => onNumberTap('0'),
-                        ),
-                      ),
-                      Expanded(
-                        child: _NumberKeypadIconButton(
-                          icon: Icons.keyboard_return,
-                          onTap: canProceed ? (onProceed ?? () {}) : () {},
-                        ),
-                      ),
                     ],
                   ),
-                ],
-              ),
+                Row(
+                  children: [
+                    Expanded(
+                      child: _NumberKeypadIconButton(
+                        icon: Icons.close,
+                        onTap: onBackspace,
+                      ),
+                    ),
+                    Expanded(
+                      child: _NumberKeypadButton(
+                        label: '0',
+                        onTap: () => onNumberTap('0'),
+                      ),
+                    ),
+                    Expanded(
+                      child: _NumberKeypadIconButton(
+                        icon: Icons.keyboard_return,
+                        onTap: canProceed ? (onProceed ?? () {}) : () {},
+                      ),
+                    ),
+                  ],
+                ),
+              ],
             ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }
@@ -320,7 +327,7 @@ class _NumberKeypadButton extends StatelessWidget {
       onTap: onTap,
       borderRadius: BorderRadius.circular(48),
       child: SizedBox(
-        height: 56,
+        height: 64,
         child: Center(
           child: Text(
             label,
@@ -348,7 +355,7 @@ class _NumberKeypadIconButton extends StatelessWidget {
       onTap: onTap,
       borderRadius: BorderRadius.circular(48),
       child: SizedBox(
-        height: 56,
+        height: 64,
         child: Center(
           child: Container(
             width: 44,
