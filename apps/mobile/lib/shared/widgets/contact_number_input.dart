@@ -95,6 +95,7 @@ class _ContactNumberInputState extends State<ContactNumberInput> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Container(
+          constraints: const BoxConstraints(minHeight: 74),
           decoration: BoxDecoration(
             color: Colors.white,
             borderRadius: BorderRadius.circular(14),
@@ -109,9 +110,9 @@ class _ContactNumberInputState extends State<ContactNumberInput> {
           ),
           child: Row(
             children: [
-              const SizedBox(width: 14),
+              const SizedBox(width: 16),
               Icon(Icons.search, color: theme.colorScheme.primary, size: 28),
-              const SizedBox(width: 8),
+              const SizedBox(width: 10),
               Expanded(
                 child: TextField(
                   controller: widget.controller,
@@ -132,6 +133,8 @@ class _ContactNumberInputState extends State<ContactNumberInput> {
                     hintText: widget.hintText,
                     border: InputBorder.none,
                     floatingLabelBehavior: FloatingLabelBehavior.auto,
+                    isDense: true,
+                    contentPadding: const EdgeInsets.symmetric(vertical: 18),
                   ),
                   style: const TextStyle(
                     color: Color(0xFF263238),
@@ -159,35 +162,34 @@ class _ContactNumberInputState extends State<ContactNumberInput> {
           const SizedBox(height: 10),
           _SelectedContactPreview(selection: _selectedContact!),
         ],
-        const SizedBox(height: 12),
-        OutlinedButton.icon(
-          onPressed: _openContactPicker,
-          icon: const Icon(Icons.contacts_outlined),
-          label: Text(widget.contactButtonLabel),
-          style: OutlinedButton.styleFrom(
-            minimumSize: const Size.fromHeight(48),
-            foregroundColor: theme.colorScheme.primary,
-            side: BorderSide(color: theme.colorScheme.primary),
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(12),
+        const SizedBox(height: 14),
+        SizedBox(
+          width: double.infinity,
+          child: OutlinedButton.icon(
+            onPressed: widget.loading ? null : _openContactPicker,
+            icon: const Icon(Icons.contacts_outlined),
+            label: Text(widget.contactButtonLabel),
+            style: OutlinedButton.styleFrom(
+              minimumSize: const Size.fromHeight(50),
+              foregroundColor: theme.colorScheme.primary,
+              side: BorderSide(color: theme.colorScheme.primary),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12),
+              ),
             ),
           ),
         ),
         if (widget.onProceed != null) ...[
           const SizedBox(height: 12),
-          OverflowBox(
-            maxWidth: MediaQuery.sizeOf(context).width,
-            alignment: Alignment.center,
-            child: SizedBox(
-              width: MediaQuery.sizeOf(context).width,
-              child: _NumberProceedKeypad(
-                label: widget.proceedButtonLabel,
-                loading: widget.loading,
-                canProceed: canProceed,
-                onProceed: widget.onProceed,
-                onNumberTap: _appendDigit,
-                onBackspace: _backspace,
-              ),
+          SizedBox(
+            width: double.infinity,
+            child: _NumberProceedKeypad(
+              label: widget.proceedButtonLabel,
+              loading: widget.loading,
+              canProceed: canProceed,
+              onProceed: widget.onProceed,
+              onNumberTap: _appendDigit,
+              onBackspace: _backspace,
             ),
           ),
         ],
