@@ -1,4 +1,8 @@
+import 'dart:typed_data';
+import 'dart:ui' as ui;
+
 import 'package:flutter/material.dart';
+import 'package:flutter/rendering.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -298,10 +302,85 @@ class _ScannerCard extends StatelessWidget {
   }
 }
 
-class _MyQrCard extends StatelessWidget {
+class _MyQrCard extends StatefulWidget {
   const _MyQrCard({required this.payload});
 
   final String payload;
+
+  @override
+  State<_MyQrCard> createState() => _MyQrCardState();
+}
+
+class _MyQrCardState extends State<_MyQrCard> {
+  static const _fileChannel = MethodChannel('smartkash/files');
+  final _qrCaptureKey = GlobalKey();
+  bool _isSaving = false;
+
+  Future<void> _downloadQr() async {
+    if (_isSaving) {
+      return;
+    }
+
+    setState(() => _isSaving = true);
+    try {
+      final imageBytes = await _captureQrImage();
+      final timestamp = DateTime.now().millisecondsSinceEpoch;
+      final fileName = 'SmartKash-QR-$timestamp.png';
+      await _fileChannel.invokeMethod<bool>(
+        'savePngToDownloads',
+        {
+          'fileName': fileName,
+          'bytes': imageBytes,
+        },
+      );
+      if (!mounted) {
+        return;
+      }
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('QR saved as $fileName')),
+      );
+    } on PlatformException catch (error) {
+      if (!mounted) {
+        return;
+      }
+      final cancelled = error.code == 'SAVE_CANCELLED';
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            cancelled
+                ? 'QR save cancelled.'
+                : error.message ?? 'Could not save QR image.',
+          ),
+        ),
+      );
+    } catch (error) {
+      if (!mounted) {
+        return;
+      }
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Could not create QR image: $error')),
+      );
+    } finally {
+      if (mounted) {
+        setState(() => _isSaving = false);
+      }
+    }
+  }
+
+  Future<Uint8List> _captureQrImage() async {
+    final boundary = _qrCaptureKey.currentContext?.findRenderObject()
+        as RenderRepaintBoundary?;
+    if (boundary == null) {
+      throw StateError('QR is not ready yet.');
+    }
+
+    final image = await boundary.toImage(pixelRatio: 3);
+    final byteData = await image.toByteData(format: ui.ImageByteFormat.png);
+    if (byteData == null) {
+      throw StateError('QR image could not be encoded.');
+    }
+    return byteData.buffer.asUint8List();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -321,6 +400,69 @@ class _MyQrCard extends StatelessWidget {
       ),
       child: Column(
         children: [
+          RepaintBoundary(
+            key: _qrCaptureKey,
+            child: _PrintableQrCard(payload: widget.payload),
+          ),
+          const SizedBox(height: 14),
+          Row(
+            children: [
+              Expanded(
+                child: OutlinedButton.icon(
+                  onPressed: _isSaving ? null : _downloadQr,
+                  icon: _isSaving
+                      ? const SizedBox(
+                          width: 18,
+                          height: 18,
+                          child: CircularProgressIndicator(strokeWidth: 2),
+                        )
+                      : const Icon(Icons.download_rounded, size: 18),
+                  label: const Text('Download QR'),
+                ),
+              ),
+              const SizedBox(width: 10),
+              Expanded(
+                child: TextButton.icon(
+                  onPressed: () {
+                    Clipboard.setData(ClipboardData(text: widget.payload));
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(content: Text('QR payload copied')),
+                    );
+                  },
+                  icon: const Icon(Icons.copy_rounded, size: 18),
+                  label: const Text('Copy payload'),
+                ),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _PrintableQrCard extends StatelessWidget {
+  const _PrintableQrCard({required this.payload});
+
+  final String payload;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: double.infinity,
+      color: Colors.white,
+      padding: const EdgeInsets.all(18),
+      child: Column(
+        children: [
+          const Text(
+            'SmartKash',
+            style: TextStyle(
+              fontSize: 24,
+              fontWeight: FontWeight.w900,
+              color: Color(0xFF008F7A),
+            ),
+          ),
+          const SizedBox(height: 4),
           const Text(
             'My SmartKash QR',
             style: TextStyle(
@@ -331,7 +473,7 @@ class _MyQrCard extends StatelessWidget {
           ),
           const SizedBox(height: 6),
           const Text(
-            'Another user can scan this to send you money',
+            'Scan this QR to send money',
             textAlign: TextAlign.center,
             style: TextStyle(color: Color(0xFF607D8B), fontSize: 13),
           ),
@@ -339,24 +481,34 @@ class _MyQrCard extends StatelessWidget {
           QrImageView(
             data: payload,
             version: QrVersions.auto,
-            size: 190,
+            size: 210,
             backgroundColor: Colors.white,
           ),
-          const SizedBox(height: 10),
+          const SizedBox(height: 12),
           SelectableText(
             payload,
             textAlign: TextAlign.center,
-            style: const TextStyle(fontWeight: FontWeight.w700),
+            style: const TextStyle(
+              color: Color(0xFF263238),
+              fontWeight: FontWeight.w700,
+            ),
           ),
-          TextButton.icon(
-            onPressed: () {
-              Clipboard.setData(ClipboardData(text: payload));
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(content: Text('QR payload copied')),
-              );
-            },
-            icon: const Icon(Icons.copy_rounded, size: 18),
-            label: const Text('Copy payload'),
+          const SizedBox(height: 10),
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+            decoration: BoxDecoration(
+              color: const Color(0xFFE9F8F4),
+              borderRadius: BorderRadius.circular(999),
+            ),
+            child: const Text(
+              'Print and keep this visible for other SmartKash users',
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                color: Color(0xFF008F7A),
+                fontSize: 12,
+                fontWeight: FontWeight.w800,
+              ),
+            ),
           ),
         ],
       ),
