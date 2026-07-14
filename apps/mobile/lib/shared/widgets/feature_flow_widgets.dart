@@ -951,7 +951,7 @@ class _PinConfirmKeypad extends StatelessWidget {
                     Expanded(
                       child: _PinKeypadIconButton(
                         icon: Icons.keyboard_return,
-                        onTap: canConfirm ? onConfirm : () {},
+                        onTap: canConfirm ? (onConfirm ?? () {}) : () {},
                       ),
                     ),
                   ],
