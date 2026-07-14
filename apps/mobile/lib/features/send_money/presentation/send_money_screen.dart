@@ -257,9 +257,7 @@ class _SendMoneyScreenState extends ConsumerState<SendMoneyScreen> {
           contactButtonLabel: 'Contacts',
           qrButtonLabel: 'Scan QR',
           onChanged: (_) {
-            if (_resolvedReceiver != null) {
-              setState(() => _resolvedReceiver = null);
-            }
+            setState(() => _resolvedReceiver = null);
           },
           onQrPressed: _isLoading
               ? null
