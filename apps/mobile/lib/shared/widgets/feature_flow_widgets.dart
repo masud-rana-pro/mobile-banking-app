@@ -914,6 +914,7 @@ class _PinConfirmKeypad extends StatelessWidget {
     return Container(
       color: const Color(0xFFF5F7FA),
       child: Column(
+        mainAxisSize: MainAxisSize.min,
         children: [
           SizedBox(
             width: double.infinity,
@@ -956,6 +957,7 @@ class _PinConfirmKeypad extends StatelessWidget {
           Padding(
             padding: const EdgeInsets.fromLTRB(20, 10, 20, 14),
             child: Column(
+              mainAxisSize: MainAxisSize.min,
               children: [
                 for (final row in rows)
                   Row(
