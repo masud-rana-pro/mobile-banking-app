@@ -139,6 +139,7 @@ class AuthController extends StateNotifier<AuthSessionState> {
         backendToken: backendToken,
         pinSet: currentUser.pinSet,
         pinUpdatedAt: currentUser.pinUpdatedAt,
+        role: currentUser.role,
         profileComplete: currentUser.profileComplete,
         fullName: currentUser.fullName,
         email: currentUser.email,
@@ -227,6 +228,7 @@ class AuthController extends StateNotifier<AuthSessionState> {
       state = state.copyWith(
         status: AuthSessionStatus.authenticated,
         profileComplete: currentUser.profileComplete,
+        role: currentUser.role,
         fullName: currentUser.fullName,
         email: currentUser.email,
         avatarImageId: currentUser.avatarImageId,
@@ -281,6 +283,7 @@ class AuthController extends StateNotifier<AuthSessionState> {
       state = state.copyWith(
         status: AuthSessionStatus.authenticated,
         profileComplete: currentUser.profileComplete,
+        role: currentUser.role,
         fullName: currentUser.fullName,
         email: currentUser.email,
         avatarImageId: currentUser.avatarImageId,
@@ -302,6 +305,30 @@ class AuthController extends StateNotifier<AuthSessionState> {
     state = const AuthSessionState(
       status: AuthSessionStatus.unauthenticated,
     );
+  }
+
+  Future<void> refreshCurrentUser() async {
+    if (!state.isAuthenticated) {
+      return;
+    }
+
+    try {
+      final currentUser = await _backendAuthRepository.getCurrentUser();
+      state = state.copyWith(
+        status: AuthSessionStatus.authenticated,
+        pinSet: currentUser.pinSet,
+        pinUpdatedAt: currentUser.pinUpdatedAt,
+        role: currentUser.role,
+        profileComplete: currentUser.profileComplete,
+        fullName: currentUser.fullName,
+        email: currentUser.email,
+        avatarImageId: currentUser.avatarImageId,
+        avatarUrl: currentUser.avatarUrl,
+        clearError: true,
+      );
+    } catch (error) {
+      state = state.copyWith(errorMessage: _friendlyError(error));
+    }
   }
 
   String _friendlyError(Object error) {

@@ -158,4 +158,8 @@ public class User {
     public void makeMerchant() {
         this.role = UserRole.MERCHANT;
     }
+
+    public void makeAgent() {
+        this.role = UserRole.AGENT;
+    }
 }

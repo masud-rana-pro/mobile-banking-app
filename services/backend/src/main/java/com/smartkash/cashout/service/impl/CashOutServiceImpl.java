@@ -1,5 +1,8 @@
 package com.smartkash.cashout.service.impl;
 
+import com.smartkash.agent.entity.Agent;
+import com.smartkash.agent.enums.AgentStatus;
+import com.smartkash.agent.repository.AgentRepository;
 import com.smartkash.auth.dto.request.VerifyPinRequest;
 import com.smartkash.auth.dto.response.PinVerificationResponse;
 import com.smartkash.auth.service.AuthService;
@@ -52,6 +55,7 @@ public class CashOutServiceImpl implements CashOutService {
     private final IdempotencyKeyService idempotencyKeyService;
     private final AuthService authService;
     private final TransactionAlertService transactionAlertService;
+    private final AgentRepository agentRepository;
 
     public CashOutServiceImpl(
             UserRepository userRepository,
@@ -60,7 +64,8 @@ public class CashOutServiceImpl implements CashOutService {
             LedgerEntryRepository ledgerEntryRepository,
             IdempotencyKeyService idempotencyKeyService,
             AuthService authService,
-            TransactionAlertService transactionAlertService
+            TransactionAlertService transactionAlertService,
+            AgentRepository agentRepository
     ) {
         this.userRepository = userRepository;
         this.walletRepository = walletRepository;
@@ -69,6 +74,7 @@ public class CashOutServiceImpl implements CashOutService {
         this.idempotencyKeyService = idempotencyKeyService;
         this.authService = authService;
         this.transactionAlertService = transactionAlertService;
+        this.agentRepository = agentRepository;
     }
 
     @Override
@@ -77,6 +83,10 @@ public class CashOutServiceImpl implements CashOutService {
         User user = currentUser(principal);
         ensureActiveUser(user);
         String agentNumber = normalizeAgentNumber(request.agentNumber());
+        Agent agent = activeAgent(agentNumber);
+        User agentUser = agent.getUser();
+        ensureActiveAgentUser(agentUser);
+        ensureNotCashingOutToSelf(user, agentUser);
 
         PinVerificationResponse pinVerification = authService.verifyPin(principal, new VerifyPinRequest(request.pin()));
         if (!pinVerification.verified()) {
@@ -90,10 +100,14 @@ public class CashOutServiceImpl implements CashOutService {
 
         Wallet wallet = walletRepository.findByUserIdForUpdate(user.getId())
                 .orElseThrow(() -> new ResourceNotFoundException("User wallet was not found."));
-        ensureActiveWallet(wallet);
+        Wallet agentWallet = walletRepository.findByUserIdForUpdate(agentUser.getId())
+                .orElseThrow(() -> new ResourceNotFoundException("Agent wallet was not found."));
+        ensureActiveWallet(wallet, "User wallet is not active.");
+        ensureActiveWallet(agentWallet, "Agent wallet is not active.");
         ensureSufficientBalance(wallet, request.amount());
 
         BigDecimal balanceAfter = wallet.debit(request.amount());
+        BigDecimal agentBalanceAfter = agentWallet.credit(request.amount());
         String transactionReference = uniqueTransactionReference("CO");
         TransactionRecord transaction = transactionRecordRepository.save(new TransactionRecord(
                 transactionReference,
@@ -101,10 +115,20 @@ public class CashOutServiceImpl implements CashOutService {
                 TransactionType.CASH_OUT,
                 TransactionStatus.SUCCESS,
                 request.amount(),
-                null,
+                agentUser,
                 description(request, agentNumber)
         ));
-        ledgerEntryRepository.save(new LedgerEntry(
+        String agentTransactionReference = uniqueTransactionReference("CA");
+        transactionRecordRepository.save(new TransactionRecord(
+                agentTransactionReference,
+                agentUser,
+                TransactionType.CASH_OUT,
+                TransactionStatus.SUCCESS,
+                request.amount(),
+                user,
+                "Cash Out received from " + user.getMobileNumber()
+        ));
+        LedgerEntry debitEntry = ledgerEntryRepository.save(new LedgerEntry(
                 wallet,
                 user,
                 transactionReference,
@@ -114,6 +138,18 @@ public class CashOutServiceImpl implements CashOutService {
                 balanceAfter,
                 "Cash Out wallet debit"
         ));
+        LedgerEntry creditEntry = ledgerEntryRepository.save(new LedgerEntry(
+                agentWallet,
+                agentUser,
+                transactionReference,
+                debitEntry,
+                LedgerEntryType.CREDIT,
+                request.amount(),
+                agentBalanceAfter,
+                "Cash Out agent wallet credit"
+        ));
+        debitEntry.linkTo(creditEntry);
+        ledgerEntryRepository.save(debitEntry);
 
         idempotencyKeyService.markCompleted(idempotencyKey, "SUCCESS:" + transactionReference + ":" + balanceAfter);
         transactionAlertService.sendTransactionAlert(
@@ -122,6 +158,13 @@ public class CashOutServiceImpl implements CashOutService {
                 "Cash Out completed",
                 "BDT " + request.amount() + " cash out through agent " + agentNumber + " was completed.",
                 Map.of("transactionReference", transactionReference, "type", TransactionType.CASH_OUT.name())
+        );
+        transactionAlertService.sendTransactionAlert(
+                agentUser,
+                NotificationType.CASH_OUT,
+                "Cash Out received",
+                "BDT " + request.amount() + " cash out was received from " + user.getMobileNumber() + ".",
+                Map.of("transactionReference", agentTransactionReference, "type", TransactionType.CASH_OUT.name())
         );
 
         return new CashOutResponse(
@@ -147,9 +190,21 @@ public class CashOutServiceImpl implements CashOutService {
         }
     }
 
-    private void ensureActiveWallet(Wallet wallet) {
+    private void ensureActiveAgentUser(User agentUser) {
+        if (agentUser.getStatus() != UserStatus.ACTIVE) {
+            throw new IllegalArgumentException("Agent account is not active.");
+        }
+    }
+
+    private void ensureNotCashingOutToSelf(User user, User agentUser) {
+        if (user.getId().equals(agentUser.getId())) {
+            throw new IllegalArgumentException("You cannot cash out from your own agent account.");
+        }
+    }
+
+    private void ensureActiveWallet(Wallet wallet, String message) {
         if (wallet.getStatus() != WalletStatus.ACTIVE) {
-            throw new IllegalArgumentException("User wallet is not active.");
+            throw new IllegalArgumentException(message);
         }
     }
 
@@ -216,6 +271,15 @@ public class CashOutServiceImpl implements CashOutService {
             return base;
         }
         return base + ". Note: " + request.note().trim();
+    }
+
+    private Agent activeAgent(String agentNumber) {
+        Agent agent = agentRepository.findByAgentNumber(agentNumber)
+                .orElseThrow(() -> new ResourceNotFoundException("Active agent account was not found for this number."));
+        if (agent.getStatus() != AgentStatus.ACTIVE) {
+            throw new IllegalArgumentException("Agent account is not active.");
+        }
+        return agent;
     }
 
     private String requestHash(CashOutRequest request, String agentNumber) {

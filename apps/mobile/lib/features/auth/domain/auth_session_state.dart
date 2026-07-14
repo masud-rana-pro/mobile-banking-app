@@ -11,6 +11,7 @@ class AuthSessionState {
     this.verificationId,
     this.pinSet,
     this.pinUpdatedAt,
+    this.role,
     this.profileComplete,
     this.fullName,
     this.email,
@@ -27,6 +28,7 @@ class AuthSessionState {
         verificationId = null,
         pinSet = null,
         pinUpdatedAt = null,
+        role = null,
         profileComplete = null,
         fullName = null,
         email = null,
@@ -41,6 +43,7 @@ class AuthSessionState {
   final String? verificationId;
   final bool? pinSet;
   final DateTime? pinUpdatedAt;
+  final String? role;
   final bool? profileComplete;
   final String? fullName;
   final String? email;
@@ -65,6 +68,7 @@ class AuthSessionState {
     String? verificationId,
     bool? pinSet,
     DateTime? pinUpdatedAt,
+    String? role,
     bool? profileComplete,
     String? fullName,
     String? email,
@@ -87,6 +91,7 @@ class AuthSessionState {
       verificationId: clearOtp ? null : verificationId ?? this.verificationId,
       pinSet: clearPinState ? null : pinSet ?? this.pinSet,
       pinUpdatedAt: clearPinState ? null : pinUpdatedAt ?? this.pinUpdatedAt,
+      role: clearProfileState ? null : role ?? this.role,
       profileComplete:
           clearProfileState ? null : profileComplete ?? this.profileComplete,
       fullName: clearProfileState ? null : fullName ?? this.fullName,

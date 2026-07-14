@@ -10,6 +10,7 @@ import com.smartkash.merchant.repository.MerchantRepository;
 import com.smartkash.merchant.service.MerchantService;
 import com.smartkash.security.JwtPrincipal;
 import com.smartkash.user.entity.User;
+import com.smartkash.user.enums.UserRole;
 import com.smartkash.user.enums.UserStatus;
 import com.smartkash.user.repository.UserRepository;
 import org.springframework.stereotype.Service;
@@ -37,6 +38,7 @@ public class MerchantServiceImpl implements MerchantService {
     public MerchantResponse createCurrentUserMerchant(JwtPrincipal principal, CreateMerchantRequest request) {
         User user = currentUser(principal);
         ensureActiveUser(user);
+        ensureUserIsNotAgent(user);
         ensureMerchantDoesNotExist(user.getId());
         ensureMerchantNumberIsUnique(request.merchantNumber());
 
@@ -72,6 +74,12 @@ public class MerchantServiceImpl implements MerchantService {
     private void ensureActiveUser(User user) {
         if (user.getStatus() != UserStatus.ACTIVE) {
             throw new IllegalArgumentException("Only active users can create merchant profiles.");
+        }
+    }
+
+    private void ensureUserIsNotAgent(User user) {
+        if (user.getRole() == UserRole.AGENT) {
+            throw new IllegalArgumentException("Agent users cannot open a merchant account. Use a separate mobile number.");
         }
     }
 
