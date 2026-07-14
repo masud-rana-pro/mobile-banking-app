@@ -126,10 +126,19 @@ class _PayBillScreenState extends ConsumerState<PayBillScreen> {
         idempotencyKey: _idempotencyKey ??= repository.createIdempotencyKey(),
         note: _noteController.text.trim(),
       );
+      double? latestBalance = result.balanceAfter;
       ref.read(walletRefreshProvider)();
+      try {
+        latestBalance = (await ref.read(walletSummaryProvider.future)).balance;
+      } catch (_) {
+        latestBalance = result.balanceAfter;
+      }
       ref.read(transactionRefreshProvider)();
+      if (!mounted) {
+        return;
+      }
       setState(() {
-        _result = result;
+        _result = result.copyWith(balanceAfter: latestBalance);
         _step = _PayBillStep.result;
         _isLoading = false;
       });

@@ -129,12 +129,21 @@ class _SavingsScreenState extends ConsumerState<SavingsScreen> {
             repository.createIdempotencyKey(),
         note: _noteController.text.trim(),
       );
+      double? latestBalance = result.walletBalanceAfter;
       ref.read(walletRefreshProvider)();
+      try {
+        latestBalance = (await ref.read(walletSummaryProvider.future)).balance;
+      } catch (_) {
+        latestBalance = result.walletBalanceAfter;
+      }
       ref.read(savingsRefreshProvider)();
       ref.read(transactionRefreshProvider)();
+      if (!mounted) {
+        return;
+      }
       _pinController.clear();
       _noteController.clear();
-      _depositResult = result;
+      _depositResult = result.copyWith(walletBalanceAfter: latestBalance);
       _depositIdempotencyKey = null;
       _isDepositAmountStep = false;
       _isDepositPinStep = false;

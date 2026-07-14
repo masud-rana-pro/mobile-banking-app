@@ -31,4 +31,19 @@ class PayBillResult {
       billAccountNumber: json['billAccountNumber'] as String? ?? '',
     );
   }
+
+  PayBillResult copyWith({
+    double? balanceAfter,
+  }) {
+    return PayBillResult(
+      success: success,
+      message: message,
+      transactionReference: transactionReference,
+      status: status,
+      amount: amount,
+      balanceAfter: balanceAfter ?? this.balanceAfter,
+      billerCode: billerCode,
+      billAccountNumber: billAccountNumber,
+    );
+  }
 }

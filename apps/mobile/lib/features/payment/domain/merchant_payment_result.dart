@@ -39,4 +39,21 @@ class MerchantPaymentResult {
           : null,
     );
   }
+
+  MerchantPaymentResult copyWith({
+    double? customerBalanceAfter,
+  }) {
+    return MerchantPaymentResult(
+      success: success,
+      message: message,
+      transactionReference: transactionReference,
+      status: status,
+      amount: amount,
+      customerBalanceAfter: customerBalanceAfter ?? this.customerBalanceAfter,
+      merchantUserId: merchantUserId,
+      merchantNumber: merchantNumber,
+      businessName: businessName,
+      createdAt: createdAt,
+    );
+  }
 }

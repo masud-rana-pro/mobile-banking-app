@@ -28,4 +28,18 @@ class CashOutResult {
       agentNumber: json['agentNumber'] as String? ?? '',
     );
   }
+
+  CashOutResult copyWith({
+    double? balanceAfter,
+  }) {
+    return CashOutResult(
+      success: success,
+      message: message,
+      transactionReference: transactionReference,
+      status: status,
+      amount: amount,
+      balanceAfter: balanceAfter ?? this.balanceAfter,
+      agentNumber: agentNumber,
+    );
+  }
 }

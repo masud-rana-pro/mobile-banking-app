@@ -122,10 +122,19 @@ class _SendMoneyScreenState extends ConsumerState<SendMoneyScreen> {
         pin: pin,
         note: _noteController.text.trim(),
       );
+      double? latestBalance = result.senderBalanceAfter;
       ref.read(walletRefreshProvider)();
+      try {
+        latestBalance = (await ref.read(walletSummaryProvider.future)).balance;
+      } catch (_) {
+        latestBalance = result.senderBalanceAfter;
+      }
       ref.read(transactionRefreshProvider)();
+      if (!mounted) {
+        return;
+      }
       setState(() {
-        _sendResult = result;
+        _sendResult = result.copyWith(senderBalanceAfter: latestBalance);
         _currentStep = _SendStep.result;
         _isLoading = false;
       });

@@ -87,4 +87,20 @@ class SendMoneyResult {
           : null,
     );
   }
+
+  SendMoneyResult copyWith({
+    double? senderBalanceAfter,
+  }) {
+    return SendMoneyResult(
+      success: success,
+      message: message,
+      transactionReference: transactionReference,
+      status: status,
+      amount: amount,
+      senderBalanceAfter: senderBalanceAfter ?? this.senderBalanceAfter,
+      receiverUserId: receiverUserId,
+      receiverMobileNumber: receiverMobileNumber,
+      createdAt: createdAt,
+    );
+  }
 }

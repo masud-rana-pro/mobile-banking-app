@@ -130,11 +130,20 @@ class _MobileRechargeScreenState extends ConsumerState<MobileRechargeScreen> {
         idempotencyKey: _idempotencyKey ??= repository.createIdempotencyKey(),
         note: _noteController.text.trim(),
       );
+      double? latestBalance = result.balanceAfter;
       ref.read(walletRefreshProvider)();
+      try {
+        latestBalance = (await ref.read(walletSummaryProvider.future)).balance;
+      } catch (_) {
+        latestBalance = result.balanceAfter;
+      }
       ref.read(mobileRechargeRefreshProvider)();
       ref.read(transactionRefreshProvider)();
+      if (!mounted) {
+        return;
+      }
       setState(() {
-        _rechargeResult = result;
+        _rechargeResult = result.copyWith(balanceAfter: latestBalance);
         _currentStep = _RechargeStep.result;
         _isLoading = false;
       });
