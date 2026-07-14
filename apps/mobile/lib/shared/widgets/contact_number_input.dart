@@ -147,7 +147,11 @@ class _ContactPickerSheetState extends State<_ContactPickerSheet> {
     });
 
     try {
-      final allowed = await FlutterContacts.requestPermission(readonly: true);
+      final permission = await FlutterContacts.permissions.request(
+        PermissionType.read,
+      );
+      final allowed = permission == PermissionStatus.granted ||
+          permission == PermissionStatus.limited;
       if (!allowed) {
         setState(() {
           _loading = false;
@@ -157,9 +161,11 @@ class _ContactPickerSheetState extends State<_ContactPickerSheet> {
         return;
       }
 
-      final contacts = await FlutterContacts.getContacts(
-        withProperties: true,
-        withPhoto: true,
+      final contacts = await FlutterContacts.getAll(
+        properties: {
+          ContactProperty.phone,
+          ContactProperty.photoThumbnail,
+        },
       );
       final selections = <ContactNumberSelection>[];
       for (final contact in contacts) {
@@ -170,11 +176,11 @@ class _ContactPickerSheetState extends State<_ContactPickerSheet> {
           }
           selections.add(
             ContactNumberSelection(
-              name: contact.displayName.isEmpty
+              name: (contact.displayName ?? '').isEmpty
                   ? normalized
-                  : contact.displayName,
+                  : contact.displayName!,
               number: normalized,
-              photo: contact.photoOrThumbnail,
+              photo: contact.photo?.thumbnail,
             ),
           );
         }
