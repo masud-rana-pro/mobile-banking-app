@@ -177,13 +177,54 @@ class _CashOutScreenState extends ConsumerState<CashOutScreen> {
         _step == _CashOutStep.confirm || _step == _CashOutStep.result;
     return Scaffold(
       appBar: AppBar(title: const Text('Cash Out'), centerTitle: true),
+      bottomNavigationBar: isPopupStep ? null : _bottomKeypad(),
       body: isPopupStep
           ? _buildBody()
-          : SingleChildScrollView(
-              padding: const EdgeInsets.all(20),
-              child: _buildBody(),
+          : SafeArea(
+              child: Column(
+                children: [
+                  Expanded(
+                    child: SingleChildScrollView(
+                      padding: const EdgeInsets.all(20),
+                      child: _buildBody(),
+                    ),
+                  ),
+                ],
+              ),
             ),
     );
+  }
+
+  Widget? _bottomKeypad() {
+    if (_step == _CashOutStep.agent) {
+      return SafeArea(
+        top: false,
+        child: NumberProceedKeypadBar(
+          controller: _agentController,
+          label: 'Next: Enter Amount',
+          loading: _isLoading,
+          enabled: _agentController.text.trim().isNotEmpty && !_isLoading,
+          onChanged: (_) => setState(() => _agentTarget = null),
+          onProceed: () {
+            _continueToAmount();
+          },
+        ),
+      );
+    }
+
+    if (_step == _CashOutStep.pin) {
+      return SafeArea(
+        top: false,
+        child: PinConfirmKeypadBar(
+          pinController: _pinController,
+          loading: _isLoading,
+          canConfirm: !_isLoading,
+          onConfirm: _continueToConfirm,
+        ),
+      );
+    }
+
+    return null;
   }
 
   Widget _buildBody() {
@@ -223,6 +264,7 @@ class _CashOutScreenState extends ConsumerState<CashOutScreen> {
                 },
           loading: _isLoading,
           proceedButtonLabel: 'Next: Enter Amount',
+          showInlineKeypad: false,
           onChanged: (_) => setState(() => _agentTarget = null),
           onProceed: () {
             _continueToAmount();
@@ -301,6 +343,7 @@ class _CashOutScreenState extends ConsumerState<CashOutScreen> {
           loading: _isLoading,
           onConfirm: _continueToConfirm,
           onBackToAmount: () => setState(() => _step = _CashOutStep.amount),
+          showInlineKeypad: false,
           recipient: AmountRecipientCard(
             label: 'Agent',
             title: target?.businessName ?? 'SmartKash Agent',

@@ -180,13 +180,54 @@ class _PayBillScreenState extends ConsumerState<PayBillScreen> {
         _step == _PayBillStep.confirm || _step == _PayBillStep.result;
     return Scaffold(
       appBar: AppBar(title: const Text('Pay Bill'), centerTitle: true),
+      bottomNavigationBar: isPopupStep ? null : _bottomKeypad(),
       body: isPopupStep
           ? _buildBody()
-          : SingleChildScrollView(
-              padding: const EdgeInsets.all(20),
-              child: _buildBody(),
+          : SafeArea(
+              child: Column(
+                children: [
+                  Expanded(
+                    child: SingleChildScrollView(
+                      padding: const EdgeInsets.all(20),
+                      child: _buildBody(),
+                    ),
+                  ),
+                ],
+              ),
             ),
     );
+  }
+
+  Widget? _bottomKeypad() {
+    if (_step == _PayBillStep.biller) {
+      return SafeArea(
+        top: false,
+        child: NumberProceedKeypadBar(
+          controller: _accountController,
+          label: 'Next: Enter Amount',
+          loading: _isLoading,
+          enabled: _accountController.text.trim().isNotEmpty && !_isLoading,
+          onChanged: (_) => setState(() => _accountProfile = null),
+          onProceed: () {
+            _continueToAmount();
+          },
+        ),
+      );
+    }
+
+    if (_step == _PayBillStep.pin) {
+      return SafeArea(
+        top: false,
+        child: PinConfirmKeypadBar(
+          pinController: _pinController,
+          loading: _isLoading,
+          canConfirm: !_isLoading,
+          onConfirm: _continueToConfirm,
+        ),
+      );
+    }
+
+    return null;
   }
 
   Widget _buildBody() {
@@ -238,6 +279,7 @@ class _PayBillScreenState extends ConsumerState<PayBillScreen> {
           keyboardType: TextInputType.text,
           loading: _isLoading,
           proceedButtonLabel: 'Next: Enter Amount',
+          showInlineKeypad: false,
           onChanged: (_) => setState(() => _accountProfile = null),
           onProceed: () {
             _continueToAmount();
@@ -318,6 +360,7 @@ class _PayBillScreenState extends ConsumerState<PayBillScreen> {
           loading: _isLoading,
           onConfirm: _continueToConfirm,
           onBackToAmount: () => setState(() => _step = _PayBillStep.amount),
+          showInlineKeypad: false,
           recipient: AmountRecipientCard(
             label: 'Biller',
             title: profile?.displayName ?? biller,

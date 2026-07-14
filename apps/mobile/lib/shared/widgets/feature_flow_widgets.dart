@@ -693,6 +693,7 @@ class PinEntryPanel extends StatelessWidget {
     this.showTypeSelector = true,
     this.onBackToAmount,
     this.recipient,
+    this.showInlineKeypad = true,
   });
 
   final TextEditingController pinController;
@@ -707,6 +708,7 @@ class PinEntryPanel extends StatelessWidget {
   final VoidCallback? onConfirm;
   final VoidCallback? onBackToAmount;
   final Widget? recipient;
+  final bool showInlineKeypad;
 
   static const _accent = Color(0xFF008F7A);
   static const _muted = Color(0xFF607D8B);
@@ -821,35 +823,65 @@ class PinEntryPanel extends StatelessWidget {
               onPressed: onBackToAmount,
               child: const Text('Change Amount'),
             ),
-          SizedBox(
-            width: double.infinity,
-            child: _PinConfirmKeypad(
+          if (showInlineKeypad)
+            PinConfirmKeypadBar(
+              pinController: pinController,
               loading: loading,
               canConfirm: canConfirm,
               onConfirm: onConfirm,
-              onNumberTap: _appendDigit,
-              onBackspace: _backspace,
             ),
-          ),
         ],
       ),
     );
   }
+}
 
+class PinConfirmKeypadBar extends StatefulWidget {
+  const PinConfirmKeypadBar({
+    super.key,
+    required this.pinController,
+    required this.loading,
+    required this.canConfirm,
+    required this.onConfirm,
+  });
+
+  final TextEditingController pinController;
+  final bool loading;
+  final bool canConfirm;
+  final VoidCallback? onConfirm;
+
+  @override
+  State<PinConfirmKeypadBar> createState() => _PinConfirmKeypadBarState();
+}
+
+class _PinConfirmKeypadBarState extends State<PinConfirmKeypadBar> {
   void _appendDigit(String value) {
-    if (pinController.text.length >= 5 || loading) {
+    if (widget.pinController.text.length >= 5 || widget.loading) {
       return;
     }
-    pinController.text = '${pinController.text}$value';
+    widget.pinController.text = '${widget.pinController.text}$value';
+    setState(() {});
   }
 
   void _backspace() {
-    if (pinController.text.isEmpty || loading) {
+    if (widget.pinController.text.isEmpty || widget.loading) {
       return;
     }
-    pinController.text = pinController.text.substring(
+    widget.pinController.text = widget.pinController.text.substring(
       0,
-      pinController.text.length - 1,
+      widget.pinController.text.length - 1,
+    );
+    setState(() {});
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return _PinConfirmKeypad(
+      loading: widget.loading,
+      canConfirm: widget.canConfirm,
+      onConfirm: widget.onConfirm,
+      onNumberTap: _appendDigit,
+      onBackspace: _backspace,
     );
   }
 }
