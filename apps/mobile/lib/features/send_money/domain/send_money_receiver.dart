@@ -56,6 +56,7 @@ class SendMoneyResult {
     this.transactionReference,
     this.status,
     this.amount,
+    this.chargeAmount,
     this.senderBalanceAfter,
     this.receiverUserId,
     this.receiverMobileNumber,
@@ -67,6 +68,7 @@ class SendMoneyResult {
   final String? transactionReference;
   final String? status;
   final double? amount;
+  final double? chargeAmount;
   final double? senderBalanceAfter;
   final int? receiverUserId;
   final String? receiverMobileNumber;
@@ -79,6 +81,7 @@ class SendMoneyResult {
       transactionReference: json['transactionReference'] as String?,
       status: json['status'] as String?,
       amount: (json['amount'] as num?)?.toDouble(),
+      chargeAmount: (json['chargeAmount'] as num?)?.toDouble(),
       senderBalanceAfter: (json['senderBalanceAfter'] as num?)?.toDouble(),
       receiverUserId: json['receiverUserId'] as int?,
       receiverMobileNumber: json['receiverMobileNumber'] as String?,
@@ -97,6 +100,7 @@ class SendMoneyResult {
       transactionReference: transactionReference,
       status: status,
       amount: amount,
+      chargeAmount: chargeAmount,
       senderBalanceAfter: senderBalanceAfter ?? this.senderBalanceAfter,
       receiverUserId: receiverUserId,
       receiverMobileNumber: receiverMobileNumber,

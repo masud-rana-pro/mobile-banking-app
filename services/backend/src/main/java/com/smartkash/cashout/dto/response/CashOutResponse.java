@@ -11,6 +11,7 @@ public record CashOutResponse(
         String transactionReference,
         TransactionStatus status,
         BigDecimal amount,
+        BigDecimal chargeAmount,
         BigDecimal balanceAfter,
         String agentNumber,
         Instant createdAt

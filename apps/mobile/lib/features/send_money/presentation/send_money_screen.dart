@@ -170,6 +170,10 @@ class _SendMoneyScreenState extends ConsumerState<SendMoneyScreen> {
     );
   }
 
+  double _chargeForAmount(double amount) => amount * 2 / 1000;
+
+  String _moneyText(double amount) => 'Tk ${amount.toStringAsFixed(2)}';
+
   @override
   Widget build(BuildContext context) {
     final isPopupStep =
@@ -341,9 +345,9 @@ class _SendMoneyScreenState extends ConsumerState<SendMoneyScreen> {
 
   Widget _buildPinStep() {
     final receiver = _resolvedReceiver!;
-    final amount =
-        double.tryParse(_amountController.text.trim())?.toStringAsFixed(2) ??
-            '0.00';
+    final amount = double.tryParse(_amountController.text.trim()) ?? 0;
+    final charge = _chargeForAmount(amount);
+    final total = amount + charge;
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -351,8 +355,8 @@ class _SendMoneyScreenState extends ConsumerState<SendMoneyScreen> {
         PinEntryPanel(
           pinController: _pinController,
           actionTitle: 'Send Money',
-          amountText: '৳$amount',
-          totalText: '৳$amount',
+          amountText: _moneyText(amount),
+          totalText: _moneyText(total),
           showTypeSelector: false,
           loading: _isLoading,
           onConfirm: _continueToConfirm,
@@ -371,9 +375,9 @@ class _SendMoneyScreenState extends ConsumerState<SendMoneyScreen> {
 
   Widget _buildConfirmStep() {
     final receiver = _resolvedReceiver!;
-    final amount =
-        double.tryParse(_amountController.text.trim())?.toStringAsFixed(2) ??
-            '0.00';
+    final amount = double.tryParse(_amountController.text.trim()) ?? 0;
+    final charge = _chargeForAmount(amount);
+    final total = amount + charge;
 
     return HoldToConfirmScreen(
       actionName: 'Send Money',
@@ -386,7 +390,10 @@ class _SendMoneyScreenState extends ConsumerState<SendMoneyScreen> {
       onConfirmed: _sendMoney,
       details: [
         HoldToConfirmDetail(
-            label: 'Total', value: 'Tk $amount', mutedValue: '+ No charge'),
+          label: 'Total',
+          value: _moneyText(total),
+          mutedValue: '+ Charge ${_moneyText(charge)}',
+        ),
         const HoldToConfirmDetail(label: 'Type', value: 'Wallet Transfer'),
         HoldToConfirmDetail(label: 'Receiver', value: receiver.mobileNumber),
         const HoldToConfirmDetail(label: 'Reference', value: 'SmartKash'),
@@ -397,7 +404,10 @@ class _SendMoneyScreenState extends ConsumerState<SendMoneyScreen> {
   Widget _buildResultStep() {
     final result = _sendResult!;
     final receiver = _resolvedReceiver;
-    final amount = result.amount ?? double.tryParse(_amountController.text);
+    final amount =
+        result.amount ?? double.tryParse(_amountController.text) ?? 0;
+    final charge = result.chargeAmount ?? _chargeForAmount(amount);
+    final total = amount + charge;
 
     return TransactionConfirmationScreen(
       success: result.success,
@@ -411,7 +421,8 @@ class _SendMoneyScreenState extends ConsumerState<SendMoneyScreen> {
           result.receiverMobileNumber ?? receiver?.mobileNumber ?? '',
       avatarUrl: receiver?.avatarUrl,
       avatarIcon: Icons.person_outline,
-      totalText: '৳${(amount ?? 0).toStringAsFixed(2)}',
+      totalText: _moneyText(total),
+      chargeText: 'Charge ${_moneyText(charge)}',
       transactionId: result.transactionReference,
       newBalanceText: result.senderBalanceAfter == null
           ? null

@@ -11,6 +11,7 @@ public record SendMoneyTransferResponse(
         String transactionReference,
         TransactionStatus status,
         BigDecimal amount,
+        BigDecimal chargeAmount,
         BigDecimal senderBalanceAfter,
         Long receiverUserId,
         String receiverMobileNumber,

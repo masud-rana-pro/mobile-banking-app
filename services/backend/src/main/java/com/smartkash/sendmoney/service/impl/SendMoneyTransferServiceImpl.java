@@ -31,6 +31,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
@@ -45,6 +46,8 @@ public class SendMoneyTransferServiceImpl implements SendMoneyTransferService {
 
     private static final String QR_PREFIX = "SMARTKASH_USER:";
     private static final int IDEMPOTENCY_EXPIRY_HOURS = 24;
+    private static final BigDecimal SEND_MONEY_CHARGE_PER_1000 = new BigDecimal("2.00");
+    private static final BigDecimal CHARGE_BASE_AMOUNT = new BigDecimal("1000.00");
 
     private final UserRepository userRepository;
     private final WalletRepository walletRepository;
@@ -103,9 +106,11 @@ public class SendMoneyTransferServiceImpl implements SendMoneyTransferService {
 
         ensureActiveWallet(senderWallet, "Sender wallet is not active.");
         ensureActiveWallet(receiverWallet, "Receiver wallet is not active.");
-        ensureSufficientBalance(senderWallet, request.amount());
+        BigDecimal chargeAmount = calculateCharge(request.amount());
+        BigDecimal totalDebitAmount = request.amount().add(chargeAmount);
+        ensureSufficientBalance(senderWallet, totalDebitAmount);
 
-        BigDecimal senderBalanceAfter = senderWallet.debit(request.amount());
+        BigDecimal senderBalanceAfter = senderWallet.debit(totalDebitAmount);
         BigDecimal receiverBalanceAfter = receiverWallet.credit(request.amount());
         String senderTransactionReference = uniqueTransactionReference("SM");
         String receiverTransactionReference = uniqueTransactionReference("RM");
@@ -116,7 +121,7 @@ public class SendMoneyTransferServiceImpl implements SendMoneyTransferService {
                 sender,
                 TransactionType.SEND_MONEY,
                 TransactionStatus.SUCCESS,
-                request.amount(),
+                totalDebitAmount,
                 receiver,
                 description
         ));
@@ -136,9 +141,9 @@ public class SendMoneyTransferServiceImpl implements SendMoneyTransferService {
                 senderTransactionReference,
                 null,
                 LedgerEntryType.DEBIT,
-                request.amount(),
+                totalDebitAmount,
                 senderBalanceAfter,
-                "Send Money wallet debit"
+                "Send Money wallet debit including charge"
         ));
         LedgerEntry creditEntry = ledgerEntryRepository.save(new LedgerEntry(
                 receiverWallet,
@@ -177,7 +182,8 @@ public class SendMoneyTransferServiceImpl implements SendMoneyTransferService {
                 "Send Money completed successfully.",
                 senderTransaction.getTransactionReference(),
                 senderTransaction.getStatus(),
-                senderTransaction.getAmount(),
+                request.amount(),
+                chargeAmount,
                 senderBalanceAfter,
                 receiver.getId(),
                 receiver.getMobileNumber(),
@@ -228,6 +234,7 @@ public class SendMoneyTransferServiceImpl implements SendMoneyTransferService {
                 transactionReference,
                 TransactionStatus.SUCCESS,
                 amount,
+                calculateCharge(amount),
                 senderBalanceAfter,
                 receiver.getId(),
                 receiver.getMobileNumber(),
@@ -242,6 +249,7 @@ public class SendMoneyTransferServiceImpl implements SendMoneyTransferService {
                 null,
                 TransactionStatus.FAILED,
                 amount,
+                null,
                 null,
                 receiver.getId(),
                 receiver.getMobileNumber(),
@@ -313,10 +321,16 @@ public class SendMoneyTransferServiceImpl implements SendMoneyTransferService {
         }
     }
 
-    private void ensureSufficientBalance(Wallet senderWallet, BigDecimal amount) {
-        if (senderWallet.getBalance().compareTo(amount) < 0) {
+    private void ensureSufficientBalance(Wallet senderWallet, BigDecimal totalDebitAmount) {
+        if (senderWallet.getBalance().compareTo(totalDebitAmount) < 0) {
             throw new IllegalArgumentException("Sender wallet has insufficient balance.");
         }
+    }
+
+    private BigDecimal calculateCharge(BigDecimal amount) {
+        return amount
+                .multiply(SEND_MONEY_CHARGE_PER_1000)
+                .divide(CHARGE_BASE_AMOUNT, 2, RoundingMode.HALF_UP);
     }
 
     private String uniqueTransactionReference(String prefix) {

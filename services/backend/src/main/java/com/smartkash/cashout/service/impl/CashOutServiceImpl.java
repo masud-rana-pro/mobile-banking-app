@@ -34,6 +34,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
@@ -47,6 +48,8 @@ import java.util.UUID;
 public class CashOutServiceImpl implements CashOutService {
 
     private static final int IDEMPOTENCY_EXPIRY_HOURS = 24;
+    private static final BigDecimal CASH_OUT_CHARGE_PER_1000 = new BigDecimal("13.00");
+    private static final BigDecimal CHARGE_BASE_AMOUNT = new BigDecimal("1000.00");
 
     private final UserRepository userRepository;
     private final WalletRepository walletRepository;
@@ -104,9 +107,11 @@ public class CashOutServiceImpl implements CashOutService {
                 .orElseThrow(() -> new ResourceNotFoundException("Agent wallet was not found."));
         ensureActiveWallet(wallet, "User wallet is not active.");
         ensureActiveWallet(agentWallet, "Agent wallet is not active.");
-        ensureSufficientBalance(wallet, request.amount());
+        BigDecimal chargeAmount = calculateCharge(request.amount());
+        BigDecimal totalDebitAmount = request.amount().add(chargeAmount);
+        ensureSufficientBalance(wallet, totalDebitAmount);
 
-        BigDecimal balanceAfter = wallet.debit(request.amount());
+        BigDecimal balanceAfter = wallet.debit(totalDebitAmount);
         BigDecimal agentBalanceAfter = agentWallet.credit(request.amount());
         String transactionReference = uniqueTransactionReference("CO");
         TransactionRecord transaction = transactionRecordRepository.save(new TransactionRecord(
@@ -114,7 +119,7 @@ public class CashOutServiceImpl implements CashOutService {
                 user,
                 TransactionType.CASH_OUT,
                 TransactionStatus.SUCCESS,
-                request.amount(),
+                totalDebitAmount,
                 agentUser,
                 description(request, agentNumber)
         ));
@@ -134,9 +139,9 @@ public class CashOutServiceImpl implements CashOutService {
                 transactionReference,
                 null,
                 LedgerEntryType.DEBIT,
-                request.amount(),
+                totalDebitAmount,
                 balanceAfter,
-                "Cash Out wallet debit"
+                "Cash Out wallet debit including charge"
         ));
         LedgerEntry creditEntry = ledgerEntryRepository.save(new LedgerEntry(
                 agentWallet,
@@ -172,7 +177,8 @@ public class CashOutServiceImpl implements CashOutService {
                 "Cash Out completed successfully.",
                 transaction.getTransactionReference(),
                 transaction.getStatus(),
-                transaction.getAmount(),
+                request.amount(),
+                chargeAmount,
                 balanceAfter,
                 agentNumber,
                 transaction.getCreatedAt()
@@ -208,10 +214,16 @@ public class CashOutServiceImpl implements CashOutService {
         }
     }
 
-    private void ensureSufficientBalance(Wallet wallet, BigDecimal amount) {
-        if (wallet.getBalance().compareTo(amount) < 0) {
+    private void ensureSufficientBalance(Wallet wallet, BigDecimal totalDebitAmount) {
+        if (wallet.getBalance().compareTo(totalDebitAmount) < 0) {
             throw new IllegalArgumentException("User wallet has insufficient balance.");
         }
+    }
+
+    private BigDecimal calculateCharge(BigDecimal amount) {
+        return amount
+                .multiply(CASH_OUT_CHARGE_PER_1000)
+                .divide(CHARGE_BASE_AMOUNT, 2, RoundingMode.HALF_UP);
     }
 
     private IdempotencyKey reserveOrValidateIdempotency(User user, CashOutRequest request, String agentNumber) {
@@ -247,6 +259,7 @@ public class CashOutServiceImpl implements CashOutService {
                 completedTransactionReference(idempotencyKey),
                 TransactionStatus.SUCCESS,
                 request.amount(),
+                calculateCharge(request.amount()),
                 completedBalanceAfter(idempotencyKey),
                 agentNumber,
                 null
@@ -254,7 +267,7 @@ public class CashOutServiceImpl implements CashOutService {
     }
 
     private CashOutResponse failedResponse(String message, CashOutRequest request, String agentNumber) {
-        return new CashOutResponse(false, message, null, TransactionStatus.FAILED, request.amount(), null, agentNumber, null);
+        return new CashOutResponse(false, message, null, TransactionStatus.FAILED, request.amount(), null, null, agentNumber, null);
     }
 
     private String uniqueTransactionReference(String prefix) {

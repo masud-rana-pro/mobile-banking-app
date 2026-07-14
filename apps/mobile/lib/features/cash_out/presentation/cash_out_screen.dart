@@ -180,6 +180,10 @@ class _CashOutScreenState extends ConsumerState<CashOutScreen> {
         .showSnackBar(SnackBar(content: Text(message)));
   }
 
+  double _chargeForAmount(double amount) => amount * 13 / 1000;
+
+  String _moneyText(double amount) => 'Tk ${amount.toStringAsFixed(2)}';
+
   @override
   Widget build(BuildContext context) {
     final isPopupStep =
@@ -333,9 +337,9 @@ class _CashOutScreenState extends ConsumerState<CashOutScreen> {
   }
 
   Widget _pinStep() {
-    final amount =
-        double.tryParse(_amountController.text.trim())?.toStringAsFixed(2) ??
-            '0.00';
+    final amount = double.tryParse(_amountController.text.trim()) ?? 0;
+    final charge = _chargeForAmount(amount);
+    final total = amount + charge;
     final agentNumber = _agentController.text.trim();
     final target = _agentTarget;
 
@@ -345,8 +349,8 @@ class _CashOutScreenState extends ConsumerState<CashOutScreen> {
         PinEntryPanel(
           pinController: _pinController,
           actionTitle: 'Cash Out',
-          amountText: '৳$amount',
-          totalText: '৳$amount',
+          amountText: _moneyText(amount),
+          totalText: _moneyText(total),
           typeLabel: 'Agent',
           secondaryTypeLabel: 'QR',
           loading: _isLoading,
@@ -366,9 +370,9 @@ class _CashOutScreenState extends ConsumerState<CashOutScreen> {
   }
 
   Widget _confirmStep() {
-    final amount =
-        double.tryParse(_amountController.text.trim())?.toStringAsFixed(2) ??
-            '0.00';
+    final amount = double.tryParse(_amountController.text.trim()) ?? 0;
+    final charge = _chargeForAmount(amount);
+    final total = amount + charge;
     final agentNumber = _agentController.text.trim();
     final target = _agentTarget;
 
@@ -383,7 +387,10 @@ class _CashOutScreenState extends ConsumerState<CashOutScreen> {
       onConfirmed: _submit,
       details: [
         HoldToConfirmDetail(
-            label: 'Total', value: 'Tk $amount', mutedValue: '+ No charge'),
+          label: 'Total',
+          value: _moneyText(total),
+          mutedValue: '+ Charge ${_moneyText(charge)}',
+        ),
         const HoldToConfirmDetail(label: 'Type', value: 'Agent Cash Out'),
         HoldToConfirmDetail(label: 'Agent', value: agentNumber),
         const HoldToConfirmDetail(label: 'Reference', value: 'SmartKash'),
@@ -394,6 +401,8 @@ class _CashOutScreenState extends ConsumerState<CashOutScreen> {
   Widget _resultStep() {
     final result = _result!;
     final target = _agentTarget;
+    final charge = result.chargeAmount ?? _chargeForAmount(result.amount);
+    final total = result.amount + charge;
     return TransactionConfirmationScreen(
       success: result.success,
       actionName: 'Cash Out',
@@ -402,7 +411,8 @@ class _CashOutScreenState extends ConsumerState<CashOutScreen> {
       accountNumber: result.agentNumber,
       avatarUrl: target?.avatarUrl,
       avatarIcon: Icons.payments_outlined,
-      totalText: '৳${result.amount.toStringAsFixed(2)}',
+      totalText: _moneyText(total),
+      chargeText: 'Charge ${_moneyText(charge)}',
       transactionId: result.transactionReference,
       newBalanceText: result.balanceAfter == null
           ? null
