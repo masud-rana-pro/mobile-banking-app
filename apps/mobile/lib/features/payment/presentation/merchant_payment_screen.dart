@@ -119,10 +119,19 @@ class _MerchantPaymentScreenState extends ConsumerState<MerchantPaymentScreen> {
         idempotencyKey: _idempotencyKey ??= repository.createIdempotencyKey(),
         note: _noteController.text.trim(),
       );
+      double? latestBalance = result.customerBalanceAfter;
       ref.read(walletRefreshProvider)();
+      try {
+        latestBalance = (await ref.read(walletSummaryProvider.future)).balance;
+      } catch (_) {
+        latestBalance = result.customerBalanceAfter;
+      }
       ref.read(transactionRefreshProvider)();
+      if (!mounted) {
+        return;
+      }
       setState(() {
-        _paymentResult = result;
+        _paymentResult = result.copyWith(customerBalanceAfter: latestBalance);
         _currentStep = _PaymentStep.result;
         _isLoading = false;
       });

@@ -33,4 +33,19 @@ class MobileRechargeRecord {
           : null,
     );
   }
+
+  MobileRechargeRecord copyWith({
+    double? balanceAfter,
+  }) {
+    return MobileRechargeRecord(
+      id: id,
+      operator: operator,
+      mobileNumber: mobileNumber,
+      amount: amount,
+      status: status,
+      transactionReference: transactionReference,
+      balanceAfter: balanceAfter ?? this.balanceAfter,
+      createdAt: createdAt,
+    );
+  }
 }

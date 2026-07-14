@@ -37,4 +37,19 @@ class SavingsDepositResult {
           : null,
     );
   }
+
+  SavingsDepositResult copyWith({
+    double? walletBalanceAfter,
+  }) {
+    return SavingsDepositResult(
+      success: success,
+      message: message,
+      status: status,
+      amount: amount,
+      goal: goal,
+      transactionReference: transactionReference,
+      walletBalanceAfter: walletBalanceAfter ?? this.walletBalanceAfter,
+      createdAt: createdAt,
+    );
+  }
 }
