@@ -360,12 +360,24 @@ class _ContactPickerSheetState extends State<_ContactPickerSheet> {
       return '';
     }
 
-    final hasPlus = trimmed.startsWith('+');
     final digits = trimmed.replaceAll(RegExp(r'[^0-9]'), '');
     if (digits.isEmpty) {
       return '';
     }
-    return hasPlus ? '+$digits' : digits;
+
+    if (digits.startsWith('8801') && digits.length == 13) {
+      return '0${digits.substring(3)}';
+    }
+
+    if (digits.startsWith('01') && digits.length == 11) {
+      return digits;
+    }
+
+    if (digits.startsWith('1') && digits.length == 10) {
+      return '0$digits';
+    }
+
+    return digits;
   }
 }
 
