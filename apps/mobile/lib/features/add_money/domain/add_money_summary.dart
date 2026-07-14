@@ -5,6 +5,8 @@ class AddMoneySummary {
     required this.sourceType,
     required this.status,
     this.note,
+    this.transactionReference,
+    this.balanceAfter,
     this.approvedAt,
     required this.createdAt,
   });
@@ -14,6 +16,8 @@ class AddMoneySummary {
   final String sourceType;
   final String status;
   final String? note;
+  final String? transactionReference;
+  final double? balanceAfter;
   final DateTime? approvedAt;
   final DateTime createdAt;
 
@@ -24,6 +28,8 @@ class AddMoneySummary {
       sourceType: json['sourceType'] as String? ?? 'MANUAL',
       status: json['status'] as String? ?? 'PENDING',
       note: json['note'] as String?,
+      transactionReference: json['transactionReference'] as String?,
+      balanceAfter: (json['balanceAfter'] as num?)?.toDouble(),
       approvedAt: json['approvedAt'] != null
           ? DateTime.tryParse(json['approvedAt'] as String)
           : null,

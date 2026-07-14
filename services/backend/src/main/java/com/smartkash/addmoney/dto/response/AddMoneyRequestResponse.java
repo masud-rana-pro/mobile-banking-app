@@ -12,6 +12,8 @@ public record AddMoneyRequestResponse(
         AddMoneySourceType sourceType,
         AddMoneyStatus status,
         String note,
+        String transactionReference,
+        BigDecimal balanceAfter,
         Instant approvedAt,
         Instant createdAt,
         Instant updatedAt

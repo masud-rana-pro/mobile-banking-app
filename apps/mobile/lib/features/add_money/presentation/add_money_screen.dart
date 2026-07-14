@@ -108,7 +108,6 @@ class _AddMoneyScreenState extends ConsumerState<AddMoneyScreen> {
         _amountController.clear();
         _noteController.clear();
       });
-      _showMessage('Money added instantly. Check Inbox > Transactions.');
     } catch (error) {
       _showMessage(_friendlyError(error));
     } finally {
@@ -132,8 +131,18 @@ class _AddMoneyScreenState extends ConsumerState<AddMoneyScreen> {
     );
   }
 
+  void _reset() {
+    setState(() {
+      _lastResult = null;
+      _idempotencyKey = null;
+      _amountController.clear();
+      _noteController.clear();
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
+    final result = _lastResult;
     final balanceText = ref.watch(walletSummaryProvider).maybeWhen(
           data: (wallet) => '৳${wallet.balance.toStringAsFixed(2)}',
           orElse: () => null,
@@ -145,98 +154,120 @@ class _AddMoneyScreenState extends ConsumerState<AddMoneyScreen> {
         title: const Text('Add Money'),
         centerTitle: true,
       ),
-      body: RefreshIndicator(
-        onRefresh: () async {
-          ref.invalidate(addMoneyRequestsProvider);
-          await ref.read(addMoneyRequestsProvider.future);
-        },
-        child: ListView(
-          padding: const EdgeInsets.fromLTRB(20, 18, 20, 30),
-          children: [
-            const _InstantTopUpHeader(),
-            const SizedBox(height: 18),
-            AmountEntryPanel(
-              controller: _amountController,
-              tabs: const ['Amount', 'Source', 'Reference'],
-              presets: _quickAmounts,
-              availableBalanceText: balanceText,
-              sourceLabel: 'Top Up Source',
-              secondarySourceLabel: 'Later',
-              proceedLabel: 'Proceed',
-              showProceed: false,
-              onProceed: null,
-            ),
-            const SizedBox(height: 14),
-            _SourceSelector(
-              sources: _sources,
-              selectedSource: _selectedSource,
-              onChanged: (value) => setState(() => _selectedSource = value),
-            ),
-            const SizedBox(height: 14),
-            TextField(
-              controller: _noteController,
-              maxLength: 255,
-              decoration: InputDecoration(
-                labelText: 'Reference note (optional)',
-                hintText: 'Example: bank top-up reference',
-                filled: true,
-                fillColor: Colors.white,
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(8),
-                  borderSide: const BorderSide(color: Color(0xFFE2E8F0)),
-                ),
-                enabledBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(8),
-                  borderSide: const BorderSide(color: Color(0xFFE2E8F0)),
-                ),
-              ),
-            ),
-            const SizedBox(height: 8),
-            SizedBox(
-              height: 54,
-              child: ElevatedButton(
-                onPressed: _isSubmitting ? null : _submitAddMoney,
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: const Color(0xFF008F7A),
-                  foregroundColor: Colors.white,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(8),
+      body: result == null
+          ? RefreshIndicator(
+              onRefresh: () async {
+                ref.invalidate(addMoneyRequestsProvider);
+                await ref.read(addMoneyRequestsProvider.future);
+              },
+              child: ListView(
+                padding: const EdgeInsets.fromLTRB(20, 18, 20, 30),
+                children: [
+                  const _InstantTopUpHeader(),
+                  const SizedBox(height: 18),
+                  AmountEntryPanel(
+                    controller: _amountController,
+                    tabs: const ['Amount', 'Source', 'Reference'],
+                    presets: _quickAmounts,
+                    availableBalanceText: balanceText,
+                    sourceLabel: 'Top Up Source',
+                    secondarySourceLabel: 'Later',
+                    proceedLabel: 'Proceed',
+                    showProceed: false,
+                    onProceed: null,
                   ),
-                ),
-                child: _isSubmitting
-                    ? const SizedBox(
-                        width: 24,
-                        height: 24,
-                        child: CircularProgressIndicator(
-                          color: Colors.white,
-                          strokeWidth: 2.5,
-                        ),
-                      )
-                    : const Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Text(
-                            'Add Money Now',
-                            style: TextStyle(
-                              fontSize: 16,
-                              fontWeight: FontWeight.w900,
-                            ),
-                          ),
-                          SizedBox(width: 10),
-                          Icon(Icons.arrow_forward),
-                        ],
+                  const SizedBox(height: 14),
+                  _SourceSelector(
+                    sources: _sources,
+                    selectedSource: _selectedSource,
+                    onChanged: (value) =>
+                        setState(() => _selectedSource = value),
+                  ),
+                  const SizedBox(height: 14),
+                  TextField(
+                    controller: _noteController,
+                    maxLength: 255,
+                    decoration: InputDecoration(
+                      labelText: 'Reference note (optional)',
+                      hintText: 'Example: bank top-up reference',
+                      filled: true,
+                      fillColor: Colors.white,
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(8),
+                        borderSide: const BorderSide(color: Color(0xFFE2E8F0)),
                       ),
+                      enabledBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(8),
+                        borderSide: const BorderSide(color: Color(0xFFE2E8F0)),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  SizedBox(
+                    height: 54,
+                    child: ElevatedButton(
+                      onPressed: _isSubmitting ? null : _submitAddMoney,
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: const Color(0xFF008F7A),
+                        foregroundColor: Colors.white,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                      ),
+                      child: _isSubmitting
+                          ? const SizedBox(
+                              width: 24,
+                              height: 24,
+                              child: CircularProgressIndicator(
+                                color: Colors.white,
+                                strokeWidth: 2.5,
+                              ),
+                            )
+                          : const Row(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                Text(
+                                  'Add Money Now',
+                                  style: TextStyle(
+                                    fontSize: 16,
+                                    fontWeight: FontWeight.w900,
+                                  ),
+                                ),
+                                SizedBox(width: 10),
+                                Icon(Icons.arrow_forward),
+                              ],
+                            ),
+                    ),
+                  ),
+                  const SizedBox(height: 18),
+                  const _InboxHistoryHint(),
+                ],
               ),
-            ),
-            if (_lastResult != null) ...[
-              const SizedBox(height: 16),
-              _SuccessCard(result: _lastResult!),
-            ],
-            const SizedBox(height: 18),
-            const _InboxHistoryHint(),
-          ],
-        ),
-      ),
+            )
+          : _buildResult(result),
+    );
+  }
+
+  Widget _buildResult(AddMoneySummary result) {
+    final success = result.isApproved;
+    return TransactionConfirmationScreen(
+      success: success,
+      actionName: 'Add Money',
+      message: success ? 'Your Add Money is successful' : 'Add Money failed',
+      accountName: 'SmartKash Wallet',
+      accountNumber: result.sourceLabel,
+      avatarIcon: Icons.account_balance_wallet_outlined,
+      totalText: '৳${result.amount.toStringAsFixed(2)}',
+      transactionId: result.transactionReference,
+      time: result.approvedAt ?? result.createdAt,
+      newBalanceText: result.balanceAfter == null
+          ? null
+          : '৳${result.balanceAfter!.toStringAsFixed(2)}',
+      typeText: result.sourceLabel,
+      extraLabel: 'Status',
+      extraValue: result.statusLabel,
+      primaryLabel: 'Add Money Again',
+      onPrimaryAction: _reset,
     );
   }
 }
@@ -381,40 +412,6 @@ class _SourceSelector extends StatelessWidget {
             ),
           ),
       ],
-    );
-  }
-}
-
-class _SuccessCard extends StatelessWidget {
-  const _SuccessCard({required this.result});
-
-  final AddMoneySummary result;
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: const Color(0xFFE8F5E9),
-        borderRadius: BorderRadius.circular(8),
-        border: Border.all(color: const Color(0xFFC8E6C9)),
-      ),
-      child: Row(
-        children: [
-          const Icon(Icons.check_circle, color: Color(0xFF2E7D32), size: 34),
-          const SizedBox(width: 12),
-          Expanded(
-            child: Text(
-              'Tk ${result.amount.toStringAsFixed(2)} added successfully. A transaction history item was created.',
-              style: const TextStyle(
-                color: Color(0xFF1B5E20),
-                fontWeight: FontWeight.w800,
-                height: 1.35,
-              ),
-            ),
-          ),
-        ],
-      ),
     );
   }
 }

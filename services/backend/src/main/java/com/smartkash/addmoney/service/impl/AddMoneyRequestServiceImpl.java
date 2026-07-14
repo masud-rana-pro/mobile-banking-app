@@ -127,7 +127,10 @@ public class AddMoneyRequestServiceImpl implements AddMoneyRequestService {
                 "Instant Add Money wallet credit"
         ));
 
-        idempotencyKeyService.markCompleted(idempotencyKey, "ADD_MONEY:" + savedRequest.getId());
+        idempotencyKeyService.markCompleted(
+                idempotencyKey,
+                "ADD_MONEY:" + savedRequest.getId() + ":" + transactionReference + ":" + balanceAfter
+        );
         transactionAlertService.sendTransactionAlert(
                 user,
                 NotificationType.ADD_MONEY,
@@ -136,7 +139,7 @@ public class AddMoneyRequestServiceImpl implements AddMoneyRequestService {
                 Map.of("transactionReference", transactionReference, "type", TransactionType.ADD_MONEY.name())
         );
 
-        return addMoneyRequestMapper.toResponse(savedRequest);
+        return addMoneyRequestMapper.toResponse(savedRequest, transactionReference, balanceAfter);
     }
 
     @Override
@@ -196,10 +199,13 @@ public class AddMoneyRequestServiceImpl implements AddMoneyRequestService {
         if (responseBody == null || !responseBody.startsWith("ADD_MONEY:")) {
             throw new IllegalArgumentException("Stored Add Money idempotency response is invalid.");
         }
-        Long requestId = Long.parseLong(responseBody.substring("ADD_MONEY:".length()));
+        String[] parts = responseBody.split(":", 4);
+        Long requestId = Long.parseLong(parts[1]);
+        String transactionReference = parts.length >= 3 ? parts[2] : null;
+        BigDecimal balanceAfter = parts.length >= 4 ? new BigDecimal(parts[3]) : null;
         AddMoneyRequest addMoneyRequest = addMoneyRequestRepository.findById(requestId)
                 .orElseThrow(() -> new ResourceNotFoundException("Completed Add Money record was not found."));
-        return addMoneyRequestMapper.toResponse(addMoneyRequest);
+        return addMoneyRequestMapper.toResponse(addMoneyRequest, transactionReference, balanceAfter);
     }
 
     private String uniqueTransactionReference() {
