@@ -13,6 +13,7 @@ public record MobileRechargeResponse(
         BigDecimal amount,
         RechargeStatus status,
         String transactionReference,
+        BigDecimal balanceAfter,
         Instant createdAt
 ) {
 }

@@ -1269,7 +1269,7 @@ class TransactionConfirmationScreen extends StatelessWidget {
                                     'Total', '$totalText\n$chargeText'),
                                 _ReceiptGridItem(
                                   'New Balance',
-                                  newBalanceText ?? 'Hidden',
+                                  newBalanceText ?? 'Balance unavailable',
                                 ),
                                 _ReceiptGridItem(
                                     'Type', typeText ?? actionName),

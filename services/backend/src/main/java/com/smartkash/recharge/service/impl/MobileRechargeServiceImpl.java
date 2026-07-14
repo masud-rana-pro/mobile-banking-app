@@ -146,7 +146,7 @@ public class MobileRechargeServiceImpl implements MobileRechargeService {
                 Map.of("transactionReference", transactionReference, "rechargeId", String.valueOf(savedRecharge.getId()))
         );
 
-        return mobileRechargeMapper.toResponse(savedRecharge);
+        return mobileRechargeMapper.toResponse(savedRecharge, balanceAfter);
     }
 
     @Override
@@ -197,8 +197,9 @@ public class MobileRechargeServiceImpl implements MobileRechargeService {
 
     private MobileRechargeResponse completedRechargeResponse(IdempotencyKey idempotencyKey) {
         String transactionReference = completedTransactionReference(idempotencyKey);
+        BigDecimal balanceAfter = completedBalanceAfter(idempotencyKey);
         return mobileRechargeRepository.findByTransactionReference(transactionReference)
-                .map(mobileRechargeMapper::toResponse)
+                .map(recharge -> mobileRechargeMapper.toResponse(recharge, balanceAfter))
                 .orElseThrow(() -> new ResourceNotFoundException("Completed Mobile Recharge record was not found."));
     }
 
@@ -256,6 +257,18 @@ public class MobileRechargeServiceImpl implements MobileRechargeService {
         }
         String[] parts = responseBody.split(":", 4);
         return parts.length >= 3 ? parts[2] : null;
+    }
+
+    private BigDecimal completedBalanceAfter(IdempotencyKey idempotencyKey) {
+        String responseBody = idempotencyKey.getResponseBody();
+        if (responseBody == null || !responseBody.startsWith("SUCCESS:")) {
+            return null;
+        }
+        String[] parts = responseBody.split(":", 4);
+        if (parts.length < 4) {
+            return null;
+        }
+        return new BigDecimal(parts[3]);
     }
 
     private String nullToEmpty(String value) {

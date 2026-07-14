@@ -6,6 +6,7 @@ class MobileRechargeRecord {
     required this.amount,
     required this.status,
     this.transactionReference,
+    this.balanceAfter,
     this.createdAt,
   });
 
@@ -15,6 +16,7 @@ class MobileRechargeRecord {
   final double amount;
   final String status;
   final String? transactionReference;
+  final double? balanceAfter;
   final DateTime? createdAt;
 
   factory MobileRechargeRecord.fromJson(Map<String, dynamic> json) {
@@ -25,6 +27,7 @@ class MobileRechargeRecord {
       amount: (json['amount'] as num?)?.toDouble() ?? 0,
       status: json['status'] as String? ?? '',
       transactionReference: json['transactionReference'] as String?,
+      balanceAfter: (json['balanceAfter'] as num?)?.toDouble(),
       createdAt: json['createdAt'] != null
           ? DateTime.tryParse(json['createdAt'] as String)
           : null,

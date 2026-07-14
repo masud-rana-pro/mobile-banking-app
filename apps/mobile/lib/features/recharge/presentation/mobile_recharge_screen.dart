@@ -468,6 +468,9 @@ class _MobileRechargeScreenState extends ConsumerState<MobileRechargeScreen> {
       totalText: '৳${result.amount.toStringAsFixed(2)}',
       transactionId: result.transactionReference,
       time: result.createdAt,
+      newBalanceText: result.balanceAfter == null
+          ? null
+          : '৳${result.balanceAfter!.toStringAsFixed(2)}',
       typeText: 'Prepaid',
       extraLabel: 'Mobile Operator',
       extraValue: result.operator,
