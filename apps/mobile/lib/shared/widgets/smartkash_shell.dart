@@ -14,9 +14,27 @@ class SmartKashShell extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final hideBottomNav = _hideBottomNavForPath(currentPath);
     return Scaffold(
+      resizeToAvoidBottomInset: false,
       body: child,
-      bottomNavigationBar: SmartKashBottomNav(currentPath: currentPath),
+      bottomNavigationBar:
+          hideBottomNav ? null : SmartKashBottomNav(currentPath: currentPath),
     );
+  }
+
+  bool _hideBottomNavForPath(String path) {
+    const fullScreenFlowPaths = {
+      '/add-money',
+      '/send-money',
+      '/cash-out',
+      '/merchant-payment',
+      '/pay-bill',
+      '/mobile-recharge',
+      '/savings',
+      '/loan',
+    };
+
+    return fullScreenFlowPaths.contains(path);
   }
 }
