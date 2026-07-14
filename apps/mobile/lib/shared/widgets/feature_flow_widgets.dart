@@ -790,10 +790,14 @@ class PinEntryPanel extends StatelessWidget {
                 Expanded(
                   child: TextField(
                     controller: pinController,
+                    readOnly: true,
+                    showCursor: false,
+                    enableInteractiveSelection: false,
                     obscureText: true,
                     maxLength: 5,
-                    keyboardType: TextInputType.number,
+                    keyboardType: TextInputType.none,
                     textAlign: TextAlign.center,
+                    onTap: FocusScope.of(context).unfocus,
                     decoration: const InputDecoration(
                       hintText: 'Enter PIN',
                       counterText: '',
@@ -812,7 +816,70 @@ class PinEntryPanel extends StatelessWidget {
               ],
             ),
           ),
-          const SizedBox(height: 18),
+          _PinConfirmKeypad(
+            loading: loading,
+            canConfirm: canConfirm,
+            onConfirm: onConfirm,
+            onNumberTap: _appendDigit,
+            onBackspace: _backspace,
+          ),
+          if (onBackToAmount != null)
+            TextButton(
+              onPressed: onBackToAmount,
+              child: const Text('Change Amount'),
+            ),
+        ],
+      ),
+    );
+  }
+
+  void _appendDigit(String value) {
+    if (pinController.text.length >= 5 || loading) {
+      return;
+    }
+    pinController.text = '${pinController.text}$value';
+  }
+
+  void _backspace() {
+    if (pinController.text.isEmpty || loading) {
+      return;
+    }
+    pinController.text = pinController.text.substring(
+      0,
+      pinController.text.length - 1,
+    );
+  }
+}
+
+class _PinConfirmKeypad extends StatelessWidget {
+  const _PinConfirmKeypad({
+    required this.loading,
+    required this.canConfirm,
+    required this.onConfirm,
+    required this.onNumberTap,
+    required this.onBackspace,
+  });
+
+  final bool loading;
+  final bool canConfirm;
+  final VoidCallback? onConfirm;
+  final ValueChanged<String> onNumberTap;
+  final VoidCallback onBackspace;
+
+  static const _accent = Color(0xFF008F7A);
+
+  @override
+  Widget build(BuildContext context) {
+    const rows = [
+      ['1', '2', '3'],
+      ['4', '5', '6'],
+      ['7', '8', '9'],
+    ];
+
+    return Container(
+      color: const Color(0xFFF5F7FA),
+      child: Column(
+        children: [
           SizedBox(
             width: double.infinity,
             height: 58,
@@ -822,8 +889,8 @@ class PinEntryPanel extends StatelessWidget {
                 backgroundColor: _accent,
                 disabledBackgroundColor: const Color(0xFF9E9E9E),
                 foregroundColor: Colors.white,
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(8),
+                shape: const RoundedRectangleBorder(
+                  borderRadius: BorderRadius.zero,
                 ),
                 elevation: 0,
               ),
@@ -851,12 +918,105 @@ class PinEntryPanel extends StatelessWidget {
                     ),
             ),
           ),
-          if (onBackToAmount != null)
-            TextButton(
-              onPressed: onBackToAmount,
-              child: const Text('Change Amount'),
+          Padding(
+            padding: const EdgeInsets.fromLTRB(20, 10, 20, 14),
+            child: Column(
+              children: [
+                for (final row in rows)
+                  Row(
+                    children: [
+                      for (final value in row)
+                        Expanded(
+                          child: _PinKeypadButton(
+                            label: value,
+                            onTap: () => onNumberTap(value),
+                          ),
+                        ),
+                    ],
+                  ),
+                Row(
+                  children: [
+                    Expanded(
+                      child: _PinKeypadIconButton(
+                        icon: Icons.close,
+                        onTap: onBackspace,
+                      ),
+                    ),
+                    Expanded(
+                      child: _PinKeypadButton(
+                        label: '0',
+                        onTap: () => onNumberTap('0'),
+                      ),
+                    ),
+                    Expanded(
+                      child: _PinKeypadIconButton(
+                        icon: Icons.keyboard_return,
+                        onTap: canConfirm ? onConfirm : () {},
+                      ),
+                    ),
+                  ],
+                ),
+              ],
             ),
+          ),
         ],
+      ),
+    );
+  }
+}
+
+class _PinKeypadButton extends StatelessWidget {
+  const _PinKeypadButton({required this.label, required this.onTap});
+
+  final String label;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(48),
+      child: SizedBox(
+        height: 62,
+        child: Center(
+          child: Text(
+            label,
+            style: const TextStyle(
+              color: Color(0xFF455A64),
+              fontSize: 32,
+              fontWeight: FontWeight.w700,
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _PinKeypadIconButton extends StatelessWidget {
+  const _PinKeypadIconButton({required this.icon, required this.onTap});
+
+  final IconData icon;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(48),
+      child: SizedBox(
+        height: 62,
+        child: Center(
+          child: Container(
+            width: 46,
+            height: 36,
+            decoration: BoxDecoration(
+              color: const Color(0xFF455A64),
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: Icon(icon, color: Colors.white, size: 23),
+          ),
+        ),
       ),
     );
   }
@@ -989,142 +1149,158 @@ class TransactionConfirmationScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     final statusColor = success ? _accent : _danger;
     final completedAt = time ?? DateTime.now();
+    final bodyHeight = MediaQuery.sizeOf(context).height -
+        MediaQuery.paddingOf(context).top -
+        kToolbarHeight;
+    final sheetHeight = bodyHeight.clamp(560.0, 900.0).toDouble();
 
-    return SingleChildScrollView(
-      padding: const EdgeInsets.fromLTRB(18, 16, 18, 24),
-      child: Column(
-        children: [
-          Container(
-            width: double.infinity,
-            padding: const EdgeInsets.fromLTRB(20, 18, 20, 20),
-            decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.circular(12),
-              boxShadow: const [
-                BoxShadow(
-                  color: Color(0x1F000000),
-                  blurRadius: 20,
-                  offset: Offset(0, 8),
+    return SizedBox(
+      height: sheetHeight,
+      child: ColoredBox(
+        color: const Color(0x99003B46),
+        child: SafeArea(
+          top: false,
+          child: Align(
+            alignment: Alignment.bottomCenter,
+            child: FractionallySizedBox(
+              heightFactor: 0.94,
+              child: Material(
+                color: const Color(0xFFF5F7FA),
+                elevation: 18,
+                shadowColor: Colors.black.withValues(alpha: 0.24),
+                borderRadius:
+                    const BorderRadius.vertical(top: Radius.circular(28)),
+                clipBehavior: Clip.antiAlias,
+                child: Column(
+                  children: [
+                    Container(
+                      width: 52,
+                      height: 5,
+                      margin: const EdgeInsets.only(top: 10, bottom: 6),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFFD7EEE8),
+                        borderRadius: BorderRadius.circular(999),
+                      ),
+                    ),
+                    Expanded(
+                      child: SingleChildScrollView(
+                        padding: const EdgeInsets.fromLTRB(18, 14, 18, 18),
+                        child: Column(
+                          children: [
+                            Icon(
+                              success
+                                  ? Icons.check_circle_outline
+                                  : Icons.cancel_outlined,
+                              color: statusColor,
+                              size: 64,
+                            ),
+                            const SizedBox(height: 8),
+                            Text(
+                              message.isEmpty
+                                  ? success
+                                      ? 'Your $actionName is successful'
+                                      : '$actionName failed'
+                                  : message,
+                              textAlign: TextAlign.center,
+                              style: TextStyle(
+                                color: statusColor,
+                                fontSize: 20,
+                                fontWeight: FontWeight.w900,
+                              ),
+                            ),
+                            const SizedBox(height: 22),
+                            AmountRecipientCard(
+                              label: 'Account',
+                              title: accountName,
+                              subtitle: accountNumber,
+                              imageUrl: avatarUrl,
+                              fallbackIcon: avatarIcon,
+                            ),
+                            const SizedBox(height: 8),
+                            _ReceiptGrid(
+                              items: [
+                                _ReceiptGridItem(
+                                  'Time',
+                                  _formatShortDate(completedAt),
+                                ),
+                                _ReceiptGridItem(
+                                  'Transaction ID',
+                                  transactionId?.isNotEmpty == true
+                                      ? transactionId!
+                                      : 'N/A',
+                                  copyable: transactionId?.isNotEmpty == true,
+                                ),
+                                _ReceiptGridItem(
+                                    'Total', '$totalText\n$chargeText'),
+                                _ReceiptGridItem(
+                                  'New Balance',
+                                  newBalanceText ?? 'Hidden',
+                                ),
+                                _ReceiptGridItem(
+                                    'Type', typeText ?? actionName),
+                                _ReceiptGridItem(extraLabel, extraValue),
+                              ],
+                            ),
+                            const SizedBox(height: 18),
+                            OutlinedButton.icon(
+                              onPressed: onSecondaryAction,
+                              icon: const Icon(Icons.history),
+                              label: Text(secondaryLabel ?? 'View Inbox'),
+                              style: OutlinedButton.styleFrom(
+                                foregroundColor: _accent,
+                                disabledForegroundColor:
+                                    const Color(0xFF90A4AE),
+                                side: const BorderSide(color: _accent),
+                                minimumSize: const Size.fromHeight(52),
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(8),
+                                ),
+                              ),
+                            ),
+                            const SizedBox(height: 22),
+                            const Icon(
+                              Icons.star,
+                              color: Color(0xFF008F7A),
+                              size: 40,
+                            ),
+                            const SizedBox(height: 8),
+                            const Text(
+                              'You have earned',
+                              style: TextStyle(
+                                color: Color(0xFF607D8B),
+                                fontSize: 15,
+                              ),
+                            ),
+                            const SizedBox(height: 3),
+                            const Text(
+                              'SmartKash Reward Points',
+                              textAlign: TextAlign.center,
+                              style: TextStyle(
+                                color: Color(0xFF263238),
+                                fontSize: 18,
+                                fontWeight: FontWeight.w900,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                    Padding(
+                      padding: const EdgeInsets.fromLTRB(18, 10, 18, 14),
+                      child: PrimaryActionButton(
+                        label: primaryLabel,
+                        icon: Icons.arrow_forward,
+                        onPressed: onPrimaryAction,
+                      ),
+                    ),
+                  ],
                 ),
-              ],
-            ),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                const Text(
-                  'SmartKash',
-                  style: TextStyle(
-                    color: Color(0xFF263238),
-                    fontSize: 22,
-                    fontStyle: FontStyle.italic,
-                    fontWeight: FontWeight.w900,
-                  ),
-                ),
-                const SizedBox(height: 8),
-                Text(
-                  '$actionName ${_formatLongDate(completedAt)}',
-                  style: const TextStyle(
-                    color: Color(0xFF455A64),
-                    fontSize: 16,
-                    fontStyle: FontStyle.italic,
-                    fontWeight: FontWeight.w700,
-                  ),
-                ),
-              ],
-            ),
-          ),
-          const SizedBox(height: 22),
-          Icon(
-            success ? Icons.check_circle_outline : Icons.cancel_outlined,
-            color: statusColor,
-            size: 64,
-          ),
-          const SizedBox(height: 8),
-          Text(
-            message.isEmpty
-                ? success
-                    ? 'Your $actionName is successful'
-                    : '$actionName failed'
-                : message,
-            textAlign: TextAlign.center,
-            style: TextStyle(
-              color: statusColor,
-              fontSize: 20,
-              fontWeight: FontWeight.w900,
-            ),
-          ),
-          const SizedBox(height: 28),
-          AmountRecipientCard(
-            label: 'Account',
-            title: accountName,
-            subtitle: accountNumber,
-            imageUrl: avatarUrl,
-            fallbackIcon: avatarIcon,
-          ),
-          const SizedBox(height: 8),
-          _ReceiptGrid(
-            items: [
-              _ReceiptGridItem('Time', _formatShortDate(completedAt)),
-              _ReceiptGridItem(
-                'Transaction ID',
-                transactionId?.isNotEmpty == true ? transactionId! : 'N/A',
-                copyable: transactionId?.isNotEmpty == true,
               ),
-              _ReceiptGridItem('Total', '$totalText\n$chargeText'),
-              _ReceiptGridItem('New Balance', newBalanceText ?? 'Hidden'),
-              _ReceiptGridItem('Type', typeText ?? actionName),
-              _ReceiptGridItem(extraLabel, extraValue),
-            ],
-          ),
-          const SizedBox(height: 22),
-          OutlinedButton.icon(
-            onPressed: onSecondaryAction,
-            icon: const Icon(Icons.history),
-            label: Text(secondaryLabel ?? 'View Inbox'),
-            style: OutlinedButton.styleFrom(
-              foregroundColor: _accent,
-              disabledForegroundColor: const Color(0xFF90A4AE),
-              side: const BorderSide(color: _accent),
-              minimumSize: const Size.fromHeight(54),
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(8),
-              ),
             ),
           ),
-          const SizedBox(height: 28),
-          const Icon(Icons.star, color: Color(0xFF008F7A), size: 44),
-          const SizedBox(height: 10),
-          const Text(
-            'You have earned',
-            style: TextStyle(color: Color(0xFF607D8B), fontSize: 16),
-          ),
-          const SizedBox(height: 4),
-          const Text(
-            'SmartKash Reward Points',
-            style: TextStyle(
-              color: Color(0xFF263238),
-              fontSize: 20,
-              fontWeight: FontWeight.w900,
-            ),
-          ),
-          const SizedBox(height: 30),
-          PrimaryActionButton(
-            label: primaryLabel,
-            icon: Icons.arrow_forward,
-            onPressed: onPrimaryAction,
-          ),
-        ],
+        ),
       ),
     );
-  }
-
-  static String _formatLongDate(DateTime date) {
-    final day = date.day.toString().padLeft(2, '0');
-    final month = date.month.toString().padLeft(2, '0');
-    final hour = _hour12(date);
-    final minute = date.minute.toString().padLeft(2, '0');
-    final suffix = date.hour >= 12 ? 'PM' : 'AM';
-    return '$day-$month-${date.year} $hour:$minute $suffix';
   }
 
   static String _formatShortDate(DateTime date) {

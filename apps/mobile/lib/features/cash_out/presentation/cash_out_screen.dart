@@ -5,6 +5,7 @@ import 'package:go_router/go_router.dart';
 import '../../../core/errors/api_exception.dart';
 import '../../../shared/widgets/feature_flow_widgets.dart';
 import '../../../shared/widgets/hold_to_confirm_screen.dart';
+import '../../auth/providers/auth_providers.dart';
 import '../../notification/presentation/notification_inbox_screen.dart';
 import '../../qr/presentation/qr_screen.dart';
 import '../../transaction/providers/transaction_providers.dart';
@@ -156,10 +157,11 @@ class _CashOutScreenState extends ConsumerState<CashOutScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final isConfirmStep = _step == _CashOutStep.confirm;
+    final isPopupStep =
+        _step == _CashOutStep.confirm || _step == _CashOutStep.result;
     return Scaffold(
       appBar: AppBar(title: const Text('Cash Out'), centerTitle: true),
-      body: isConfirmStep
+      body: isPopupStep
           ? _buildBody()
           : SingleChildScrollView(
               padding: const EdgeInsets.all(20),
@@ -322,12 +324,14 @@ class _CashOutScreenState extends ConsumerState<CashOutScreen> {
 
   Widget _resultStep() {
     final result = _result!;
+    final avatarUrl = ref.watch(authControllerProvider).avatarUrl?.trim();
     return TransactionConfirmationScreen(
       success: result.success,
       actionName: 'Cash Out',
       message: result.message,
       accountName: 'SmartKash Agent',
       accountNumber: result.agentNumber,
+      avatarUrl: avatarUrl,
       avatarIcon: Icons.payments_outlined,
       totalText: '৳${result.amount.toStringAsFixed(2)}',
       transactionId: result.transactionReference,

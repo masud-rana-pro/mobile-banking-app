@@ -5,6 +5,7 @@ import 'package:go_router/go_router.dart';
 import '../../../core/errors/api_exception.dart';
 import '../../../shared/widgets/feature_flow_widgets.dart';
 import '../../../shared/widgets/hold_to_confirm_screen.dart';
+import '../../auth/providers/auth_providers.dart';
 import '../../notification/presentation/notification_inbox_screen.dart';
 import '../../transaction/providers/transaction_providers.dart';
 import '../../wallet/providers/wallet_providers.dart';
@@ -162,13 +163,14 @@ class _MobileRechargeScreenState extends ConsumerState<MobileRechargeScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final isConfirmStep = _currentStep == _RechargeStep.confirm;
+    final isPopupStep = _currentStep == _RechargeStep.confirm ||
+        _currentStep == _RechargeStep.result;
     return Scaffold(
       appBar: AppBar(
         title: const Text('Mobile Recharge'),
         centerTitle: true,
       ),
-      body: isConfirmStep
+      body: isPopupStep
           ? _buildBody()
           : SingleChildScrollView(
               padding: const EdgeInsets.all(20),
@@ -384,6 +386,7 @@ class _MobileRechargeScreenState extends ConsumerState<MobileRechargeScreen> {
   Widget _buildResultStep() {
     final result = _rechargeResult!;
     final isSuccess = result.status == 'SUCCESS';
+    final avatarUrl = ref.watch(authControllerProvider).avatarUrl?.trim();
 
     return TransactionConfirmationScreen(
       success: isSuccess,
@@ -393,6 +396,7 @@ class _MobileRechargeScreenState extends ConsumerState<MobileRechargeScreen> {
           : 'Mobile recharge failed',
       accountName: result.mobileNumber,
       accountNumber: result.operator,
+      avatarUrl: avatarUrl,
       avatarIcon: Icons.phone_android_outlined,
       totalText: '৳${result.amount.toStringAsFixed(2)}',
       transactionId: result.transactionReference,
@@ -405,40 +409,6 @@ class _MobileRechargeScreenState extends ConsumerState<MobileRechargeScreen> {
           context.pushNamed(NotificationInboxScreen.routeName),
       primaryLabel: 'Recharge Again',
       onPrimaryAction: _reset,
-    );
-  }
-
-  Widget _primaryButton({
-    required String label,
-    required VoidCallback? onPressed,
-    bool loading = false,
-  }) {
-    return SizedBox(
-      width: double.infinity,
-      height: 50,
-      child: ElevatedButton(
-        onPressed: onPressed,
-        style: ElevatedButton.styleFrom(
-          backgroundColor: const Color(0xFF008F7A),
-          foregroundColor: Colors.white,
-        ),
-        child: loading
-            ? const SizedBox(
-                width: 24,
-                height: 24,
-                child: CircularProgressIndicator(
-                  color: Colors.white,
-                  strokeWidth: 2.5,
-                ),
-              )
-            : Text(
-                label,
-                style: const TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.w800,
-                ),
-              ),
-      ),
     );
   }
 }
