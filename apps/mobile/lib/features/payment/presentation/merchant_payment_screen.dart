@@ -263,12 +263,10 @@ class _MerchantPaymentScreenState extends ConsumerState<MerchantPaymentScreen> {
           contactButtonLabel: 'Contacts',
           qrButtonLabel: 'Scan QR',
           onChanged: (_) {
-            if (_merchantTarget != null) {
-              setState(() {
-                _merchantTarget = null;
-                _idempotencyKey = null;
-              });
-            }
+            setState(() {
+              _merchantTarget = null;
+              _idempotencyKey = null;
+            });
           },
           onQrPressed: _isLoading
               ? null
