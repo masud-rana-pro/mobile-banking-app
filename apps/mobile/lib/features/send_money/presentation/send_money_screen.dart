@@ -170,13 +170,58 @@ class _SendMoneyScreenState extends ConsumerState<SendMoneyScreen> {
         title: const Text('Send Money'),
         centerTitle: true,
       ),
+      bottomNavigationBar: isPopupStep ? null : _bottomKeypad(),
       body: isPopupStep
           ? _buildBody()
-          : SingleChildScrollView(
-              padding: const EdgeInsets.all(20),
-              child: _buildBody(),
+          : SafeArea(
+              child: Column(
+                children: [
+                  Expanded(
+                    child: SingleChildScrollView(
+                      padding: const EdgeInsets.all(20),
+                      child: _buildBody(),
+                    ),
+                  ),
+                ],
+              ),
             ),
     );
+  }
+
+  Widget? _bottomKeypad() {
+    if (_currentStep == _SendStep.receiver) {
+      return SafeArea(
+        top: false,
+        child: NumberProceedKeypadBar(
+          controller: _phoneController,
+          label: 'Find Receiver',
+          loading: _isLoading,
+          enabled: _phoneController.text.trim().isNotEmpty && !_isLoading,
+          onChanged: (_) {
+            if (_resolvedReceiver != null) {
+              setState(() => _resolvedReceiver = null);
+            } else {
+              setState(() {});
+            }
+          },
+          onProceed: _resolveReceiver,
+        ),
+      );
+    }
+
+    if (_currentStep == _SendStep.pin) {
+      return SafeArea(
+        top: false,
+        child: PinConfirmKeypadBar(
+          pinController: _pinController,
+          loading: _isLoading,
+          canConfirm: !_isLoading,
+          onConfirm: _continueToConfirm,
+        ),
+      );
+    }
+
+    return null;
   }
 
   Widget _buildBody() {
@@ -226,6 +271,7 @@ class _SendMoneyScreenState extends ConsumerState<SendMoneyScreen> {
                 },
           loading: _isLoading,
           proceedButtonLabel: 'Find Receiver',
+          showInlineKeypad: false,
           onProceed: _resolveReceiver,
         ),
       ],
@@ -304,6 +350,7 @@ class _SendMoneyScreenState extends ConsumerState<SendMoneyScreen> {
           loading: _isLoading,
           onConfirm: _continueToConfirm,
           onBackToAmount: () => setState(() => _currentStep = _SendStep.amount),
+          showInlineKeypad: false,
           recipient: AmountRecipientCard(
             label: 'Recipient',
             title: receiver.displayName ?? receiver.mobileNumber,

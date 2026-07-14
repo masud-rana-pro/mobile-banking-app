@@ -189,20 +189,61 @@ class _MobileRechargeScreenState extends ConsumerState<MobileRechargeScreen> {
         title: const Text('Mobile Recharge'),
         centerTitle: true,
       ),
+      bottomNavigationBar: isPopupStep ? null : _bottomKeypad(),
       body: isPopupStep
           ? _buildBody()
-          : SingleChildScrollView(
-              padding: const EdgeInsets.all(20),
+          : SafeArea(
               child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  _buildBody(),
-                  const SizedBox(height: 18),
-                  const _InboxHistoryHint(),
+                  Expanded(
+                    child: SingleChildScrollView(
+                      padding: const EdgeInsets.all(20),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          _buildBody(),
+                          const SizedBox(height: 18),
+                          const _InboxHistoryHint(),
+                        ],
+                      ),
+                    ),
+                  ),
                 ],
               ),
             ),
     );
+  }
+
+  Widget? _bottomKeypad() {
+    if (_currentStep == _RechargeStep.recipient) {
+      return SafeArea(
+        top: false,
+        child: NumberProceedKeypadBar(
+          controller: _mobileController,
+          label: 'Next: Enter Amount',
+          loading: _isLoading,
+          enabled: _mobileController.text.trim().isNotEmpty && !_isLoading,
+          onChanged: (_) => setState(() => _recipientProfile = null),
+          onProceed: () {
+            _continueToAmount();
+          },
+        ),
+      );
+    }
+
+    if (_currentStep == _RechargeStep.pin) {
+      return SafeArea(
+        top: false,
+        child: PinConfirmKeypadBar(
+          pinController: _pinController,
+          loading: _isLoading,
+          canConfirm: !_isLoading,
+          onConfirm: _continueToConfirm,
+        ),
+      );
+    }
+
+    return null;
   }
 
   Widget _buildBody() {
@@ -263,6 +304,7 @@ class _MobileRechargeScreenState extends ConsumerState<MobileRechargeScreen> {
           onChanged: (_) => setState(() => _recipientProfile = null),
           loading: _isLoading,
           proceedButtonLabel: 'Next: Enter Amount',
+          showInlineKeypad: false,
           onProceed: () {
             _continueToAmount();
           },
@@ -354,6 +396,7 @@ class _MobileRechargeScreenState extends ConsumerState<MobileRechargeScreen> {
           onConfirm: _continueToConfirm,
           onBackToAmount: () =>
               setState(() => _currentStep = _RechargeStep.amount),
+          showInlineKeypad: false,
           recipient: AmountRecipientCard(
             label: 'Recipient',
             title: recipient?.displayName ?? mobile,

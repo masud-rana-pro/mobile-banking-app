@@ -211,6 +211,17 @@ class _SavingsScreenState extends ConsumerState<SavingsScreen> {
         title: const Text('Savings'),
         centerTitle: true,
       ),
+      bottomNavigationBar: _isDepositPinStep
+          ? SafeArea(
+              top: false,
+              child: PinConfirmKeypadBar(
+                pinController: _pinController,
+                loading: _isDepositing,
+                canConfirm: !_isDepositing,
+                onConfirm: _continueDepositToConfirm,
+              ),
+            )
+          : null,
       body: _isDepositConfirming
           ? _depositConfirmStep()
           : _depositResult != null
@@ -275,6 +286,7 @@ class _SavingsScreenState extends ConsumerState<SavingsScreen> {
           _isDepositPinStep = false;
           _isDepositAmountStep = true;
         }),
+        showInlineKeypad: false,
         recipient: AmountRecipientCard(
           label: 'Savings Goal',
           title: goal.name,

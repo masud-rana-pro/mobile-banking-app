@@ -176,13 +176,58 @@ class _MerchantPaymentScreenState extends ConsumerState<MerchantPaymentScreen> {
         title: const Text('Merchant Payment'),
         centerTitle: true,
       ),
+      bottomNavigationBar: isPopupStep ? null : _bottomKeypad(),
       body: isPopupStep
           ? _buildBody()
-          : SingleChildScrollView(
-              padding: const EdgeInsets.all(20),
-              child: _buildBody(),
+          : SafeArea(
+              child: Column(
+                children: [
+                  Expanded(
+                    child: SingleChildScrollView(
+                      padding: const EdgeInsets.all(20),
+                      child: _buildBody(),
+                    ),
+                  ),
+                ],
+              ),
             ),
     );
+  }
+
+  Widget? _bottomKeypad() {
+    if (_currentStep == _PaymentStep.merchant) {
+      return SafeArea(
+        top: false,
+        child: NumberProceedKeypadBar(
+          controller: _merchantNumberController,
+          label: 'Next: Enter Amount',
+          loading: _isLoading,
+          enabled:
+              _merchantNumberController.text.trim().isNotEmpty && !_isLoading,
+          onChanged: (_) {
+            setState(() {
+              _merchantTarget = null;
+              _idempotencyKey = null;
+            });
+          },
+          onProceed: _resolveMerchant,
+        ),
+      );
+    }
+
+    if (_currentStep == _PaymentStep.pin) {
+      return SafeArea(
+        top: false,
+        child: PinConfirmKeypadBar(
+          pinController: _pinController,
+          loading: _isLoading,
+          canConfirm: !_isLoading,
+          onConfirm: _continueToConfirm,
+        ),
+      );
+    }
+
+    return null;
   }
 
   Widget _buildBody() {
@@ -235,6 +280,7 @@ class _MerchantPaymentScreenState extends ConsumerState<MerchantPaymentScreen> {
                 },
           loading: _isLoading,
           proceedButtonLabel: 'Next: Enter Amount',
+          showInlineKeypad: false,
           onProceed: _resolveMerchant,
         ),
       ],
@@ -325,6 +371,7 @@ class _MerchantPaymentScreenState extends ConsumerState<MerchantPaymentScreen> {
           onConfirm: _continueToConfirm,
           onBackToAmount: () =>
               setState(() => _currentStep = _PaymentStep.amount),
+          showInlineKeypad: false,
           recipient: AmountRecipientCard(
             label: 'Merchant',
             title: target.businessName,

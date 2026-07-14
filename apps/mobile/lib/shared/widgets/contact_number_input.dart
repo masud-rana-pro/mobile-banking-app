@@ -16,6 +16,7 @@ class ContactNumberInput extends StatefulWidget {
     this.proceedButtonLabel = 'Proceed',
     this.loading = false,
     this.keyboardType = TextInputType.phone,
+    this.showInlineKeypad = true,
     super.key,
   });
 
@@ -30,6 +31,7 @@ class ContactNumberInput extends StatefulWidget {
   final String proceedButtonLabel;
   final bool loading;
   final TextInputType keyboardType;
+  final bool showInlineKeypad;
 
   @override
   State<ContactNumberInput> createState() => _ContactNumberInputState();
@@ -54,35 +56,6 @@ class _ContactNumberInputState extends State<ContactNumberInput> {
     widget.controller.text = selected.number;
     widget.onChanged?.call(selected.number);
     setState(() => _selectedContact = selected);
-  }
-
-  void _appendDigit(String value) {
-    if (widget.loading) {
-      return;
-    }
-    widget.controller.text = '${widget.controller.text}$value';
-    widget.onChanged?.call(widget.controller.text);
-    if (_selectedContact != null &&
-        widget.controller.text != _selectedContact!.number) {
-      _selectedContact = null;
-    }
-    setState(() {});
-  }
-
-  void _backspace() {
-    if (widget.loading || widget.controller.text.isEmpty) {
-      return;
-    }
-    widget.controller.text = widget.controller.text.substring(
-      0,
-      widget.controller.text.length - 1,
-    );
-    widget.onChanged?.call(widget.controller.text);
-    if (_selectedContact != null &&
-        widget.controller.text != _selectedContact!.number) {
-      _selectedContact = null;
-    }
-    setState(() {});
   }
 
   @override
@@ -179,18 +152,15 @@ class _ContactNumberInputState extends State<ContactNumberInput> {
             ),
           ),
         ),
-        if (widget.onProceed != null) ...[
+        if (widget.onProceed != null && widget.showInlineKeypad) ...[
           const SizedBox(height: 12),
-          SizedBox(
-            width: double.infinity,
-            child: _NumberProceedKeypad(
-              label: widget.proceedButtonLabel,
-              loading: widget.loading,
-              canProceed: canProceed,
-              onProceed: widget.onProceed,
-              onNumberTap: _appendDigit,
-              onBackspace: _backspace,
-            ),
+          NumberProceedKeypadBar(
+            controller: widget.controller,
+            label: widget.proceedButtonLabel,
+            loading: widget.loading,
+            enabled: canProceed,
+            onProceed: widget.onProceed,
+            onChanged: widget.onChanged,
           ),
         ],
       ],
@@ -198,22 +168,49 @@ class _ContactNumberInputState extends State<ContactNumberInput> {
   }
 }
 
-class _NumberProceedKeypad extends StatelessWidget {
-  const _NumberProceedKeypad({
+class NumberProceedKeypadBar extends StatefulWidget {
+  const NumberProceedKeypadBar({
+    super.key,
+    required this.controller,
     required this.label,
     required this.loading,
-    required this.canProceed,
+    required this.enabled,
     required this.onProceed,
-    required this.onNumberTap,
-    required this.onBackspace,
+    this.onChanged,
   });
 
+  final TextEditingController controller;
   final String label;
   final bool loading;
-  final bool canProceed;
+  final bool enabled;
   final VoidCallback? onProceed;
-  final ValueChanged<String> onNumberTap;
-  final VoidCallback onBackspace;
+  final ValueChanged<String>? onChanged;
+
+  @override
+  State<NumberProceedKeypadBar> createState() => _NumberProceedKeypadBarState();
+}
+
+class _NumberProceedKeypadBarState extends State<NumberProceedKeypadBar> {
+  void _appendDigit(String value) {
+    if (widget.loading) {
+      return;
+    }
+    widget.controller.text = '${widget.controller.text}$value';
+    widget.onChanged?.call(widget.controller.text);
+    setState(() {});
+  }
+
+  void _backspace() {
+    if (widget.loading || widget.controller.text.isEmpty) {
+      return;
+    }
+    widget.controller.text = widget.controller.text.substring(
+      0,
+      widget.controller.text.length - 1,
+    );
+    widget.onChanged?.call(widget.controller.text);
+    setState(() {});
+  }
 
   static const _accent = Color(0xFF008F7A);
 
@@ -233,7 +230,7 @@ class _NumberProceedKeypad extends StatelessWidget {
             width: double.infinity,
             height: 58,
             child: ElevatedButton(
-              onPressed: canProceed ? onProceed : null,
+              onPressed: widget.enabled ? widget.onProceed : null,
               style: ElevatedButton.styleFrom(
                 backgroundColor: _accent,
                 disabledBackgroundColor: const Color(0xFF9E9E9E),
@@ -243,7 +240,7 @@ class _NumberProceedKeypad extends StatelessWidget {
                 ),
                 elevation: 0,
               ),
-              child: loading
+              child: widget.loading
                   ? const SizedBox(
                       width: 24,
                       height: 24,
@@ -257,7 +254,7 @@ class _NumberProceedKeypad extends StatelessWidget {
                       child: Row(
                         children: [
                           Text(
-                            label,
+                            widget.label,
                             style: const TextStyle(
                               fontSize: 18,
                               fontWeight: FontWeight.w900,
@@ -281,7 +278,7 @@ class _NumberProceedKeypad extends StatelessWidget {
                         Expanded(
                           child: _NumberKeypadButton(
                             label: value,
-                            onTap: () => onNumberTap(value),
+                            onTap: () => _appendDigit(value),
                           ),
                         ),
                     ],
@@ -291,19 +288,21 @@ class _NumberProceedKeypad extends StatelessWidget {
                     Expanded(
                       child: _NumberKeypadIconButton(
                         icon: Icons.close,
-                        onTap: onBackspace,
+                        onTap: _backspace,
                       ),
                     ),
                     Expanded(
                       child: _NumberKeypadButton(
                         label: '0',
-                        onTap: () => onNumberTap('0'),
+                        onTap: () => _appendDigit('0'),
                       ),
                     ),
                     Expanded(
                       child: _NumberKeypadIconButton(
                         icon: Icons.keyboard_return,
-                        onTap: canProceed ? (onProceed ?? () {}) : () {},
+                        onTap: widget.enabled
+                            ? (widget.onProceed ?? () {})
+                            : () {},
                       ),
                     ),
                   ],
