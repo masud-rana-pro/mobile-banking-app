@@ -48,7 +48,7 @@ public class LoanRequestServiceImpl implements LoanRequestService {
         ensureActiveUser(user);
         LoanRequest loanRequest = new LoanRequest(user, request.amount(), request.purpose());
         LoanRequest savedRequest = loanRequestRepository.save(loanRequest);
-        transactionRecordRepository.save(new TransactionRecord(
+        TransactionRecord transactionRecord = transactionRecordRepository.save(new TransactionRecord(
                 uniqueTransactionReference(),
                 user,
                 TransactionType.LOAN_REQUEST,
@@ -57,7 +57,16 @@ public class LoanRequestServiceImpl implements LoanRequestService {
                 null,
                 "Loan request submitted: " + request.purpose()
         ));
-        return loanRequestMapper.toResponse(savedRequest);
+        return new LoanRequestResponse(
+                savedRequest.getId(),
+                savedRequest.getAmount(),
+                savedRequest.getPurpose(),
+                savedRequest.getStatus(),
+                transactionRecord.getTransactionReference(),
+                savedRequest.getReviewedAt(),
+                savedRequest.getCreatedAt(),
+                savedRequest.getUpdatedAt()
+        );
     }
 
     @Override

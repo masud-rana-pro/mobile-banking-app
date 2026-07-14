@@ -1,8 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 
 import '../../../core/errors/api_exception.dart';
 import '../../../shared/widgets/feature_flow_widgets.dart';
+import '../../../shared/widgets/hold_to_confirm_screen.dart';
+import '../../notification/presentation/notification_inbox_screen.dart';
 import '../../transaction/providers/transaction_providers.dart';
 import '../domain/loan_request_summary.dart';
 import '../providers/loan_providers.dart';
@@ -17,9 +20,13 @@ class LoanScreen extends ConsumerStatefulWidget {
   ConsumerState<LoanScreen> createState() => _LoanScreenState();
 }
 
+enum _LoanStep { form, confirm, result }
+
 class _LoanScreenState extends ConsumerState<LoanScreen> {
   final _amountController = TextEditingController();
   final _purposeController = TextEditingController();
+  _LoanStep _step = _LoanStep.form;
+  LoanRequestSummary? _submittedRequest;
   bool _isSubmitting = false;
 
   @override
@@ -35,7 +42,7 @@ class _LoanScreenState extends ConsumerState<LoanScreen> {
     super.dispose();
   }
 
-  Future<void> _submitRequest() async {
+  void _continueToConfirm() {
     final amount = double.tryParse(_amountController.text.trim());
     final purpose = _purposeController.text.trim();
 
@@ -49,23 +56,45 @@ class _LoanScreenState extends ConsumerState<LoanScreen> {
       return;
     }
 
+    setState(() => _step = _LoanStep.confirm);
+  }
+
+  Future<void> _submitRequest() async {
+    final amount = double.tryParse(_amountController.text.trim());
+    final purpose = _purposeController.text.trim();
+
+    if (amount == null || amount < 1 || purpose.isEmpty) {
+      setState(() => _step = _LoanStep.form);
+      _showMessage('Enter a valid amount and purpose first.');
+      return;
+    }
+
     setState(() => _isSubmitting = true);
 
     try {
-      await ref.read(loanRepositoryProvider).createRequest(
+      final request = await ref.read(loanRepositoryProvider).createRequest(
             amount: amount,
             purpose: purpose,
           );
-      _amountController.clear();
-      _purposeController.clear();
+      _submittedRequest = request;
       ref.read(loanRefreshProvider)();
       ref.read(transactionRefreshProvider)();
-      _showMessage('Loan request submitted for admin review.');
+      setState(() => _step = _LoanStep.result);
     } catch (error) {
+      setState(() => _step = _LoanStep.form);
       _showMessage(_friendlyError(error, fallback: 'Could not submit loan.'));
     } finally {
       setState(() => _isSubmitting = false);
     }
+  }
+
+  void _resetForm() {
+    setState(() {
+      _step = _LoanStep.form;
+      _submittedRequest = null;
+      _amountController.clear();
+      _purposeController.clear();
+    });
   }
 
   String _friendlyError(Object error, {required String fallback}) {
@@ -85,40 +114,51 @@ class _LoanScreenState extends ConsumerState<LoanScreen> {
   @override
   Widget build(BuildContext context) {
     final requestsAsync = ref.watch(loanRequestsProvider);
+    final isPopupStep = _step == _LoanStep.confirm || _step == _LoanStep.result;
 
     return Scaffold(
       appBar: AppBar(
         title: const Text('Loan'),
         centerTitle: true,
       ),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(20),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            const FeatureIntroCard(
-              icon: Icons.account_balance_outlined,
-              title: 'Loan Request',
-              subtitle:
-                  'Submit a demo loan request and track the status. Wallet credit and repayment are future scope.',
-            ),
-            const SizedBox(height: 22),
-            _requestCard(),
-            const SizedBox(height: 28),
-            const Text(
-              'My Loan Requests',
-              style: TextStyle(
-                fontSize: 20,
-                fontWeight: FontWeight.w800,
-                color: Color(0xFF263238),
+      body: isPopupStep
+          ? _buildPopupBody()
+          : SingleChildScrollView(
+              padding: const EdgeInsets.all(20),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const FeatureIntroCard(
+                    icon: Icons.account_balance_outlined,
+                    title: 'Loan Request',
+                    subtitle:
+                        'Submit a demo loan request and track the status. Wallet credit and repayment are future scope.',
+                  ),
+                  const SizedBox(height: 22),
+                  _requestCard(),
+                  const SizedBox(height: 28),
+                  const Text(
+                    'My Loan Requests',
+                    style: TextStyle(
+                      fontSize: 20,
+                      fontWeight: FontWeight.w800,
+                      color: Color(0xFF263238),
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+                  _requestList(requestsAsync),
+                ],
               ),
             ),
-            const SizedBox(height: 12),
-            _requestList(requestsAsync),
-          ],
-        ),
-      ),
     );
+  }
+
+  Widget _buildPopupBody() {
+    return switch (_step) {
+      _LoanStep.confirm => _confirmStep(),
+      _LoanStep.result => _resultStep(),
+      _LoanStep.form => const SizedBox.shrink(),
+    };
   }
 
   Widget _requestCard() {
@@ -161,13 +201,74 @@ class _LoanScreenState extends ConsumerState<LoanScreen> {
           ),
           const SizedBox(height: 18),
           PrimaryActionButton(
-            label: 'Submit Request',
-            icon: Icons.check,
+            label: 'Review Request',
+            icon: Icons.arrow_forward,
             loading: _isSubmitting,
-            onPressed: _submitRequest,
+            onPressed: _continueToConfirm,
           ),
         ],
       ),
+    );
+  }
+
+  Widget _confirmStep() {
+    final amount =
+        double.tryParse(_amountController.text.trim())?.toStringAsFixed(2) ??
+            '0.00';
+    final purpose = _purposeController.text.trim();
+
+    return HoldToConfirmScreen(
+      actionName: 'Loan Request',
+      accountName: 'SmartKash Loan',
+      accountNumber: purpose,
+      avatarIcon: Icons.account_balance_outlined,
+      isLoading: _isSubmitting,
+      onCancel: () => setState(() => _step = _LoanStep.form),
+      onConfirmed: _submitRequest,
+      details: [
+        HoldToConfirmDetail(
+          label: 'Requested',
+          value: 'Tk $amount',
+          mutedValue: 'No wallet credit now',
+        ),
+        const HoldToConfirmDetail(label: 'Status', value: 'Pending Review'),
+        HoldToConfirmDetail(label: 'Purpose', value: purpose),
+        const HoldToConfirmDetail(label: 'MVP Scope', value: 'Status only'),
+      ],
+    );
+  }
+
+  Widget _resultStep() {
+    final request = _submittedRequest;
+    final amount =
+        request?.amount ?? double.tryParse(_amountController.text.trim()) ?? 0;
+    final purpose = request?.purpose ?? _purposeController.text.trim();
+    final transactionId = request?.transactionReference?.isNotEmpty == true
+        ? request!.transactionReference
+        : request == null
+            ? null
+            : 'LOAN-${request.id}';
+
+    return TransactionConfirmationScreen(
+      success: true,
+      actionName: 'Loan Request',
+      message: 'Your loan request was submitted',
+      accountName: 'SmartKash Loan',
+      accountNumber: purpose,
+      avatarIcon: Icons.account_balance_outlined,
+      totalText: 'à§³${amount.toStringAsFixed(2)}',
+      transactionId: transactionId,
+      time: request?.createdAt,
+      typeText: 'Loan Request',
+      extraLabel: 'Status',
+      extraValue: request?.status ?? 'PENDING',
+      chargeText: 'No disbursement yet',
+      newBalanceText: 'Unchanged',
+      secondaryLabel: 'View Inbox',
+      onSecondaryAction: () =>
+          context.pushNamed(NotificationInboxScreen.routeName),
+      primaryLabel: 'Request Again',
+      onPrimaryAction: _resetForm,
     );
   }
 

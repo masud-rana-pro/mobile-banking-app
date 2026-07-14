@@ -13,6 +13,7 @@ public class LoanRequestMapper {
                 request.getAmount(),
                 request.getPurpose(),
                 request.getStatus(),
+                null,
                 request.getReviewedAt(),
                 request.getCreatedAt(),
                 request.getUpdatedAt()

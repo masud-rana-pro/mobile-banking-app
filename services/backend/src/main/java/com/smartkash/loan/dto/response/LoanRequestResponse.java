@@ -10,6 +10,7 @@ public record LoanRequestResponse(
         BigDecimal amount,
         String purpose,
         LoanStatus status,
+        String transactionReference,
         Instant reviewedAt,
         Instant createdAt,
         Instant updatedAt

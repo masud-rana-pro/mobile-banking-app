@@ -4,6 +4,7 @@ class LoanRequestSummary {
     required this.amount,
     required this.purpose,
     required this.status,
+    this.transactionReference,
     this.reviewedAt,
     this.createdAt,
     this.updatedAt,
@@ -13,6 +14,7 @@ class LoanRequestSummary {
   final double amount;
   final String purpose;
   final String status;
+  final String? transactionReference;
   final DateTime? reviewedAt;
   final DateTime? createdAt;
   final DateTime? updatedAt;
@@ -23,6 +25,7 @@ class LoanRequestSummary {
       amount: (json['amount'] as num?)?.toDouble() ?? 0,
       purpose: json['purpose'] as String? ?? '',
       status: json['status'] as String? ?? '',
+      transactionReference: json['transactionReference'] as String?,
       reviewedAt: json['reviewedAt'] != null
           ? DateTime.tryParse(json['reviewedAt'] as String)
           : null,
