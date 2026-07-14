@@ -99,11 +99,30 @@ class _AddMoneyScreenState extends ConsumerState<AddMoneyScreen> {
         note: _noteController.text.trim(),
       );
 
+      double? latestBalance = result.balanceAfter;
       ref.read(walletRefreshProvider)();
+      try {
+        latestBalance = (await ref.read(walletSummaryProvider.future)).balance;
+      } catch (_) {
+        latestBalance = result.balanceAfter;
+      }
       ref.read(addMoneyRefreshProvider)();
       ref.read(transactionRefreshProvider)();
+      if (!mounted) {
+        return;
+      }
       setState(() {
-        _lastResult = result;
+        _lastResult = AddMoneySummary(
+          id: result.id,
+          amount: result.amount,
+          sourceType: result.sourceType,
+          status: result.status,
+          note: result.note,
+          transactionReference: result.transactionReference,
+          balanceAfter: latestBalance,
+          approvedAt: result.approvedAt,
+          createdAt: result.createdAt,
+        );
         _idempotencyKey = null;
         _amountController.clear();
         _noteController.clear();
