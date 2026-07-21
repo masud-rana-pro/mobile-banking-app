@@ -6,7 +6,7 @@ class FirebaseConfig {
 
   static const bool enabled = bool.fromEnvironment(
     'FIREBASE_ENABLED',
-    defaultValue: false,
+    defaultValue: true,
   );
 
   static const FirebaseOptions androidOptions = FirebaseOptions(
@@ -25,11 +25,12 @@ class FirebaseConfig {
 
   static FirebaseOptions? get currentPlatform {
     if (!enabled) {
-      throw StateError('Firebase is disabled for this app run.');
+      throw StateError('Phone sign-in is disabled for this app run.');
     }
 
     if (defaultTargetPlatform != TargetPlatform.android) {
-      throw UnsupportedError('SmartKash MVP supports Android Firebase first.');
+      throw UnsupportedError(
+          'SmartKash sign-in is currently configured for Android.');
     }
 
     if (!hasAndroidDartDefines) {
