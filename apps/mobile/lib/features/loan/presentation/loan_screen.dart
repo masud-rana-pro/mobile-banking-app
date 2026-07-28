@@ -324,7 +324,7 @@ class _LoanScreenState extends ConsumerState<LoanScreen> {
         crossAxisCount: 2,
         mainAxisSpacing: 10,
         crossAxisSpacing: 10,
-        childAspectRatio: 1.45,
+        mainAxisExtent: 142,
       ),
       itemBuilder: (context, index) {
         final product = _loanProducts[index];
@@ -374,9 +374,13 @@ class _LoanScreenState extends ConsumerState<LoanScreen> {
                 const SizedBox(height: 10),
                 Text(
                   product.label,
-                  maxLines: 1,
+                  maxLines: 2,
                   overflow: TextOverflow.ellipsis,
-                  style: const TextStyle(fontWeight: FontWeight.w900),
+                  style: const TextStyle(
+                    fontSize: 14,
+                    fontWeight: FontWeight.w900,
+                    height: 1.15,
+                  ),
                 ),
                 const SizedBox(height: 4),
                 Text(
