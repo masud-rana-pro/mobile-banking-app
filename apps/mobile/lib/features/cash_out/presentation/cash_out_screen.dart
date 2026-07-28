@@ -32,6 +32,9 @@ class CashOutScreen extends ConsumerStatefulWidget {
 enum _CashOutStep { agent, amount, pin, confirm, result }
 
 class _CashOutScreenState extends ConsumerState<CashOutScreen> {
+  static const double _cashOutChargePerThousand = 13;
+  static const double _chargeBaseAmount = 1000;
+
   final _agentController = TextEditingController();
   final _amountController = TextEditingController();
   final _pinController = TextEditingController();
@@ -180,7 +183,8 @@ class _CashOutScreenState extends ConsumerState<CashOutScreen> {
         .showSnackBar(SnackBar(content: Text(message)));
   }
 
-  double _chargeForAmount(double amount) => amount * 13 / 1000;
+  double _chargeForAmount(double amount) =>
+      amount * _cashOutChargePerThousand / _chargeBaseAmount;
 
   String _moneyText(double amount) => 'Tk ${amount.toStringAsFixed(2)}';
 
@@ -258,7 +262,7 @@ class _CashOutScreenState extends ConsumerState<CashOutScreen> {
           icon: Icons.payments_outlined,
           title: 'Agent Cash Out',
           subtitle:
-              'Enter or scan an agent number first. Amount and PIN confirmation come next.',
+              'Enter or scan an agent number first. Cash Out charge is Tk 13 per Tk 1000.',
         ),
         const SizedBox(height: 22),
         ContactNumberInput(
@@ -315,6 +319,14 @@ class _CashOutScreenState extends ConsumerState<CashOutScreen> {
           availableBalanceText: balanceText,
           proceedLabel: 'Proceed',
           onProceed: _continueToPin,
+        ),
+        const SizedBox(height: 8),
+        const Text(
+          'Cash Out charge: Tk 13 per Tk 1000',
+          style: TextStyle(
+            color: Color(0xFF607D8B),
+            fontWeight: FontWeight.w700,
+          ),
         ),
         const SizedBox(height: 16),
         TextField(
