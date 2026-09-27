@@ -171,7 +171,7 @@ class ApiClient {
     if (error.type == DioExceptionType.connectionError) {
       return ApiException(
         message:
-            'Cannot reach SmartKash backend. Tried ${AppConfig.backendBaseUrl} and local fallback URLs. Start Spring Boot, keep USB debugging connected and run scripts/dev/run_mobile_real_phone.ps1, or run Flutter with --dart-define=SMARTKASH_API_BASE_URL=http://<PC-LAN-IP>:8080 for WiFi testing.',
+            'Cannot reach SmartKash backend. Tried ${AppConfig.backendBaseUrl} and local fallback URLs. Start Spring Boot and map device port 8080 with ADB reverse, or run Flutter with --dart-define=SMARTKASH_API_BASE_URL=http://<PC-LAN-IP>:8080 for WiFi testing.',
       );
     }
 

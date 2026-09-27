@@ -1,5 +1,5 @@
 name: smartkash
-description: SmartKash Flutter cross-platform learning MVP shell.
+description: A cross-platform digital wallet client for SmartKash.
 publish_to: "none"
 version: 0.1.0+1
 

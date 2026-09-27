@@ -1,4 +1,4 @@
-# Environment and secrets
+# Secrets and machine-specific configuration
 .env
 .env.*
 !.env.example
@@ -6,16 +6,22 @@ firebase-service-account*.json
 serviceAccountKey.json
 google-services.json
 GoogleService-Info.plist
+*.jks
+*.keystore
+*.p12
 *.pem
 *.key
 
-# Logs and generated runtime files
-*.log
-logs/
-tmp/
-temp/
+# Local project notes and assistant metadata
+.agents/
+.codex/
+learning/
+**/learning/
+docs/
+scripts/
+**/.gitkeep
 
-# IDE and editor files
+# IDE, editor, and operating-system files
 .idea/
 .vscode/
 *.iml
@@ -24,21 +30,28 @@ temp/
 .project
 .classpath
 .settings/
-
-# OS files
 .DS_Store
 Thumbs.db
 desktop.ini
 
-# Flutter and Dart
+# Logs, temporary files, and local databases
+*.log
+logs/
+tmp/
+temp/
+*.db
+*.sqlite
+*.sqlite3
+generated/
+out/
+
+# Flutter and Dart outputs
 .dart_tool/
 .packages
 .flutter-plugins
 .flutter-plugins-dependencies
 build/
 coverage/
-apps/mobile/.dart_tool/
-apps/mobile/build/
 apps/mobile/android/.gradle/
 apps/mobile/android/local.properties
 apps/mobile/android/app/src/main/java/io/flutter/plugins/GeneratedPluginRegistrant.java
@@ -63,28 +76,16 @@ apps/mobile/linux/flutter/ephemeral/
 apps/mobile/linux/flutter/generated_plugin_registrant.*
 apps/mobile/linux/build/
 
-# Java, Maven, and Spring Boot
+# Java, Maven, and Gradle outputs
 target/
 *.class
 *.jar
 *.war
 *.ear
-services/backend/target/
-services/backend/.mvn/wrapper/maven-wrapper.jar
-!services/backend/.mvn/wrapper/maven-wrapper.jar
-
-# Gradle outputs, if used later
 .gradle/
 gradle-app.setting
 services/backend/build/
+!services/backend/.mvn/wrapper/maven-wrapper.jar
 
-# Database and generated files
-*.db
-*.sqlite
-*.sqlite3
-generated/
-out/
-
-# Local uploaded MVP profile images
-services/backend/src/main/resources/profile-images/*
-!services/backend/src/main/resources/profile-images/.gitkeep
+# Runtime uploads
+services/backend/src/main/resources/profile-images/
